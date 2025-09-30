@@ -4,6 +4,11 @@ from mediapipe.tasks.python import vision
 
 from threading import Lock
 
+from compute_params import (
+    compute_params_from_blendshapes,
+    compute_params_from_matrix,
+)
+
 import socket
 import time
 import cv2
@@ -40,32 +45,30 @@ def send_data(detection_result, timestamp, target):
     ip = udp_target[0]
     port = int(udp_target[1])
 
-    faceFound = True
-
-    temp = {
-        "x": 5,
-        "y": 5,
-        "z": 5
-    }
+    faceFound = False
+    face_params = {"Rotation": {}, "Position": {}}
+    eye_params = {"EyeLeft": {}, "EyeRight": {}}
 
     blendshapes = []
 
     face_blendshapes_list = detection_result.face_blendshapes
-    if len(face_blendshapes_list) == 0:
-        faceFound = False
-    else:
+    if len(face_blendshapes_list) != 0:
+        faceFound = True
         face_blendshapes = face_blendshapes_list[0]
         blendshapes = map(format_blendshapes, face_blendshapes)
+
+        face_params = compute_params_from_matrix(detection_result.facial_transformation_matrixes[0])
+        eye_params = compute_params_from_blendshapes(face_blendshapes)
 
     data = {
         "Timestamp": round(time.time()),
         "Hotkey": -1,
         "FaceFound": faceFound,
-        "Rotation": temp,
-        "Position": temp,
+        "Rotation": face_params["Rotation"],
+        "Position": face_params["Position"],
         "BlendShapes": list(blendshapes),
-        "EyeLeft": temp,
-        "EyeRight": temp,
+        "EyeLeft": eye_params["EyeLeft"],
+        "EyeRight": eye_params["EyeRight"],
     }
 
     jsonstr = json.dumps(data)
