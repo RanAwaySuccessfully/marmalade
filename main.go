@@ -3,6 +3,8 @@
 package main
 
 import (
+	"marmalade/server"
+
 	"fmt"
 	"log"
 	"os"
@@ -11,7 +13,7 @@ import (
 
 func main() {
 	err_channel := make(chan error, 1)
-	go StartServer(err_channel)
+	go server.Start(err_channel)
 
 	sig_channel := make(chan os.Signal, 1)
 	signal.Notify(sig_channel, os.Interrupt)
@@ -23,5 +25,5 @@ func main() {
 		log.Printf("[MARMALADE] Terminating: %v", sig)
 	}
 
-	StopServer()
+	server.Stop()
 }

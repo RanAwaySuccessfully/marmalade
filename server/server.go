@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -31,8 +31,8 @@ type Clients struct {
 	list map[string]*udpMessage
 }
 
-func StartServer(err_ch chan error) {
-	readConfig()
+func Start(err_ch chan error) {
+	ReadConfig()
 
 	listener, err := net.ListenPacket("udp", ":21412")
 	if err != nil {
@@ -104,7 +104,7 @@ func StartServer(err_ch chan error) {
 	cmd.Wait()
 }
 
-func StopServer() {
+func Stop() {
 	clients.exit = true
 }
 

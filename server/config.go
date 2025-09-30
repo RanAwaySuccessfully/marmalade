@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -18,7 +18,7 @@ type ServerConfig struct {
 	UseGpu bool    `json:"use_gpu"`
 }
 
-func readConfig() error {
+func ReadConfig() error {
 	folder := os.Getenv("XDG_CONFIG_HOME")
 	if folder == "" {
 

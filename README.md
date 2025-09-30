@@ -19,7 +19,7 @@ You'll need to install [Go](https://go.dev/).
 
 For building, run: `go build`
 
-For running it without building it, run: `go run -v ./src`
+For running it without building it, run: `go run`
 
 If you want to debug it, it comes with Visual Studio Code configuration. You can debug the entire thing using `Go: Launch Package` or just the Python code by using `Python Debugger: Current File` while having the `main.py` open and selected.
 

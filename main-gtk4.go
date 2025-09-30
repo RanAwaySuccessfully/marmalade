@@ -3,6 +3,8 @@
 package main
 
 import (
+	"marmalade/server"
+
 	"os"
 
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
@@ -23,7 +25,7 @@ func activate(app *gtk.Application) {
 	button := gtk.NewButtonWithLabel("Start")
 	button.Connect("clicked", func() {
 		err_channel := make(chan error, 1)
-		go StartServer(err_channel)
+		go server.Start(err_channel)
 		button.SetLabel("Started")
 	})
 
