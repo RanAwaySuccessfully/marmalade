@@ -35,8 +35,21 @@ class ResultTracker:
             return self.failures > self.max_failures
 
 def format_blendshapes(bs):
+
+    key = bs.category_name[0].upper() + bs.category_name[1:]
+
+    # i need to invert this for VTubing's sake
+    isLeft = key[-4:] == "Left"
+    isRight = key[-5:] == "Right"
+
+    if isLeft:
+        key = key.replace("Left", "Right")
+    
+    if isRight:
+        key = key.replace("Right", "Left")
+
     return {
-        "k": bs.category_name[0].upper() + bs.category_name[1:],
+        "k": key,
         "v": bs.score,
     }
 

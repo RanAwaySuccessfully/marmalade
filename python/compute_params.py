@@ -61,13 +61,13 @@ def compute_params_from_matrix(isometry):
 
     return {
         "Position": {
-            "x": -translation_vector[0],
+            "x": translation_vector[0],
             "y": translation_vector[1],
             "z": -translation_vector[2],
         },
         "Rotation": {
             "x": -angles[1],
-            "y": -angles[2],
-            "z": angles[0],
+            "y": angles[2],
+            "z": -angles[0],
         }
     }
