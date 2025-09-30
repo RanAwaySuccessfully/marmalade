@@ -14,6 +14,7 @@ import time
 import cv2
 import json
 import time
+import argparse
 
 
 class ResultTracker:
@@ -96,21 +97,53 @@ def send_data(detection_result, timestamp, target):
     sock.sendto(bytes(jsonstr, "utf-8"), (ip, port))
 
 
-def main():
-    # webcam reader
-    # make these parameters?
-    # camera_id = args.camera
-    # width = args.width
-    # height = args.height
-    # fps = args.fps
-    camera_id = 2
-    width = 1280
-    height = 720
-    fps = 30
-    use_gpu = False
-    model = 'face_landmarker_v2_with_blendshapes.task'
-    websocket_failures = 5
-    camera_failures = 5
+def get_args():
+    parser = argparse.ArgumentParser(
+        prog="lilacsMediaPipeForward",
+        description="Plugin for VTube Studio that forwards blendshapes and transforms from google's mediapipe face landmarker",
+    )
+    parser.add_argument(
+        "-a",
+        "--auth_file",
+        help="json file containing vtube studio auth token",
+        default="auth.json",
+    )
+    parser.add_argument(
+        "-m",
+        "--model",
+        help="mediapipe model file",
+        default="face_landmarker_v2_with_blendshapes.task",
+    )
+    parser.add_argument(
+        "--address", help="API address for VTube Studio", default="ws://localhost:8001"
+    )
+    parser.add_argument("-c", "--camera", help="index of camera device", default=0)
+    parser.add_argument("-W", "--width", help="width of camera image", default=1280)
+    parser.add_argument("-H", "--height", help="height of camera image", default=720)
+    parser.add_argument("-f", "--fps", help="frame rate of the camera", default=30)
+    parser.add_argument("-g", "--use-gpu", default=False, action="store_true")
+    parser.add_argument(
+        "--camera-failures",
+        help="Number of failed frames to grab before quitting",
+        default=5,
+    )
+    parser.add_argument(
+        "--websocket-failures",
+        help="Number of failed communications to vtube studio before quitting",
+        default=5,
+    )
+    return parser.parse_args()
+
+
+def main(args):
+    camera_id = int(args.camera)
+    width = float(args.width)
+    height = float(args.height)
+    fps = float(args.fps)
+    use_gpu = bool(args.use_gpu)
+    model = args.model
+    websocket_failures = float(args.websocket_failures)
+    camera_failures = float(args.camera_failures)
     target = ''
 
     capture = cv2.VideoCapture()
@@ -186,4 +219,6 @@ def main():
     
     capture.release()
 
-main()
+if __name__ == "__main__":
+    args = get_args()
+    main(args)

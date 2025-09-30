@@ -31,8 +31,8 @@ type Clients struct {
 	list map[string]*udpMessage
 }
 
-func startServer(err_ch chan error) {
-	fmt.Println("[MARMALADE] listening...")
+func StartServer(err_ch chan error) {
+	readConfig()
 
 	listener, err := net.ListenPacket("udp", ":21412")
 	if err != nil {
@@ -40,7 +40,18 @@ func startServer(err_ch chan error) {
 		return
 	}
 
-	cmd := exec.Command("scripts/mediapipe-run.sh")
+	fmt.Println("[MARMALADE] Listening...")
+
+	cmd := exec.Command(
+		"scripts/mediapipe-run.sh",
+		"--camera=2",
+		"--width=1280",
+		"--height=720",
+		"--fps=30",
+		"--model=face_landmarker_v2_with_blendshapes.task",
+		//"--use_gpu", "1",
+	)
+
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		err_ch <- err
@@ -88,14 +99,16 @@ func startServer(err_ch chan error) {
 			err_ch <- err
 		}
 	}
+
+	cmd.Process.Signal(os.Interrupt)
+	cmd.Wait()
 }
 
-func stopServer() {
+func StopServer() {
 	clients.exit = true
 }
 
 func handlePacket(buf []byte, addr net.Addr) error {
-	fmt.Println("[MARMALADE] listened!")
 	var msg udpMessage
 
 	err := json.Unmarshal(buf, &msg)

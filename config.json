@@ -1,0 +1,9 @@
+{
+    "port": 21412,
+    "camera": 2,
+    "width": 1280,
+    "height": 720,
+    "fps": 30,
+    "model": "face_landmarker_v2_with_blendshapes.task",
+    "use_gpu": false
+}

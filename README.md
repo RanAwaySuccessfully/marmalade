@@ -4,9 +4,10 @@ Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Trac
 
 ## Installing
 
-1. Download the latest release.
-2. Download `face_landmarker_v2_with_blendshapes.task` from Google's MediaPipe page.
+1. Download the latest release of Marmalade.
+2. Download `face_landmarker_v2_with_blendshapes.task` from Google's MediaPipe page and place it inside the `python` folder.
 3. Install `python3` and `pip3`.
+4. Run `mediapipe-install.sh`. Make sure to change your active folder via `cd scripts`, or run the file by double-clicking it.
 
 And you're done. You can just run the program at any time, and it'll take care of the rest for you.
 
