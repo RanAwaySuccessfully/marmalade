@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"os"
 )
 
@@ -19,16 +18,18 @@ type ServerConfig struct {
 }
 
 func ReadConfig() error {
-	folder := os.Getenv("XDG_CONFIG_HOME")
-	if folder == "" {
-
-		folder := os.Getenv("HOME")
+	/*
+		folder := os.Getenv("XDG_CONFIG_HOME")
 		if folder == "" {
-			return errors.New("User has no $XDG_CONFIG_HOME and no $HOME environment variables set.")
-		}
 
-		folder = folder + "/.config"
-	}
+			folder := os.Getenv("HOME")
+			if folder == "" {
+				return errors.New("User has no $XDG_CONFIG_HOME and no $HOME environment variables set.")
+			}
+
+			folder = folder + "/.config"
+		}
+	*/
 
 	// check if folder exists, if not, create it...
 	// check if file exists, if not, create it...

@@ -93,8 +93,12 @@ def send_data(detection_result, timestamp, target):
         f.write("\n")
     '''
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.sendto(bytes(jsonstr, "utf-8"), (ip, port))
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.sendto(bytes(jsonstr, "utf-8"), (ip, port))
+        return True
+    except socket.timeout:
+        return False
 
 
 def get_args():
@@ -103,19 +107,10 @@ def get_args():
         description="Plugin for VTube Studio that forwards blendshapes and transforms from google's mediapipe face landmarker",
     )
     parser.add_argument(
-        "-a",
-        "--auth_file",
-        help="json file containing vtube studio auth token",
-        default="auth.json",
-    )
-    parser.add_argument(
         "-m",
         "--model",
         help="mediapipe model file",
         default="face_landmarker_v2_with_blendshapes.task",
-    )
-    parser.add_argument(
-        "--address", help="API address for VTube Studio", default="ws://localhost:8001"
     )
     parser.add_argument("-c", "--camera", help="index of camera device", default=0)
     parser.add_argument("-W", "--width", help="width of camera image", default=1280)
@@ -165,11 +160,11 @@ def main(args):
         image: mp.Image,
         timestamp_ms: int,
     ):
-        send_data(detection_result, timestamp_ms, target)
-        # if result != True:
-        #     result_tracker.add_failure()
-        #else:
-        #    result_tracker.reset()
+        result = send_data(detection_result, timestamp_ms, target)
+        if result != True:
+            result_tracker.add_failure()
+        else:
+            result_tracker.reset()
 
     delagate = python.BaseOptions.Delegate.CPU
     if use_gpu:

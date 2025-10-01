@@ -5,13 +5,27 @@ Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Trac
 ## Installing
 
 1. Download the latest release of Marmalade.
-2. Download `face_landmarker_v2_with_blendshapes.task` from Google's MediaPipe page and place it inside the `python` folder.
+2. Download [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) from Google's MediaPipe page and place it inside the `python` folder.
 3. Install `python3` and `pip3`.
-4. Run `mediapipe-install.sh`. Make sure to change your active folder via `cd scripts`, or run the file by double-clicking it.
+4. (optional¹) Run `mediapipe-install.sh`. Make sure to change your active folder via `cd scripts`, or run the file by double-clicking it.
+
+¹ If Marmalade does not find a .venv folder when starting up, it will automatically attempt to run this step.
 
 And you're done. You can just run the program at any time, and it'll take care of the rest for you.
 
-If you don't have GTK4 installed, you can still run the program via the command line.
+If you don't have GTK4 installed, you can still run the program via the command line. Do note that in that case, you have to edit `config.json` manually.
+
+## Config File
+
+Here's what each field is responsible for:
+
+* port: The UDP port that Marmalade will be listening to. If you don't know what to do with this, keep the default value of `21412`.
+* camera: Camera ID (index). Starts at `0` and goes up from there.
+* width: Camera horizontal resolution.
+* height: Camera vertical resolution.
+* fps: Camera frames per second.
+* model: Filename of the model file that MediaPipe will use for face tracking. Since this is a string value, it is surrouned by `"` (double quotes) unlike the numeric fields above.
+* use_gpu: Set to `true` to attempt to use the GPU for processing MediaPipe, and leave it at `false` otherwise.
 
 ## Building, Testing, Debugging
 

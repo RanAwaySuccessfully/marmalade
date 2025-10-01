@@ -16,6 +16,12 @@ var clients = Clients{
 	list: make(map[string]*udpMessage),
 }
 
+type Clients struct {
+	mu   sync.Mutex
+	exit bool
+	list map[string]*udpMessage
+}
+
 type udpMessage struct {
 	created float64
 	source  string
@@ -25,16 +31,12 @@ type udpMessage struct {
 	Ports   []float64 `json:"ports"`
 }
 
-type Clients struct {
-	mu   sync.Mutex
-	exit bool
-	list map[string]*udpMessage
-}
-
 func Start(err_ch chan error) {
 	ReadConfig()
 
-	listener, err := net.ListenPacket("udp", ":21412")
+	port := fmt.Sprintf(":%d", int(serverConfig.Port))
+
+	listener, err := net.ListenPacket("udp", port)
 	if err != nil {
 		err_ch <- err
 		return
@@ -42,15 +44,33 @@ func Start(err_ch chan error) {
 
 	fmt.Println("[MARMALADE] Listening...")
 
-	cmd := exec.Command(
-		"scripts/mediapipe-run.sh",
-		"--camera=2",
-		"--width=1280",
-		"--height=720",
-		"--fps=30",
-		"--model=face_landmarker_v2_with_blendshapes.task",
-		//"--use_gpu", "1",
-	)
+	camera := fmt.Sprintf("--camera=%d", int(serverConfig.Camera))
+	width := fmt.Sprintf("--width=%d", int(serverConfig.Width))
+	height := fmt.Sprintf("--height=%d", int(serverConfig.Height))
+	fps := fmt.Sprintf("--fps=%d", int(serverConfig.FPS))
+	model := fmt.Sprintf("--model=%s", serverConfig.Model)
+	var cmd *exec.Cmd
+
+	if serverConfig.UseGpu {
+		cmd = exec.Command(
+			"scripts/mediapipe-run.sh",
+			camera,
+			width,
+			height,
+			fps,
+			model,
+			"--use-gpu",
+		)
+	} else {
+		cmd = exec.Command(
+			"scripts/mediapipe-run.sh",
+			camera,
+			width,
+			height,
+			fps,
+			model,
+		)
+	}
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -144,6 +164,7 @@ func sendToClients(stdin io.WriteCloser, err_ch chan error) {
 	for !clients.exit {
 		start := time.Now().UnixMilli()
 
+		// minimum amount of milliseconds this loop iteration must take to maintain 60FPS
 		min := int64(17)
 
 		if counter == 0 {
@@ -163,7 +184,7 @@ func sendToClients(stdin io.WriteCloser, err_ch chan error) {
 
 			for _, port := range msg.Ports {
 				target := ip + ":" + fmt.Sprintf("%d", int(port))
-				_, err := fmt.Fprintln(stdin, target)
+				_, err := fmt.Fprintln(stdin, target) // send target address to the Python script
 				if err != nil {
 					err_ch <- err
 				}
