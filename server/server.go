@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -22,9 +23,10 @@ type udpMessage struct {
 }
 
 type ServerData struct {
-	mu      sync.Mutex
-	exit    bool
-	clients map[string]*udpMessage
+	udpListener net.PacketConn
+	mu          sync.Mutex
+	exit        bool
+	clients     map[string]*udpMessage
 }
 
 var Server = ServerData{
@@ -42,7 +44,8 @@ func (server *ServerData) Start(err_ch chan error) {
 
 	port := fmt.Sprintf(":%d", int(Config.Port))
 
-	listener, err := net.ListenPacket("udp", port)
+	var err error
+	server.udpListener, err = net.ListenPacket("udp", port)
 	if err != nil {
 		err_ch <- err
 		return
@@ -113,15 +116,17 @@ func (server *ServerData) Start(err_ch chan error) {
 	}
 
 	go server.sendToClients(stdin, err_ch)
+	go server.Wait(cmd, err_ch)
 
 	for !server.exit {
 		buf := make([]byte, 1024)
 
-		deadline := time.Now().Add(time.Second)
-		listener.SetDeadline(deadline)
-
-		n, addr, err := listener.ReadFrom(buf)
+		n, addr, err := server.udpListener.ReadFrom(buf)
 		if err != nil {
+			if errors.Is(err, net.ErrClosed) {
+				continue
+			}
+
 			err_ch <- err
 			continue
 		}
@@ -138,13 +143,26 @@ func (server *ServerData) Start(err_ch chan error) {
 	}
 
 	fmt.Println("[MARMALADE] Ending...")
-	cmd.Process.Signal(os.Interrupt)
-	cmd.Wait()
+	fmt.Fprintln(stdin, "end")
 	fmt.Println("[MARMALADE] Ended")
+}
+
+func (server *ServerData) Wait(cmd *exec.Cmd, err_ch chan error) {
+	err := cmd.Wait()
+	if err != nil {
+		// perhaps I should also keep a copy of stderr?
+		err_ch <- err
+	}
+
+	// what if the python server stops but doesn't give an error code?
 }
 
 func (server *ServerData) Stop() {
 	server.exit = true
+
+	if server.udpListener != nil {
+		server.udpListener.Close()
+	}
 }
 
 func (server *ServerData) handlePacket(buf []byte, addr net.Addr) error {

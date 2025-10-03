@@ -194,11 +194,15 @@ def main(args):
         while ended == False:
             target = input()
 
+            if target == "end":
+                break
+
             # Load image
             ret, cv2_image = capture.read()
 
             if result_tracker.is_disconnected():
                 print("No longer recieving from server, disconnecting!")
+                sys.exit(170)
                 break
 
             if ret:
@@ -211,6 +215,7 @@ def main(args):
                 time.sleep(wait_interval_sec)
             if attempts > camera_failures:
                 print("Too many failed attempts getting camera image, quitting")
+                sys.exit(171)
                 break
     except KeyboardInterrupt:
         print("Quitting")
