@@ -24,6 +24,8 @@ func main() {
 		if response == "y" || response == "Y" {
 			fmt.Println("[MARMALADE] Installing MediaPipe...")
 			cmd := exec.Command("scripts/mediapipe-install.sh")
+			cmd.Dir = "scripts"
+
 			err := cmd.Run()
 			if err != nil {
 				fmt.Println("[MARMALADE] Unable to install MediaPipe. Error details below:")
@@ -37,7 +39,8 @@ func main() {
 	}
 
 	err_channel := make(chan error, 1)
-	go server.Start(err_channel)
+	srv := &server.Server
+	go srv.Start(err_channel)
 
 	sig_channel := make(chan os.Signal, 1)
 	signal.Notify(sig_channel, os.Interrupt)
@@ -49,5 +52,5 @@ func main() {
 		log.Printf("[MARMALADE] Terminating: %v", sig)
 	}
 
-	server.Stop()
+	srv.Stop()
 }

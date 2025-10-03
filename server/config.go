@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-var serverConfig ServerConfig
+var Config ServerConfig
 
 type ServerConfig struct {
 	Port   float64 `json:"port"`
@@ -17,7 +17,7 @@ type ServerConfig struct {
 	UseGpu bool    `json:"use_gpu"`
 }
 
-func ReadConfig() error {
+func (config *ServerConfig) Read() error {
 	/*
 		folder := os.Getenv("XDG_CONFIG_HOME")
 		if folder == "" {
@@ -41,7 +41,7 @@ func ReadConfig() error {
 	}
 
 	dec := json.NewDecoder(file)
-	dec.Decode(&serverConfig)
+	dec.Decode(&config)
 
 	file.Close()
 

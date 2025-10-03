@@ -15,6 +15,8 @@ import cv2
 import json
 import time
 import argparse
+import signal
+import sys
 
 
 class ResultTracker:
@@ -129,6 +131,7 @@ def get_args():
     )
     return parser.parse_args()
 
+ended = False
 
 def main(args):
     camera_id = int(args.camera)
@@ -188,7 +191,7 @@ def main(args):
     wait_interval_sec = 0.1 / fps  # wait 10% of the time to get a frame
 
     try:
-        while True:
+        while ended == False:
             target = input()
 
             # Load image
@@ -213,6 +216,13 @@ def main(args):
         print("Quitting")
     
     capture.release()
+
+def signal_handler(sig, frame):
+    print('Interrupt received.')
+    global ended
+    ended = True
+
+signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == "__main__":
     args = get_args()

@@ -1,0 +1,20 @@
+{
+    "gopls": {
+        "build.buildFlags": [
+            "--tags",
+            "withgtk4"
+        ]
+    },
+    "files.associations": {
+        "chrono": "c",
+        "ranges": "c",
+        "variant": "c",
+        "random": "c",
+        "libv4l2.h": "c",
+        "errno.h": "c",
+        "v4l2.h": "c",
+        "functional": "c",
+        "string.h": "c",
+        "sstream": "c"
+    }
+}

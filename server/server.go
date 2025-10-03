@@ -12,16 +12,6 @@ import (
 	"time"
 )
 
-var clients = Clients{
-	list: make(map[string]*udpMessage),
-}
-
-type Clients struct {
-	mu   sync.Mutex
-	exit bool
-	list map[string]*udpMessage
-}
-
 type udpMessage struct {
 	created float64
 	source  string
@@ -31,10 +21,26 @@ type udpMessage struct {
 	Ports   []float64 `json:"ports"`
 }
 
-func Start(err_ch chan error) {
-	ReadConfig()
+type ServerData struct {
+	mu      sync.Mutex
+	exit    bool
+	clients map[string]*udpMessage
+}
 
-	port := fmt.Sprintf(":%d", int(serverConfig.Port))
+var Server = ServerData{
+	clients: make(map[string]*udpMessage),
+	exit:    true,
+}
+
+func (server *ServerData) Started() bool {
+	return !server.exit
+}
+
+func (server *ServerData) Start(err_ch chan error) {
+	server.exit = false
+	Config.Read()
+
+	port := fmt.Sprintf(":%d", int(Config.Port))
 
 	listener, err := net.ListenPacket("udp", port)
 	if err != nil {
@@ -44,16 +50,19 @@ func Start(err_ch chan error) {
 
 	fmt.Println("[MARMALADE] Listening...")
 
-	camera := fmt.Sprintf("--camera=%d", int(serverConfig.Camera))
-	width := fmt.Sprintf("--width=%d", int(serverConfig.Width))
-	height := fmt.Sprintf("--height=%d", int(serverConfig.Height))
-	fps := fmt.Sprintf("--fps=%d", int(serverConfig.FPS))
-	model := fmt.Sprintf("--model=%s", serverConfig.Model)
+	camera := fmt.Sprintf("--camera=%d", int(Config.Camera))
+	width := fmt.Sprintf("--width=%d", int(Config.Width))
+	height := fmt.Sprintf("--height=%d", int(Config.Height))
+	fps := fmt.Sprintf("--fps=%d", int(Config.FPS))
+	model := fmt.Sprintf("--model=%s", Config.Model)
 	var cmd *exec.Cmd
 
-	if serverConfig.UseGpu {
+	if Config.UseGpu {
 		cmd = exec.Command(
-			"scripts/mediapipe-run.sh",
+			"env",
+			"VIRTUAL_ENV=../.venv",
+			"../.venv/bin/python3",
+			"main.py",
 			camera,
 			width,
 			height,
@@ -63,7 +72,10 @@ func Start(err_ch chan error) {
 		)
 	} else {
 		cmd = exec.Command(
-			"scripts/mediapipe-run.sh",
+			"env",
+			"VIRTUAL_ENV=../.venv",
+			"../.venv/bin/python3",
+			"main.py",
 			camera,
 			width,
 			height,
@@ -72,6 +84,7 @@ func Start(err_ch chan error) {
 		)
 	}
 
+	cmd.Dir = "python"
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		err_ch <- err
@@ -99,10 +112,14 @@ func Start(err_ch chan error) {
 		return
 	}
 
-	go sendToClients(stdin, err_ch)
+	go server.sendToClients(stdin, err_ch)
 
-	for !clients.exit {
+	for !server.exit {
 		buf := make([]byte, 1024)
+
+		deadline := time.Now().Add(time.Second)
+		listener.SetDeadline(deadline)
+
 		n, addr, err := listener.ReadFrom(buf)
 		if err != nil {
 			err_ch <- err
@@ -114,21 +131,23 @@ func Start(err_ch chan error) {
 		}
 
 		data := buf[:n]
-		err = handlePacket(data, addr)
+		err = server.handlePacket(data, addr)
 		if err != nil {
 			err_ch <- err
 		}
 	}
 
+	fmt.Println("[MARMALADE] Ending...")
 	cmd.Process.Signal(os.Interrupt)
 	cmd.Wait()
+	fmt.Println("[MARMALADE] Ended")
 }
 
-func Stop() {
-	clients.exit = true
+func (server *ServerData) Stop() {
+	server.exit = true
 }
 
-func handlePacket(buf []byte, addr net.Addr) error {
+func (server *ServerData) handlePacket(buf []byte, addr net.Addr) error {
 	var msg udpMessage
 
 	err := json.Unmarshal(buf, &msg)
@@ -150,18 +169,18 @@ func handlePacket(buf []byte, addr net.Addr) error {
 
 	msg.source = addr.String()
 	msg.Time *= 1000
-	clients.mu.Lock()
-	clients.list[msg.SentBy] = &msg
-	clients.mu.Unlock()
+	server.mu.Lock()
+	server.clients[msg.SentBy] = &msg
+	server.mu.Unlock()
 
 	return nil
 }
 
-func sendToClients(stdin io.WriteCloser, err_ch chan error) {
+func (server *ServerData) sendToClients(stdin io.WriteCloser, err_ch chan error) {
 
 	counter := 0
 
-	for !clients.exit {
+	for !server.exit {
 		start := time.Now().UnixMilli()
 
 		// minimum amount of milliseconds this loop iteration must take to maintain 60FPS
@@ -171,12 +190,12 @@ func sendToClients(stdin io.WriteCloser, err_ch chan error) {
 			min = 16
 		}
 
-		clients.mu.Lock()
+		server.mu.Lock()
 
-		for clientId, msg := range clients.list {
+		for clientId, msg := range server.clients {
 
 			if msg.Time <= 0 {
-				delete(clients.list, clientId)
+				delete(server.clients, clientId)
 				continue
 			}
 
@@ -193,7 +212,7 @@ func sendToClients(stdin io.WriteCloser, err_ch chan error) {
 			msg.Time -= float64(min)
 		}
 
-		clients.mu.Unlock()
+		server.mu.Unlock()
 
 		end := time.Now().UnixMilli()
 		diff := end - start

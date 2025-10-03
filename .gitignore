@@ -1,5 +1,5 @@
 .venv
-python/face_landmarker_v2_with_blendshapes.task
+python/*.task
 __pycache__
 __debug*
 marmalade
