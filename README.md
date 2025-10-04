@@ -8,7 +8,7 @@ Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Trac
 2. Download [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) from Google's MediaPipe page and place it inside the `python` folder.
 3. Install `python3`, `python3-venv` and `pip3`.
 4. (optional)¹ Run `mediapipe-install.sh`. Make sure to change your active folder via `cd scripts`, or run the file by double-clicking it.
-5. (optional)² Make sure you have `gtk4` and `libv4l-0` installed.
+5. (optional)² Make sure you have `gtk-4` and `libv4l-0` installed.
 
 <small>¹ If Marmalade does not find a .venv folder when starting up, it will ask you if it should run this step for you. This will fail if you haven't done Step 3 yet.
 
@@ -32,7 +32,7 @@ Here's what each field is responsible for:
 
 You'll need to install [Go](https://go.dev/).
 
-For building, run: `go build`
+For building, run: `go build -v`
 
 For running it without building it, run: `go run -v ./` or `go run -tags withgtk4 -v ./`
 
@@ -42,6 +42,8 @@ If you want to debug it, it comes with some Visual Studio Code configuration. Yo
 
 Still thinking about what license to use, but it'll definitely be open source.
 
+This project uses [gotk4](https://github.com/diamondburned/gotk4), which are [GTK4](https://docs.gtk.org/gtk4/) language bindings for Go. This project does **not** use libadwaita.
+
 Relies heavily on code written by lilacGalaxy on this [GitHub Repo](https://github.com/lilac-galaxy/lilacs-mediapipe-forward-vts-plugin).
 
-Uses [gotk4](https://github.com/diamondburned/gotk4) for its GUI.
+Somewhat inspired by [Facetracker](https://github.com/Z-Ray-Entertainment/Facetracker) which uses OpenSeeFace instead.

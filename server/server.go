@@ -152,9 +152,9 @@ func (server *ServerData) Wait(cmd *exec.Cmd, err_ch chan error) {
 	if err != nil {
 		// perhaps I should also keep a copy of stderr?
 		err_ch <- err
+	} else {
+		err_ch <- os.ErrProcessDone
 	}
-
-	// what if the python server stops but doesn't give an error code?
 }
 
 func (server *ServerData) Stop() {

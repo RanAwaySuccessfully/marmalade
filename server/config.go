@@ -47,3 +47,17 @@ func (config *ServerConfig) Read() error {
 
 	return nil
 }
+
+func (config *ServerConfig) Save() error {
+	file, err := os.OpenFile("config.json", os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 0o600)
+	if err != nil {
+		return err
+	}
+
+	enc := json.NewEncoder(file)
+	enc.SetIndent("", "    ")
+	enc.Encode(&config)
+
+	file.Close()
+	return nil
+}
