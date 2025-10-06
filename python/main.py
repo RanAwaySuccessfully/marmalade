@@ -2,22 +2,24 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-from threading import Lock
+import cv2 # opencv-python
 
 from compute_params import (
     compute_params_from_blendshapes,
     compute_params_from_matrix,
 )
 
+from threading import Lock
 import socket
 import time
-import cv2
 import json
-import time
 import argparse
 import signal
 import sys
+import threading
 
+
+targets = set()
 
 class ResultTracker:
     def __init__(self, max_failures):
@@ -56,11 +58,7 @@ def format_blendshapes(bs):
         "v": bs.score,
     }
 
-def send_data(detection_result, timestamp, target):
-    udp_target = target.split(":")
-    ip = udp_target[0]
-    port = int(udp_target[1])
-
+def send_data(detection_result, timestamp):
     faceFound = False
     face_params = {"Rotation": {}, "Position": {}}
     eye_params = {"EyeLeft": {}, "EyeRight": {}}
@@ -88,19 +86,20 @@ def send_data(detection_result, timestamp, target):
     }
 
     jsonstr = json.dumps(data)
+    success = True
 
-    '''
-    with open("debug.log", "a") as f:
-        f.write(jsonstr)
-        f.write("\n")
-    '''
+    for target in targets:
+        udp_target = target.split(":")
+        ip = udp_target[0]
+        port = int(udp_target[1])
 
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.sendto(bytes(jsonstr, "utf-8"), (ip, port))
-        return True
-    except socket.timeout:
-        return False
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.sendto(bytes(jsonstr, "utf-8"), (ip, port))
+        except socket.timeout:
+            success = False
+    
+    return success
 
 
 def get_args():
@@ -118,6 +117,7 @@ def get_args():
     parser.add_argument("-W", "--width", help="width of camera image", default=1280)
     parser.add_argument("-H", "--height", help="height of camera image", default=720)
     parser.add_argument("-f", "--fps", help="frame rate of the camera", default=30)
+    parser.add_argument("-t", "--fmt", help="encoding format", default='YUYV')
     parser.add_argument("-g", "--use-gpu", default=False, action="store_true")
     parser.add_argument(
         "--camera-failures",
@@ -142,13 +142,15 @@ def main(args):
     model = args.model
     websocket_failures = float(args.websocket_failures)
     camera_failures = float(args.camera_failures)
-    target = ''
+    cam_format = args.fmt
 
-    capture = cv2.VideoCapture()
+    # print(cam_format)
+    capture = cv2.VideoCapture(camera_id, cv2.CAP_V4L2)
+    capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*cam_format))
     capture.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     capture.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
     capture.set(cv2.CAP_PROP_FPS, fps)
-    capture.open(camera_id)
+    # capture.open(camera_id)
     time.sleep(0.02)  # allow camera to initialize
 
     if capture.isOpened() == False:
@@ -163,7 +165,7 @@ def main(args):
         image: mp.Image,
         timestamp_ms: int,
     ):
-        result = send_data(detection_result, timestamp_ms, target)
+        result = send_data(detection_result, timestamp_ms)
         if result != True:
             result_tracker.add_failure()
         else:
@@ -187,18 +189,24 @@ def main(args):
     )
 
     detector = vision.FaceLandmarker.create_from_options(options)
+    # print(capture.get(cv2.CAP_PROP_FPS))
+    # fourcc = capture.get(cv2.CAP_PROP_FOURCC)
+    # print(int(fourcc).to_bytes(4, byteorder=sys.byteorder).decode())
     fps = capture.get(cv2.CAP_PROP_FPS)
     wait_interval_sec = 0.1 / fps  # wait 10% of the time to get a frame
+    # min_wait = 0.016
 
     try:
-        while ended == False:
-            target = input()
+        while not ended:
+            if len(targets) == 0:
+                change = input()
+                t1 = threading.Thread(target=target_update, args=(change,))
+                t1.start()
 
-            if target == "end":
-                break
-
+            # start = time.time()
             # Load image
             ret, cv2_image = capture.read()
+            # print((time.time() - start) * 1000)
 
             if result_tracker.is_disconnected():
                 print("No longer recieving from server, disconnecting!")
@@ -222,10 +230,41 @@ def main(args):
     
     capture.release()
 
+def target_update(first_change):
+    change = first_change
+    idle = False
+
+    global targets
+    while not idle:
+        if change == "":
+            change = input()
+
+        if change == "end":
+            global ended
+            ended = True
+            idle = True
+        else:
+            operation = change[0]
+            target = change[1:]
+
+            if operation == "-":
+                targets.remove(target)
+            else:
+                targets.add(target)
+
+        change = ""
+
+        if (len(targets) <= 0):
+            idle = True
+        
+
 def signal_handler(sig, frame):
     print('Interrupt received.')
     global ended
     ended = True
+
+    global targets
+    targets.clear()
 
 signal.signal(signal.SIGINT, signal_handler)
 

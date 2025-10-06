@@ -3,6 +3,7 @@ python/*.task
 __pycache__
 __debug*
 marmalade
+marmalade-gtk4
 
 # Go workspace file
 go.work

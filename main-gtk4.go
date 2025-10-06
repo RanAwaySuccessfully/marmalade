@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	app := gtk.NewApplication("com.github.ranawaysuccessfully.marmalade", gio.ApplicationDefaultFlags)
+	app := gtk.NewApplication("xyz.randev.marmalade", gio.ApplicationDefaultFlags)
 	app.ConnectActivate(func() { gtk4.Activate(app) })
 
 	if code := app.Run(os.Args); code > 0 {

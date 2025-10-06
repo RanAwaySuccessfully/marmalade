@@ -12,6 +12,14 @@
             "program": "${workspaceFolder}"
         },
         {
+            "name": "Go: Debug GTK 4 Build",
+            "type": "go",
+            "request": "launch",
+            "mode": "exec",
+            "program": "marmalade-gtk4",
+            "preLaunchTask": "goWithGtk4"
+        },
+        {
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",

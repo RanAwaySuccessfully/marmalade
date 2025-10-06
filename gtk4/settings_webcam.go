@@ -51,6 +51,10 @@ func fill_camera_list(input *gtk.DropDown) error {
 		return err
 	}
 
+	if len(cameras) == 0 {
+		return nil
+	}
+
 	var camera_list []string
 	selected_index := -1
 

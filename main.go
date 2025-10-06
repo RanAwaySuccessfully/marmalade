@@ -23,7 +23,7 @@ func main() {
 
 		if response == "y" || response == "Y" {
 			fmt.Println("[MARMALADE] Installing MediaPipe...")
-			cmd := exec.Command("scripts/mediapipe-install.sh")
+			cmd := exec.Command("./mediapipe-install.sh")
 			cmd.Dir = "scripts"
 
 			err := cmd.Run()

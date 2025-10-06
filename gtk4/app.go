@@ -18,7 +18,7 @@ func Activate(app *gtk.Application) {
 
 	display := window.Widget.Display()
 	css := gtk.NewCSSProvider()
-	css.LoadFromPath("css/style.css")
+	css.LoadFromPath("resources/style.css")
 	gtk.StyleContextAddProviderForDisplay(display, css, 0)
 
 	window.SetTitlebar(titlebar)
@@ -68,7 +68,7 @@ func Activate(app *gtk.Application) {
 
 	/* ERROR HANDLING */
 
-	check_venv_folder(window)
+	check_venv_folder(window, err_channel)
 
 	error_window, error_label := create_error_window()
 	go error_handler(button, error_window, error_label, err_channel)

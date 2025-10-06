@@ -1,22 +1,17 @@
 #include "v4l2.h"
 
-int check_real_video_capture_device(char* device_filepath, char* cardname) {
-    int dev = v4l2_open(device_filepath, 0);
-    if (dev == -1) {
-        return -errno;
-    }
+int get_errno() {
+    return errno;
+}
 
-    struct v4l2_capability capabilities;
+int m_v4l2_open(char* file, int oflag) {
+    return v4l2_open(file, oflag);
+}
 
-    int ret = v4l2_ioctl(dev, VIDIOC_QUERYCAP, &capabilities);
-    if (ret == -1) {
-        return -errno;
-    }
+int m_v4l2_vidioc_querycap(int fd, struct v4l2_capability* capabilities) {
+    return v4l2_ioctl(fd, VIDIOC_QUERYCAP, capabilities);
+}
 
-    strcpy(cardname, capabilities.card);
-
-    // V4L2_CAP_META_CAPTURE
-    int result = ((capabilities.device_caps & V4L2_CAP_VIDEO_CAPTURE) == V4L2_CAP_VIDEO_CAPTURE);
-    v4l2_close(dev);
-    return result;
+int m_v4l2_vidioc_enum_fmt(int fd, struct v4l2_fmtdesc* capabilities) {
+    return v4l2_ioctl(fd, VIDIOC_ENUM_FMT, capabilities);
 }

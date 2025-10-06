@@ -5,4 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-int check_real_video_capture_device(char* device_filepath, char* cardname);
+int get_errno();
+
+int m_v4l2_open(char* file, int oflag);
+int m_v4l2_vidioc_querycap(int fd, struct v4l2_capability* capabilities);
+int m_v4l2_vidioc_enum_fmt(int fd, struct v4l2_fmtdesc* capabilities);

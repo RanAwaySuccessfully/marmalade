@@ -16,6 +16,7 @@ import (
 type udpMessage struct {
 	created float64
 	source  string
+	fresh   bool
 	Type    string    `json:"messageType"`
 	Time    float64   `json:"time"`
 	SentBy  string    `json:"sentBy"`
@@ -58,6 +59,7 @@ func (server *ServerData) Start(err_ch chan error) {
 	height := fmt.Sprintf("--height=%d", int(Config.Height))
 	fps := fmt.Sprintf("--fps=%d", int(Config.FPS))
 	model := fmt.Sprintf("--model=%s", Config.Model)
+	cam_fmt := fmt.Sprintf("--fmt=%s", Config.Format)
 	var cmd *exec.Cmd
 
 	if Config.UseGpu {
@@ -71,6 +73,7 @@ func (server *ServerData) Start(err_ch chan error) {
 			height,
 			fps,
 			model,
+			cam_fmt,
 			"--use-gpu",
 		)
 	} else {
@@ -84,6 +87,7 @@ func (server *ServerData) Start(err_ch chan error) {
 			height,
 			fps,
 			model,
+			cam_fmt,
 		)
 	}
 
@@ -115,7 +119,7 @@ func (server *ServerData) Start(err_ch chan error) {
 		return
 	}
 
-	go server.sendToClients(stdin, err_ch)
+	go server.updateClients(stdin, err_ch)
 	go server.Wait(cmd, err_ch)
 
 	for !server.exit {
@@ -187,47 +191,53 @@ func (server *ServerData) handlePacket(buf []byte, addr net.Addr) error {
 
 	msg.source = addr.String()
 	msg.Time *= 1000
+
 	server.mu.Lock()
+	if server.clients[msg.SentBy] == nil {
+		msg.fresh = true
+	} else {
+		msg.fresh = server.clients[msg.SentBy].fresh
+	}
+
 	server.clients[msg.SentBy] = &msg
 	server.mu.Unlock()
 
 	return nil
 }
 
-func (server *ServerData) sendToClients(stdin io.WriteCloser, err_ch chan error) {
-
-	counter := 0
+func (server *ServerData) updateClients(stdin io.WriteCloser, err_ch chan error) {
 
 	for !server.exit {
 		start := time.Now().UnixMilli()
 
-		// minimum amount of milliseconds this loop iteration must take to maintain 60FPS
-		min := int64(17)
-
-		if counter == 0 {
-			min = 16
-		}
+		min := int64(100)
 
 		server.mu.Lock()
 
-		for clientId, msg := range server.clients {
+		for clientId, client := range server.clients {
 
-			if msg.Time <= 0 {
+			ip, _, _ := strings.Cut(client.source, ":")
+
+			if client.Time <= 0 {
 				delete(server.clients, clientId)
-				continue
-			}
-
-			ip, _, _ := strings.Cut(msg.source, ":")
-
-			for _, port := range msg.Ports {
-				target := ip + ":" + fmt.Sprintf("%d", int(port))
-				_, err := fmt.Fprintln(stdin, target) // send target address to the Python script
+				err := server.sendUpdate(stdin, "-", ip, client.Ports)
 				if err != nil {
 					err_ch <- err
 				}
+
+				continue
 			}
 
-			msg.Time -= float64(min)
+			if client.fresh {
+				err := server.sendUpdate(stdin, "+", ip, client.Ports)
+				if err != nil {
+					err_ch <- err
+				}
+
+				client.fresh = false
+			}
+
+			client.Time -= float64(min)
 		}
 
 		server.mu.Unlock()
@@ -239,8 +249,17 @@ func (server *ServerData) sendToClients(stdin io.WriteCloser, err_ch chan error)
 			waitFor := time.Duration(min - diff)
 			time.Sleep(waitFor * time.Millisecond)
 		}
-
-		counter++
-		counter %= 3
 	}
+}
+
+func (server *ServerData) sendUpdate(stdin io.WriteCloser, action string, ip string, ports []float64) error {
+	for _, port := range ports {
+		data := fmt.Sprintf("%s%s:%d", action, ip, int(port))
+		_, err := fmt.Fprintln(stdin, data)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

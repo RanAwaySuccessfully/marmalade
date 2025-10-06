@@ -9,7 +9,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
-func check_venv_folder(app_window *gtk.ApplicationWindow) {
+func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
 	info, err := os.Stat(".venv")
 	if err != nil || !info.IsDir() {
 
@@ -59,7 +59,7 @@ func check_venv_folder(app_window *gtk.ApplicationWindow) {
 			spinner.InsertBefore(box, label)
 			spinner.Start()
 
-			go install_mediapipe(spinner)
+			go install_mediapipe(spinner, err_chan)
 
 			spinner.Connect("notify::spinning", func() {
 				app_window.SetVisible(true)
@@ -70,12 +70,14 @@ func check_venv_folder(app_window *gtk.ApplicationWindow) {
 	}
 }
 
-func install_mediapipe(spinner *gtk.Spinner) error {
-	cmd := exec.Command("scripts/mediapipe-install.sh")
+func install_mediapipe(spinner *gtk.Spinner, err_chan chan error) {
+	cmd := exec.Command("./mediapipe-install.sh")
 	cmd.Dir = "scripts"
 
 	err := cmd.Run()
-
 	spinner.Stop()
-	return err
+
+	if err != nil {
+		err_chan <- err
+	}
 }

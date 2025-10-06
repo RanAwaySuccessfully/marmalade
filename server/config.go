@@ -13,6 +13,7 @@ type ServerConfig struct {
 	Width  float64 `json:"width"`
 	Height float64 `json:"height"`
 	FPS    float64 `json:"fps"`
+	Format string  `json:"format"`
 	Model  string  `json:"model"`
 	UseGpu bool    `json:"use_gpu"`
 }

@@ -16,6 +16,8 @@ type cameraWidgets struct {
 	height_input *gtk.Entry
 	fps_label    *gtk.Label
 	fps_input    *gtk.Entry
+	format_label *gtk.Label
+	format_input *gtk.Entry
 }
 
 func create_camera_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
@@ -75,6 +77,17 @@ func create_camera_widgets() cameraWidgets {
 		update_numeric_config(fps_input, &server.Config.FPS)
 	})
 
+	format_label := gtk.NewLabel("Format:")
+	format_label.SetHAlign(gtk.AlignStart)
+	format_input := gtk.NewEntry()
+	model := fmt.Sprintf(server.Config.Format)
+	format_input.SetText(model)
+
+	format_input.Connect("changed", func() {
+		value := format_input.Text()
+		server.Config.Format = value
+	})
+
 	widgets := cameraWidgets{
 		width_label,
 		width_input,
@@ -82,6 +95,8 @@ func create_camera_widgets() cameraWidgets {
 		height_input,
 		fps_label,
 		fps_input,
+		format_label,
+		format_input,
 	}
 
 	return widgets
@@ -91,6 +106,7 @@ func show_camera_widgets(grid *gtk.Grid, widgets *cameraWidgets, row int) {
 	grid.InsertRow(row)
 	grid.InsertRow(row + 1)
 	grid.InsertRow(row + 2)
+	grid.InsertRow(row + 3)
 
 	grid.Attach(widgets.width_label, 0, row, 1, 1)
 	grid.Attach(widgets.width_input, 1, row, 1, 1)
@@ -100,9 +116,13 @@ func show_camera_widgets(grid *gtk.Grid, widgets *cameraWidgets, row int) {
 
 	grid.Attach(widgets.fps_label, 0, row+2, 1, 1)
 	grid.Attach(widgets.fps_input, 1, row+2, 1, 1)
+
+	grid.Attach(widgets.format_label, 0, row+3, 1, 1)
+	grid.Attach(widgets.format_input, 1, row+3, 1, 1)
 }
 
 func hide_camera_widgets(grid *gtk.Grid, row int) {
+	grid.RemoveRow(row + 3)
 	grid.RemoveRow(row + 2)
 	grid.RemoveRow(row + 1)
 	grid.RemoveRow(row)

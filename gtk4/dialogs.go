@@ -11,19 +11,22 @@ import (
 )
 
 func create_about_dialog() {
-	var authors []string
+	authors := make([]string, 0, 1)
 	authors = append(authors, "RanAwaySuccessfully")
 
-	var artists []string
+	artists := make([]string, 0, 1)
 	artists = append(artists, "vexamour")
+
+	logo_file := gtk.NewPictureForFilename("resources/icons/marmalade.svg")
+	logo := logo_file.Paintable()
 
 	dialog := gtk.NewAboutDialog()
 	dialog.SetProgramName("Marmalade")
 	dialog.SetComments("API server for MediaPipe, mimicking VTube Studio for iPhone")
-	dialog.SetLogoIconName("dialog-question")
+	dialog.SetLogo(logo)
 	dialog.SetWebsite("https://github.com/RanAwaySuccessfully/marmalade")
 	dialog.SetWebsiteLabel("GitHub")
-	dialog.SetVersion("version B1")
+	dialog.SetVersion("v0.1.0")
 	dialog.SetAuthors(authors)
 	dialog.AddCreditSection("Logo by", artists)
 	dialog.SetVisible(true)

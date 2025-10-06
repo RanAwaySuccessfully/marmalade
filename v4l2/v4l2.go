@@ -19,6 +19,9 @@ type VideoCapture struct {
 	Name  string
 }
 
+type VideoFormat struct {
+}
+
 func GetInputDevices() ([]VideoCapture, error) {
 	devices, err := os.ReadDir("/dev/")
 	if err != nil {
@@ -45,23 +48,61 @@ func GetInputDevices() ([]VideoCapture, error) {
 			return nil, err
 		}
 
-		cardname_size := C.sizeof_uchar * 33
-		cardname_c := C.malloc(C.ulong(cardname_size))
-		cardname_c_char := (*C.char)(cardname_c)
-
 		c_path := C.CString("/dev/" + name)
-		result := C.check_real_video_capture_device(c_path, cardname_c_char)
+		device := C.m_v4l2_open(c_path, C.int(0))
+		if device == -1 {
+			err := get_errno()
+			return nil, err
+		}
+
+		capabilities := C.struct_v4l2_capability{}
+		result := C.m_v4l2_vidioc_querycap(device, &capabilities)
+		if result == -1 {
+			err := get_errno()
+			return nil, err
+		}
+
+		cardname_c := unsafe.Pointer(&capabilities.card[0])
+		cardname := C.GoString((*C.char)(cardname_c))
+
+		isVideoCapture := ((capabilities.device_caps & C.V4L2_CAP_VIDEO_CAPTURE) == C.V4L2_CAP_VIDEO_CAPTURE)
+		//isVideoCapture2 := ((capabilities.device_caps & C.V4L2_CAP_META_CAPTURE) == C.V4L2_CAP_META_CAPTURE)
+
+		/*
+			fmt_index := C.uint(0)
+
+			format := C.struct_v4l2_fmtdesc{
+				index:     fmt_index,
+				_type:     C.V4L2_BUF_TYPE_VIDEO_CAPTURE,
+				mbus_code: 0,
+			}
+
+			result = C.m_v4l2_vidioc_enum_fmt(device, &format)
+			if result == -1 {
+				err := get_errno()
+				return nil, err
+			}
+
+			fmtdesc_c := unsafe.Pointer(&format.description[0])
+			fmtdesc := C.GoString((*C.char)(fmtdesc_c))
+			println(fmtdesc)
+		*/
+
+		/*
+			https://www.kernel.org/doc/html/v6.14/userspace-api/media/v4l/vidioc-enum-fmt.html
+			https://www.kernel.org/doc/html/v6.14/userspace-api/media/v4l/vidioc-enum-framesizes.html#c.V4L.VIDIOC_ENUM_FRAMESIZES
+			https://www.kernel.org/doc/html/v6.14/userspace-api/media/v4l/vidioc-enum-frameintervals.html#c.V4L.VIDIOC_ENUM_FRAMEINTERVALS
+		*/
+
+		result = C.v4l2_close(device)
+		if result == -1 {
+			err := get_errno()
+			return nil, err
+		}
+
 		C.free(unsafe.Pointer(c_path))
 
-		cardname := C.GoString(cardname_c_char)
-		C.free(cardname_c)
-
-		if result < 0 {
-			c_error := C.strerror(-result)
-			err := C.GoString(c_error)
-			return nil, errors.New(err)
-
-		} else if result == 1 {
+		if isVideoCapture {
 			input_device := VideoCapture{
 				Index: index,
 				Name:  cardname,
@@ -72,4 +113,11 @@ func GetInputDevices() ([]VideoCapture, error) {
 	}
 
 	return inputs, nil
+}
+
+func get_errno() error {
+	errno := C.get_errno()
+	c_error := C.strerror(errno)
+	err := C.GoString(c_error)
+	return errors.New(err)
 }
