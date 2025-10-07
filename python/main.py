@@ -144,13 +144,11 @@ def main(args):
     camera_failures = float(args.camera_failures)
     cam_format = args.fmt
 
-    # print(cam_format)
     capture = cv2.VideoCapture(camera_id, cv2.CAP_V4L2)
     capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*cam_format))
     capture.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     capture.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
     capture.set(cv2.CAP_PROP_FPS, fps)
-    # capture.open(camera_id)
     time.sleep(0.02)  # allow camera to initialize
 
     if capture.isOpened() == False:
@@ -189,12 +187,10 @@ def main(args):
     )
 
     detector = vision.FaceLandmarker.create_from_options(options)
-    # print(capture.get(cv2.CAP_PROP_FPS))
     # fourcc = capture.get(cv2.CAP_PROP_FOURCC)
     # print(int(fourcc).to_bytes(4, byteorder=sys.byteorder).decode())
     fps = capture.get(cv2.CAP_PROP_FPS)
     wait_interval_sec = 0.1 / fps  # wait 10% of the time to get a frame
-    # min_wait = 0.016
 
     try:
         while not ended:
