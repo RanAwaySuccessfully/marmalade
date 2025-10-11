@@ -10,7 +10,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
-var camera_indices []uint
+var camera_indices []uint8
 
 func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 	webcam_label := gtk.NewLabel("Webcam:")
@@ -28,6 +28,7 @@ func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 		selected := webcam_input.Selected()
 		index := camera_indices[selected]
 		server.Config.Camera = float64(index)
+		update_unsaved_config(true)
 	})
 
 	webcam_refresh := gtk.NewButtonFromIconName("view-refresh-symbolic")
@@ -52,6 +53,8 @@ func fill_camera_list(input *gtk.DropDown) error {
 	}
 
 	if len(cameras) == 0 {
+		input.SetSelected(gtk.InvalidListPosition)
+		input.SetModel(nil)
 		return nil
 	}
 
@@ -61,9 +64,9 @@ func fill_camera_list(input *gtk.DropDown) error {
 	for i, camera := range cameras {
 		camera_string := fmt.Sprintf("%d: %s", camera.Index, camera.Name)
 		camera_list = append(camera_list, camera_string)
-		camera_indices = append(camera_indices, uint(camera.Index))
+		camera_indices = append(camera_indices, camera.Index)
 
-		if camera.Index == int(server.Config.Camera) {
+		if camera.Index == uint8(server.Config.Camera) {
 			selected_index = i
 		}
 	}

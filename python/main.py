@@ -19,7 +19,7 @@ import sys
 import threading
 
 
-targets = set()
+clients = set()
 
 class ResultTracker:
     def __init__(self, max_failures):
@@ -88,10 +88,10 @@ def send_data(detection_result, timestamp):
     jsonstr = json.dumps(data)
     success = True
 
-    for target in targets:
-        udp_target = target.split(":")
-        ip = udp_target[0]
-        port = int(udp_target[1])
+    for client in clients:
+        udp_client = client.split(":")
+        ip = udp_client[0]
+        port = int(udp_client[1])
 
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -194,9 +194,9 @@ def main(args):
 
     try:
         while not ended:
-            if len(targets) == 0:
+            if len(clients) == 0:
                 change = input()
-                t1 = threading.Thread(target=target_update, args=(change,))
+                t1 = threading.Thread(target=client_update, args=(change,))
                 t1.start()
 
             # start = time.time()
@@ -226,11 +226,11 @@ def main(args):
     
     capture.release()
 
-def target_update(first_change):
+def client_update(first_change):
     change = first_change
     idle = False
 
-    global targets
+    global clients
     while not idle:
         if change == "":
             change = input()
@@ -241,16 +241,19 @@ def target_update(first_change):
             idle = True
         else:
             operation = change[0]
-            target = change[1:]
+            client = change[1:]
 
             if operation == "-":
-                targets.remove(target)
+                try:
+                    clients.remove(client)
+                except KeyError:
+                    print('Client IP address not present in list, cannot remove: ' + client)
             else:
-                targets.add(target)
+                clients.add(client)
 
         change = ""
 
-        if (len(targets) <= 0):
+        if (len(clients) <= 0):
             idle = True
         
 
@@ -259,8 +262,8 @@ def signal_handler(sig, frame):
     global ended
     ended = True
 
-    global targets
-    targets.clear()
+    global clients
+    clients.clear()
 
 signal.signal(signal.SIGINT, signal_handler)
 

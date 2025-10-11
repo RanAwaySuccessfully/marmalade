@@ -16,7 +16,7 @@ func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
 		app_window.SetVisible(false)
 
 		window := gtk.NewWindow()
-		window.SetTitle(".venv folder missing")
+		window.SetTitle("Marmalade - .venv folder missing")
 		window.SetDefaultSize(400, 100)
 		window.SetResizable(false)
 		window.SetVisible(true)

@@ -26,7 +26,7 @@ func create_about_dialog() {
 	dialog.SetLogo(logo)
 	dialog.SetWebsite("https://github.com/RanAwaySuccessfully/marmalade")
 	dialog.SetWebsiteLabel("GitHub")
-	dialog.SetVersion("v0.1.0")
+	dialog.SetVersion("v0.2.0")
 	dialog.SetAuthors(authors)
 	dialog.AddCreditSection("Logo by", artists)
 	dialog.SetVisible(true)

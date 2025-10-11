@@ -15,8 +15,16 @@ import (
 */
 import "C"
 
+const FrameSizeTypeDiscrete = C.V4L2_FRMSIZE_TYPE_DISCRETE
+const FrameSizeTypeContinuous = C.V4L2_FRMSIZE_TYPE_CONTINUOUS
+const FrameSizeTypeStepwise = C.V4L2_FRMSIZE_TYPE_STEPWISE
+
+const FrameIntervalTypeDiscrete = C.V4L2_FRMIVAL_TYPE_DISCRETE
+const FrameIntervalTypeContinuous = C.V4L2_FRMIVAL_TYPE_CONTINUOUS
+const FrameIntervalTypeStepwise = C.V4L2_FRMSIZE_TYPE_STEPWISE
+
 type VideoCapture struct {
-	Index   int
+	Index   uint8
 	Name    string
 	Formats []VideoFormat
 }
@@ -26,6 +34,8 @@ type VideoFormat struct {
 	Name           string
 	Resolutions    []VideoFormatResolution
 	ResolutionType uint32
+	Compressed     bool
+	Emulated       bool
 }
 
 type VideoFormatResolution struct {
@@ -76,15 +86,17 @@ func GetInputDevices() ([]VideoCapture, error) {
 			cardname_c := unsafe.Pointer(&capabilities.card[0])
 			cardname := C.GoString((*C.char)(cardname_c))
 
-			formats, err := get_formats_for_device(device)
-			if err != nil {
-				return nil, err
-			}
+			/*
+				formats, err := get_formats_for_device(device)
+				if err != nil {
+					return nil, err
+				}
+			*/
 
 			input_device := VideoCapture{
-				Index:   index,
+				Index:   uint8(index),
 				Name:    cardname,
-				Formats: formats,
+				Formats: nil,
 			}
 
 			inputs = append(inputs, input_device)
@@ -102,6 +114,48 @@ func GetInputDevices() ([]VideoCapture, error) {
 	return inputs, nil
 }
 
+func GetDetailsForDevice(camera_id uint8) (*VideoCapture, error) {
+	path := "/dev/video" + strconv.Itoa(int(camera_id)) // convert int to string
+	c_path := C.CString(path)
+
+	device := C.m_v4l2_open(c_path, C.int(0))
+	if device == -1 {
+		_, err := get_errno()
+		return nil, err
+	}
+
+	capabilities := C.struct_v4l2_capability{}
+	result := C.m_v4l2_vidioc_querycap(device, &capabilities)
+	if result == -1 {
+		_, err := get_errno()
+		return nil, err
+	}
+
+	cardname_c := unsafe.Pointer(&capabilities.card[0])
+	cardname := C.GoString((*C.char)(cardname_c))
+
+	formats, err := get_formats_for_device(device)
+	if err != nil {
+		return nil, err
+	}
+
+	input_device := VideoCapture{
+		Index:   camera_id,
+		Name:    cardname,
+		Formats: formats,
+	}
+
+	result = C.v4l2_close(device)
+	if result == -1 {
+		_, err := get_errno()
+		return nil, err
+	}
+
+	C.free(unsafe.Pointer(c_path))
+
+	return &input_device, nil
+}
+
 func get_video_index(name string) (int, error) {
 	regex, err := regexp.Compile(`^(video)(\d{1,2})$`) // device name must be like: videoX where X is a number between 0 and 99
 	if err != nil {
@@ -113,7 +167,7 @@ func get_video_index(name string) (int, error) {
 		return -1, nil
 	}
 
-	index, err := strconv.Atoi(res[2]) // convert string to integer
+	index, err := strconv.Atoi(res[2]) // convert string to int
 	if err != nil {
 		return -1, err
 	}

@@ -10,6 +10,8 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
+var savedConfigRevealer *gtk.Revealer
+
 func Activate(app *gtk.Application) {
 	server.Config.Read()
 
@@ -33,6 +35,9 @@ func Activate(app *gtk.Application) {
 
 	/* MAIN CONTENT */
 
+	main_box := gtk.NewBox(gtk.OrientationVertical, 0)
+	window.SetChild(main_box)
+
 	grid := gtk.NewGrid()
 	grid.SetRowSpacing(7)
 	grid.SetColumnSpacing(0)
@@ -40,7 +45,7 @@ func Activate(app *gtk.Application) {
 	grid.SetMarginEnd(30)
 	grid.SetMarginTop(15)
 	grid.SetMarginBottom(20)
-	window.SetChild(grid)
+	main_box.Append(grid)
 
 	button := gtk.NewButtonWithLabel("Start MediaPipe")
 	button.SetHExpand(true)
@@ -57,6 +62,7 @@ func Activate(app *gtk.Application) {
 			button.SetLabel("Start MediaPipe")
 		} else {
 			server.Config.Save()
+			update_unsaved_config(false)
 			go srv.Start(err_channel)
 			button.SetLabel("Stop MediaPipe")
 		}
@@ -65,6 +71,20 @@ func Activate(app *gtk.Application) {
 	create_webcam_setting(grid, err_channel)
 	create_camera_settings(grid, window)
 	create_misc_settings(grid, window)
+
+	savedConfigRevealer = gtk.NewRevealer()
+	main_box.Append(savedConfigRevealer)
+
+	footer_box := gtk.NewBox(gtk.OrientationVertical, 5)
+	savedConfigRevealer.SetChild(footer_box)
+
+	separator := gtk.NewSeparator(gtk.OrientationHorizontal)
+	footer_box.Append(separator)
+
+	footer_warning := gtk.NewLabel("Unsaved changes will save once you next press \"Start MediaPipe\".")
+	footer_warning.SetMarginTop(2)
+	footer_warning.SetMarginBottom(7)
+	footer_box.Append(footer_warning)
 
 	/* ERROR HANDLING */
 
@@ -84,7 +104,10 @@ func update_numeric_config(input *gtk.Entry, target *float64) error {
 	not_numeric := validator.MatchString(value)
 	if not_numeric {
 		value = validator.ReplaceAllString(value, "")
+		pos := input.Position()
 		input.SetText(value)
+		input.SetPosition(pos - 1)
+		return nil
 	}
 
 	number, err := strconv.ParseFloat(value, 64)
@@ -92,6 +115,14 @@ func update_numeric_config(input *gtk.Entry, target *float64) error {
 		return err
 	}
 
+	update_unsaved_config(true)
+
 	*target = number
 	return nil
+}
+
+func update_unsaved_config(value bool) {
+	if savedConfigRevealer != nil {
+		savedConfigRevealer.SetRevealChild(value)
+	}
 }

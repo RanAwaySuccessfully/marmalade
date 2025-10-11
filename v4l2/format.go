@@ -46,11 +46,16 @@ func get_formats_for_device(device C.int) ([]VideoFormat, error) {
 			return nil, err
 		}
 
+		isCompressed := ((format_data.flags & C.V4L2_FMT_FLAG_COMPRESSED) == C.V4L2_FMT_FLAG_COMPRESSED)
+		isEmulated := ((format_data.flags & C.V4L2_FMT_FLAG_EMULATED) == C.V4L2_FMT_FLAG_EMULATED)
+
 		format := VideoFormat{
 			Id:             pixelformat,
 			Name:           fmtdesc,
 			Resolutions:    resolutions,
 			ResolutionType: res_type,
+			Compressed:     isCompressed,
+			Emulated:       isEmulated,
 		}
 
 		formats = append(formats, format)

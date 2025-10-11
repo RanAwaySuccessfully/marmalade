@@ -3,8 +3,8 @@
 package gtk4
 
 import (
-	"fmt"
 	"marmalade/server"
+	"strconv"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
@@ -45,18 +45,18 @@ func create_misc_widgets() miscWidgets {
 	model_label := gtk.NewLabel("Model filename:")
 	model_label.SetHAlign(gtk.AlignStart)
 	model_input := gtk.NewEntry()
-	model := fmt.Sprintf(server.Config.Model)
-	model_input.SetText(model)
+	model_input.SetText(server.Config.Model)
 
 	model_input.Connect("changed", func() {
 		value := model_input.Text()
 		server.Config.Model = value
+		update_unsaved_config(true)
 	})
 
 	port_label := gtk.NewLabel("UDP port:")
 	port_label.SetHAlign(gtk.AlignStart)
 	port_input := gtk.NewEntry()
-	port := fmt.Sprintf("%d", int(server.Config.Port))
+	port := strconv.FormatFloat(server.Config.Port, 'f', 0, 64)
 	port_input.SetText(port)
 
 	port_input.Connect("changed", func() {
@@ -71,6 +71,7 @@ func create_misc_widgets() miscWidgets {
 	gpu_input.Connect("state-set", func() {
 		state := gpu_input.State()
 		server.Config.UseGpu = state
+		update_unsaved_config(true)
 	})
 
 	widgets := miscWidgets{
