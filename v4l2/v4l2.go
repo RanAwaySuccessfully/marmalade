@@ -1,3 +1,5 @@
+//go:build withgtk4
+
 package v4l2
 
 import (

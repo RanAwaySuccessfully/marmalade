@@ -17,7 +17,7 @@ func create_about_dialog() {
 	artists := make([]string, 0, 1)
 	artists = append(artists, "vexamour")
 
-	logo_file := gtk.NewPictureForFilename("resources/icons/marmalade.svg")
+	logo_file := gtk.NewPictureForFilename("resources/icons/marmalade_logo.svg")
 	logo := logo_file.Paintable()
 
 	dialog := gtk.NewAboutDialog()
@@ -26,6 +26,7 @@ func create_about_dialog() {
 	dialog.SetLogo(logo)
 	dialog.SetWebsite("https://github.com/RanAwaySuccessfully/marmalade")
 	dialog.SetWebsiteLabel("GitHub")
+	dialog.SetCopyright("© 2025 RanAwaySuccessfully")
 	dialog.SetVersion("v0.2.0")
 	dialog.SetAuthors(authors)
 	dialog.AddCreditSection("Logo by", artists)

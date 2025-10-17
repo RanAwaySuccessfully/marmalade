@@ -1,3 +1,5 @@
+//go:build withgtk4
+
 #include "v4l2.h"
 
 int get_errno() {
