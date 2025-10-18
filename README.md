@@ -4,16 +4,16 @@ Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Trac
 
 | Command-line | GTK 4 (GUI) |
 | ---- | ---- |
-| ![Command-line](resources/readme_cmd.png) | ![GTK 4](resources/readme_gtk4.png) |
+| ![Command-line](docs/readme_cmd.png) | ![GTK 4](docs/readme_gtk4.png) |
 
 ## Installing
 
 1. Download the latest release of Marmalade.
 2. Download the latest [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) from Google's MediaPipe page and place it inside the `python` folder.
 3. Install `python3`, `python3-venv` and `pip3`.
-4. If using the GTK 4 (GUI) version, you'll also need to have `libgtk-4` and `libv4l-0`¹ installed.
+4. If using the GTK 4 (GUI) version, you'll also need to have `libgtk-4` and `libv4l-0` installed.¹
 
-<small>¹ Might already be installed as it is a Linux Kernel API/library.</small>
+<small>¹ Might already be installed. If you need to install these, please be aware your Linux distribution may use different package names such as `gtk4` or `libv4l` respectively.</small>
 
 And you're done. You can just run the program at any time, and it'll take care of the rest for you.
 
@@ -42,7 +42,7 @@ For building, run: `go build -v`
 
 For running it without building it, run: `go run -v ./`
 
-For building or running the GTK 4 version, just add `-tags withgtk4` to the commands.
+For building or running the GTK 4 version, just add `-tags withgtk4` to the commands. Do note that in this case, you'll also need to install the `libgtk-4-dev` and `libv4l-dev` packages.
 
 If you want to debug it, it comes with some Visual Studio Code configuration depending on what you want to debug:
 
@@ -58,4 +58,4 @@ This project uses [gotk4](https://github.com/diamondburned/gotk4), which are [GT
 
 Somewhat inspired by [Facetracker](https://codeberg.org/ZRayEntertainment/Facetracker) which uses OpenSeeFace instead.
 
-Many thanks to Kylo-Neko's [Linux Guide to Vtubing](https://codeberg.org/KyloNeko/Linux-Guide-to-Vtubing) which is what kickstared my adventuring into seeing if/how I can make this work.
+Many thanks to Kylo-Neko's [Linux Guide to Vtubing](https://codeberg.org/KyloNeko/Linux-Guide-to-Vtubing) which is what kickstarted my adventuring into seeing if/how I can make this work.
