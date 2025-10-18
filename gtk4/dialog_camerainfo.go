@@ -23,7 +23,7 @@ func create_camera_info_window(camera_id uint8) error {
 	window.SetTitlebar(titlebar)
 
 	window.SetTitle("Marmalade - " + camera.Name)
-	window.SetDefaultSize(450, 300)
+	window.SetDefaultSize(400, 550)
 	window.SetResizable(false)
 	window.SetVisible(true)
 
@@ -60,8 +60,14 @@ func create_camera_info_window(camera_id uint8) error {
 
 		create_resolution_list(&format, grid)
 
-		stack.AddChild(grid)
-		page := stack.Page(grid)
+		scrollable_content := gtk.NewViewport(nil, nil)
+		scrollable_content.SetChild(grid)
+
+		scrollable_container := gtk.NewScrolledWindow()
+		scrollable_container.SetChild(scrollable_content)
+
+		stack.AddChild(scrollable_container)
+		page := stack.Page(scrollable_container)
 		page.SetTitle(format.Id)
 	}
 
