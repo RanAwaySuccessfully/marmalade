@@ -11,7 +11,7 @@ Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Trac
 1. Download the latest release of Marmalade.
 2. Download the latest [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) from Google's MediaPipe page and place it inside the `python` folder.
 3. Install `python3`, `python3-venv` and `pip3`.
-4. If using the GTK 4 (GUI) version, you'll also need to have `gtk-4` and `libv4l-0`¹ installed.
+4. If using the GTK 4 (GUI) version, you'll also need to have `libgtk-4` and `libv4l-0`¹ installed.
 
 <small>¹ Might already be installed as it is a Linux Kernel API/library.</small>
 
@@ -52,11 +52,9 @@ If you want to debug it, it comes with some Visual Studio Code configuration dep
 
 ## License and Credits
 
-Still thinking about what license to use, but it'll definitely be open source.
+Licensed under the [MIT License](LICENSE). The code under the `python` folder is edited based on code written by lilacGalaxy on this [GitHub Repo](https://github.com/lilac-galaxy/lilacs-mediapipe-forward-vts-plugin), and as such it uses the same license, but has separate copyright, check [its license file](python/LICENSE) for more info.
 
 This project uses [gotk4](https://github.com/diamondburned/gotk4), which are [GTK4](https://docs.gtk.org/gtk4/) language bindings for Go. This project does **not** use libadwaita, although I'm wondering if I should add [libadapta](https://github.com/xapp-project/libadapta) support.
-
-Relies heavily on code written by lilacGalaxy on this [GitHub Repo](https://github.com/lilac-galaxy/lilacs-mediapipe-forward-vts-plugin).
 
 Somewhat inspired by [Facetracker](https://codeberg.org/ZRayEntertainment/Facetracker) which uses OpenSeeFace instead.
 
