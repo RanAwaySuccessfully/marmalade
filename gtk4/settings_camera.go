@@ -37,7 +37,7 @@ func create_camera_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
 			show_camera_widgets(grid, &camera_widgets, row)
 		} else {
 			hide_camera_widgets(grid, row)
-			window.SetDefaultSize(500, 150)
+			set_window_size(window)
 		}
 	})
 }

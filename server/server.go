@@ -41,7 +41,6 @@ func (server *ServerData) Started() bool {
 
 func (server *ServerData) Start(err_ch chan error) {
 	server.exit = false
-	Config.Read()
 
 	port := fmt.Sprintf(":%d", int(Config.Port))
 

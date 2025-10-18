@@ -5,6 +5,6 @@
     "height": 1080,
     "fps": 30,
     "format": "MJPG",
-    "model": "face_landmarker_v2_with_blendshapes.task",
+    "model": "face_landmarker.task",
     "use_gpu": true
 }

@@ -36,7 +36,7 @@ func create_misc_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
 			show_misc_widgets(grid, &misc_widgets, row)
 		} else {
 			hide_misc_widgets(grid, row)
-			window.SetDefaultSize(500, 150)
+			set_window_size(window)
 		}
 	})
 }

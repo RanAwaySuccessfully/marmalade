@@ -21,7 +21,7 @@ Note: On startup, if Marmalade does not find a `.venv` hidden folder when starti
 
 ## Config File
 
-If using the GTK 4 (GUI) version, you do not need to worry about this file unless it becomes corrupted somehow, as the UI allows you to edit it seamlessly, and it is automatically saved when you hit the "Start MediaPipe" button (Stop does not count). If using the command line version, you'll need to edit it manually to use the settings that you want. it is located right beside the app's executable as `config.json`.
+If using the GTK 4 (GUI) version, you do not need to worry about this file unless it becomes corrupted somehow, as the UI allows you to edit it seamlessly. If using the command line version, you'll need to edit it manually to use the settings that you want. it is located right beside the app's executable as `config.json`.
 
 Here's what each field in this file is responsible for:
 

@@ -38,8 +38,13 @@ func main() {
 		}
 	}
 
-	err_channel := make(chan error, 1)
+	err = server.Config.Read()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	srv := &server.Server
+	err_channel := make(chan error, 1)
 	go srv.Start(err_channel)
 
 	sig_channel := make(chan os.Signal, 1)

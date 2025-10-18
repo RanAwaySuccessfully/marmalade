@@ -3,12 +3,19 @@
 package gtk4
 
 import (
+	_ "embed"
 	"errors"
+	"fmt"
 	"marmalade/server"
 	"os"
 
+	"github.com/diamondburned/gotk4/pkg/gdk/v4"
+	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
+
+//go:embed resources/icons/marmalade_logo.svg
+var EmbeddedAboutLogo []byte
 
 func create_about_dialog() {
 	authors := make([]string, 0, 1)
@@ -17,17 +24,22 @@ func create_about_dialog() {
 	artists := make([]string, 0, 1)
 	artists = append(artists, "vexamour")
 
-	logo_file := gtk.NewPictureForFilename("resources/icons/marmalade_logo.svg")
-	logo := logo_file.Paintable()
-
 	dialog := gtk.NewAboutDialog()
+
+	gbytes := glib.NewBytesWithGo(EmbeddedAboutLogo)
+	texture, err := gdk.NewTextureFromBytes(gbytes)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+	} else {
+		dialog.SetLogo(texture)
+	}
+
 	dialog.SetProgramName("Marmalade")
 	dialog.SetComments("API server for MediaPipe, mimicking VTube Studio for iPhone")
-	dialog.SetLogo(logo)
 	dialog.SetWebsite("https://github.com/RanAwaySuccessfully/marmalade")
 	dialog.SetWebsiteLabel("GitHub")
 	dialog.SetCopyright("© 2025 RanAwaySuccessfully")
-	dialog.SetVersion("v0.2.0")
+	dialog.SetVersion("v0.2.1")
 	dialog.SetAuthors(authors)
 	dialog.AddCreditSection("Logo by", artists)
 	dialog.SetVisible(true)

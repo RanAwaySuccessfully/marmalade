@@ -3,6 +3,7 @@
 package gtk4
 
 import (
+	_ "embed"
 	"marmalade/server"
 	"regexp"
 	"strconv"
@@ -12,6 +13,9 @@ import (
 
 var savedConfigRevealer *gtk.Revealer
 
+//go:embed resources/style.css
+var EmbeddedCSS string
+
 func Activate(app *gtk.Application) {
 	server.Config.Read()
 
@@ -20,13 +24,13 @@ func Activate(app *gtk.Application) {
 
 	display := window.Widget.Display()
 	css := gtk.NewCSSProvider()
-	css.LoadFromPath("resources/style.css")
-	gtk.StyleContextAddProviderForDisplay(display, css, 0)
+	css.LoadFromString(EmbeddedCSS)
+	gtk.StyleContextAddProviderForDisplay(display, css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 	window.SetTitlebar(titlebar)
 	window.SetTitle("Marmalade")
 	window.SetResizable(false)
-	window.SetDefaultSize(500, 150)
+	set_window_size(window)
 	window.SetVisible(true)
 
 	about_button := gtk.NewButtonFromIconName("help-about-symbolic")
@@ -61,8 +65,6 @@ func Activate(app *gtk.Application) {
 			srv.Stop()
 			button.SetLabel("Start MediaPipe")
 		} else {
-			server.Config.Save()
-			update_unsaved_config(false)
 			go srv.Start(err_channel)
 			button.SetLabel("Stop MediaPipe")
 		}
@@ -74,17 +76,7 @@ func Activate(app *gtk.Application) {
 
 	savedConfigRevealer = gtk.NewRevealer()
 	main_box.Append(savedConfigRevealer)
-
-	footer_box := gtk.NewBox(gtk.OrientationVertical, 5)
-	savedConfigRevealer.SetChild(footer_box)
-
-	separator := gtk.NewSeparator(gtk.OrientationHorizontal)
-	footer_box.Append(separator)
-
-	footer_warning := gtk.NewLabel("Unsaved changes will save once you next press \"Start MediaPipe\".")
-	footer_warning.SetMarginTop(2)
-	footer_warning.SetMarginBottom(7)
-	footer_box.Append(footer_warning)
+	create_footer()
 
 	/* ERROR HANDLING */
 
@@ -92,6 +84,29 @@ func Activate(app *gtk.Application) {
 
 	error_window, error_label := create_error_window()
 	go error_handler(button, error_window, error_label, err_channel)
+}
+
+func set_window_size(window *gtk.ApplicationWindow) {
+	window.SetDefaultSize(450, 150)
+}
+
+func create_footer() {
+	footer_box := gtk.NewBox(gtk.OrientationVertical, 5)
+	savedConfigRevealer.SetChild(footer_box)
+
+	action_bar := gtk.NewActionBar()
+	footer_box.Append(action_bar)
+
+	footer_warning := gtk.NewLabel("You have unsaved changes.")
+	action_bar.SetCenterWidget(footer_warning)
+
+	save_button := gtk.NewButtonWithLabel("Save")
+	save_button.Connect("clicked", func() {
+		server.Config.Save()
+		update_unsaved_config(false)
+	})
+
+	action_bar.PackEnd(save_button)
 }
 
 func update_numeric_config(input *gtk.Entry, target *float64) error {
