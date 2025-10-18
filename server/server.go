@@ -42,6 +42,10 @@ func (server *ServerData) Started() bool {
 func (server *ServerData) Start(err_ch chan error) {
 	server.exit = false
 
+	if Config.Port == 0 {
+		Config.Port = 21412
+	}
+
 	port := fmt.Sprintf(":%d", int(Config.Port))
 
 	var err error
@@ -53,44 +57,46 @@ func (server *ServerData) Start(err_ch chan error) {
 
 	fmt.Println("[MARMALADE] Listening...")
 
-	camera := fmt.Sprintf("--camera=%d", int(Config.Camera))
-	width := fmt.Sprintf("--width=%d", int(Config.Width))
-	height := fmt.Sprintf("--height=%d", int(Config.Height))
-	fps := fmt.Sprintf("--fps=%d", int(Config.FPS))
-	model := fmt.Sprintf("--model=%s", Config.Model)
-	cam_fmt := fmt.Sprintf("--fmt=%s", Config.Format)
-	var cmd *exec.Cmd
+	args := make([]string, 0, 10)
+	args = append(args, "main.py")
 
-	if Config.UseGpu {
-		cmd = exec.Command(
-			"env",
-			"VIRTUAL_ENV=../.venv",
-			"../.venv/bin/python3",
-			"main.py",
-			camera,
-			width,
-			height,
-			fps,
-			model,
-			cam_fmt,
-			"--use-gpu",
-		)
-	} else {
-		cmd = exec.Command(
-			"env",
-			"VIRTUAL_ENV=../.venv",
-			"../.venv/bin/python3",
-			"main.py",
-			camera,
-			width,
-			height,
-			fps,
-			model,
-			cam_fmt,
-		)
+	if Config.Camera != 0 {
+		camera := fmt.Sprintf("--camera=%d", int(Config.Camera))
+		args = append(args, camera)
 	}
 
+	if Config.Width != 0 {
+		width := fmt.Sprintf("--width=%d", int(Config.Width))
+		args = append(args, width)
+	}
+
+	if Config.Height != 0 {
+		height := fmt.Sprintf("--height=%d", int(Config.Height))
+		args = append(args, height)
+	}
+
+	if Config.FPS != 0 {
+		fps := fmt.Sprintf("--fps=%d", int(Config.FPS))
+		args = append(args, fps)
+	}
+
+	if Config.Model != "" {
+		model := fmt.Sprintf("--model=%s", Config.Model)
+		args = append(args, model)
+	}
+
+	if Config.Format != "" {
+		cam_fmt := fmt.Sprintf("--fmt=%s", Config.Format)
+		args = append(args, cam_fmt)
+	}
+
+	if Config.UseGpu {
+		args = append(args, "--use-gpu")
+	}
+
+	cmd := exec.Command("../.venv/bin/python3", args...)
 	cmd.Dir = "python"
+
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		err_ch <- err
@@ -153,7 +159,6 @@ func (server *ServerData) Start(err_ch chan error) {
 func (server *ServerData) Wait(cmd *exec.Cmd, err_ch chan error) {
 	err := cmd.Wait()
 	if err != nil {
-		// perhaps I should also keep a copy of stderr?
 		err_ch <- err
 	} else {
 		err_ch <- os.ErrProcessDone

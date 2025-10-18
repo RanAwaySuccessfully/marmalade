@@ -39,6 +39,9 @@ class ResultTracker:
         with self.lock:
             return self.failures > self.max_failures
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 def format_blendshapes(bs):
 
     key = bs.category_name[0].upper() + bs.category_name[1:]
@@ -111,7 +114,7 @@ def get_args():
         "-m",
         "--model",
         help="mediapipe model file",
-        default="face_landmarker_v2_with_blendshapes.task",
+        default="face_landmarker.task",
     )
     parser.add_argument("-c", "--camera", help="index of camera device", default=0)
     parser.add_argument("-W", "--width", help="width of camera image", default=1280)
@@ -152,8 +155,8 @@ def main(args):
     time.sleep(0.02)  # allow camera to initialize
 
     if capture.isOpened() == False:
-        print("Device not opened")
-        exit(1)
+        eprint("Device not opened")
+        sys.exit(110)
 
     attempts = 0
     result_tracker = ResultTracker(websocket_failures)
@@ -186,7 +189,12 @@ def main(args):
         result_callback=process_results,
     )
 
-    detector = vision.FaceLandmarker.create_from_options(options)
+    try:
+        detector = vision.FaceLandmarker.create_from_options(options)
+    except RuntimeError:
+        eprint("Unable to create FaceLandmarker")
+        sys.exit(111)
+    
     # fourcc = capture.get(cv2.CAP_PROP_FOURCC)
     # print(int(fourcc).to_bytes(4, byteorder=sys.byteorder).decode())
     fps = capture.get(cv2.CAP_PROP_FPS)
@@ -205,8 +213,8 @@ def main(args):
             # print((time.time() - start) * 1000)
 
             if result_tracker.is_disconnected():
-                print("No longer recieving from server, disconnecting!")
-                sys.exit(170)
+                eprint("No longer receiving from server, disconnecting!")
+                sys.exit(112)
                 break
 
             if ret:
@@ -218,8 +226,8 @@ def main(args):
                 attempts += 1
                 time.sleep(wait_interval_sec)
             if attempts > camera_failures:
-                print("Too many failed attempts getting camera image, quitting")
-                sys.exit(171)
+                eprint("Too many failed attempts getting camera image, quitting")
+                sys.exit(113)
                 break
     except KeyboardInterrupt:
         print("Quitting")

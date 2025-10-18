@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"marmalade/server"
 	"os"
+	"os/exec"
 
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
@@ -39,7 +40,7 @@ func create_about_dialog() {
 	dialog.SetWebsite("https://github.com/RanAwaySuccessfully/marmalade")
 	dialog.SetWebsiteLabel("GitHub")
 	dialog.SetCopyright("© 2025 RanAwaySuccessfully")
-	dialog.SetVersion("v0.2.1")
+	dialog.SetVersion("v0.3.0")
 	dialog.SetAuthors(authors)
 	dialog.AddCreditSection("Logo by", artists)
 	dialog.SetVisible(true)
@@ -89,6 +90,28 @@ func error_handler(button *gtk.Button, error_window *gtk.Window, error_label *gt
 
 		if errors.Is(err, os.ErrProcessDone) {
 			continue
+		}
+
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) {
+			exitError = err.(*exec.ExitError)
+			exitCode := exitError.ExitCode()
+
+			errTitle := "Unknown error while running python process."
+
+			switch exitCode {
+			case 110:
+				errTitle = "Unable to connect to camera."
+			case 111:
+				errTitle = "Unable to start MediaPipe. Is the model (.task) file configured correctly?"
+			case 112:
+				errTitle = "A client appears to have disconnected."
+			case 113:
+				errTitle = "Too many failed attempts at reading an image from the camera."
+			}
+
+			// .Stderr is empty due to it being collected over on server.Start() at io.Copy(os.Stderr, stderr)
+			err = fmt.Errorf("[%d] %s\n%s", exitCode, errTitle, string(exitError.Stderr))
 		}
 
 		error_label.SetText(err.Error())

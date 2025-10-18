@@ -111,6 +111,12 @@ func create_footer() {
 
 func update_numeric_config(input *gtk.Entry, target *float64) error {
 	value := input.Text()
+	if value == "" {
+		update_unsaved_config(true)
+		*target = 0
+		return nil
+	}
+
 	validator, err := regexp.Compile(`\D`)
 	if err != nil {
 		return err

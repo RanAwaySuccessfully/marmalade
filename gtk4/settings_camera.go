@@ -49,6 +49,7 @@ func create_camera_widgets() cameraWidgets {
 	width_input := gtk.NewEntry()
 	width := strconv.FormatFloat(server.Config.Width, 'f', 0, 64)
 	width_input.SetText(width)
+	width_input.SetPlaceholderText("1280")
 
 	width_input.ConnectChanged(func() {
 		update_numeric_config(width_input, &server.Config.Width)
@@ -60,6 +61,7 @@ func create_camera_widgets() cameraWidgets {
 	height_input := gtk.NewEntry()
 	height := strconv.FormatFloat(server.Config.Height, 'f', 0, 64)
 	height_input.SetText(height)
+	height_input.SetPlaceholderText("720")
 
 	height_input.Connect("changed", func() {
 		update_numeric_config(height_input, &server.Config.Height)
@@ -75,6 +77,7 @@ func create_camera_widgets() cameraWidgets {
 	fps_input := gtk.NewEntry()
 	fps := strconv.FormatFloat(server.Config.FPS, 'f', 0, 64)
 	fps_input.SetText(fps)
+	fps_input.SetPlaceholderText("30")
 
 	fps_input.Connect("changed", func() {
 		update_numeric_config(fps_input, &server.Config.FPS)
@@ -84,11 +87,12 @@ func create_camera_widgets() cameraWidgets {
 	format_label.SetHAlign(gtk.AlignStart)
 	format_input := gtk.NewEntry()
 	format_input.SetText(server.Config.Format)
+	format_input.SetPlaceholderText("YUYV")
 
 	format_input.Connect("changed", func() {
 		value := format_input.Text()
 		server.Config.Format = value
-		update_unsaved_config(false)
+		update_unsaved_config(true)
 	})
 
 	camera_info := gtk.NewButtonWithLabel("View supported settings")

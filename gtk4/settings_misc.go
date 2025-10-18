@@ -46,6 +46,7 @@ func create_misc_widgets() miscWidgets {
 	model_label.SetHAlign(gtk.AlignStart)
 	model_input := gtk.NewEntry()
 	model_input.SetText(server.Config.Model)
+	model_input.SetPlaceholderText("face_landmarker.task")
 
 	model_input.Connect("changed", func() {
 		value := model_input.Text()
@@ -58,6 +59,7 @@ func create_misc_widgets() miscWidgets {
 	port_input := gtk.NewEntry()
 	port := strconv.FormatFloat(server.Config.Port, 'f', 0, 64)
 	port_input.SetText(port)
+	port_input.SetPlaceholderText("21412")
 
 	port_input.Connect("changed", func() {
 		update_numeric_config(port_input, &server.Config.Port)
