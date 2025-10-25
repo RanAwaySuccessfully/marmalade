@@ -4,8 +4,8 @@ package gtk4
 
 import (
 	"fmt"
+	"marmalade/camera"
 	"marmalade/server"
-	"marmalade/v4l2"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
@@ -47,7 +47,7 @@ func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 }
 
 func fill_camera_list(input *gtk.DropDown) error {
-	cameras, err := v4l2.GetInputDevices()
+	cameras, err := camera.GetInputDevices()
 	if err != nil {
 		return err
 	}

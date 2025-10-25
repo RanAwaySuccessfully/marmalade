@@ -1,10 +1,4 @@
 {
-    "gopls": {
-        "build.buildFlags": [
-            "--tags",
-            "withgtk4"
-        ]
-    },
     "files.associations": {
         "chrono": "c",
         "ranges": "c",
@@ -18,5 +12,15 @@
         "sstream": "c",
         "bitset": "c",
         "videodev2.h": "c"
+    },
+    "go.buildFlags": [
+        "--tags",
+        "withgtk4"
+    ],
+    "terminal.integrated.env.linux": {
+        "GOTOOLCHAIN": "go1.25.0"
+    },
+    "go.toolsEnvVars": {
+        "GOTOOLCHAIN": "go1.25.0"
     }
 }
