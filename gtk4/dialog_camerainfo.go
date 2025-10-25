@@ -104,7 +104,7 @@ func create_resolution_list(format *v4l2.VideoFormat, grid *gtk.Grid) {
 	case v4l2.FrameSizeTypeDiscrete:
 		header_text = "Discrete resolutions"
 	case v4l2.FrameSizeTypeContinuous:
-		header_text = "Continouous resolutions"
+		header_text = "Continuous resolutions"
 	case v4l2.FrameSizeTypeStepwise:
 		header_text = "Stepwise resolutions"
 	}
@@ -154,11 +154,11 @@ func create_resolution_list(format *v4l2.VideoFormat, grid *gtk.Grid) {
 		resolution := format.Resolutions[0]
 
 		line_index++
-		minimum := fmt.Sprintf("%dx%d", resolution.RangeWidth[0], resolution.RangeHeight[1])
+		minimum := fmt.Sprintf("%dx%d", resolution.RangeWidth[0], resolution.RangeHeight[0])
 		create_line("Minimum:", minimum, grid, line_index)
 
 		line_index++
-		maximum := fmt.Sprintf("%dx%d", resolution.RangeWidth[0], resolution.RangeHeight[1])
+		maximum := fmt.Sprintf("%dx%d", resolution.RangeWidth[1], resolution.RangeHeight[1])
 		create_line("Maximum:", maximum, grid, line_index)
 
 		if format.ResolutionType == v4l2.FrameSizeTypeStepwise {
