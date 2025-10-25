@@ -1,6 +1,12 @@
-import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
+from mediapipe import (
+    Image,
+    ImageFormat,
+)
+
+from mediapipe.tasks.python import (
+    BaseOptions,
+    vision
+)
 
 import cv2 # opencv-python
 
@@ -162,8 +168,8 @@ def main(args):
     result_tracker = ResultTracker(websocket_failures)
 
     def process_results(
-        detection_result: mp.tasks.vision.FaceLandmarkerResult,
-        image: mp.Image,
+        detection_result: vision.FaceLandmarkerResult,
+        image: Image,
         timestamp_ms: int,
     ):
         result = send_data(detection_result, timestamp_ms)
@@ -172,22 +178,28 @@ def main(args):
         else:
             result_tracker.reset()
 
-    delagate = python.BaseOptions.Delegate.CPU
+    delegate = BaseOptions.Delegate.CPU
     if use_gpu:
-        delagate = python.BaseOptions.Delegate.GPU
+        delegate = BaseOptions.Delegate.GPU
 
-    base_options = python.BaseOptions(
-        model_asset_path=model, delegate=delagate
+    base_options = BaseOptions(
+        model_asset_path=model,
+        delegate=delegate,
     )
 
     options = vision.FaceLandmarkerOptions(
         base_options,
-        running_mode=mp.tasks.vision.RunningMode.LIVE_STREAM,
+        running_mode=vision.RunningMode.LIVE_STREAM,
         output_face_blendshapes=True,
         output_facial_transformation_matrixes=True,
         num_faces=1,
         result_callback=process_results,
     )
+
+    # default: 0.5
+    # min_face_detection_confidence
+    # min_tracking_confidence
+    # min_face_presence_confidence
 
     try:
         detector = vision.FaceLandmarker.create_from_options(options)
@@ -207,10 +219,8 @@ def main(args):
                 t1 = threading.Thread(target=client_update, args=(change,))
                 t1.start()
 
-            # start = time.time()
             # Load image
             ret, cv2_image = capture.read()
-            # print((time.time() - start) * 1000)
 
             if result_tracker.is_disconnected():
                 eprint("No longer receiving from server, disconnecting!")
@@ -219,7 +229,7 @@ def main(args):
 
             if ret:
                 attempts = 0
-                image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2_image)
+                image = Image(image_format=ImageFormat.SRGB, data=cv2_image)
                 timestamp = int(capture.get(cv2.CAP_PROP_POS_MSEC))
                 detector.detect_async(image, timestamp)
             else:
