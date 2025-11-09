@@ -8,27 +8,35 @@ Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Trac
 
 ## Installing
 
-1. Download the latest release of Marmalade.
-2. Download the latest [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) from Google's MediaPipe page and place it inside the `python` folder.
+1. Download the [latest release](https://github.com/RanAwaySuccessfully/marmalade/releases/latest) of Marmalade.
+2. Download the latest [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) file from Google's MediaPipe page and place it inside the `python` folder.
 3. Install `python3`, `python3-venv` and `pip3`.
 4. If using the GTK 4 (GUI) version, you'll also need to have `libgtk-4` and `libv4l-0` installed.¹
 
 <small>¹ Might already be installed. If you need to install these, please be aware your Linux distribution may use different package names such as `gtk4` or `libv4l` respectively.</small>
 
-And you're done. You can just run the program at any time, and it'll take care of the rest for you.
+And you're done. You can just run the program at any time, and it should take care of the rest for you.
 
 Note: On startup, if Marmalade does not find a `.venv` hidden folder when starting up, it will ask you if it should create one for you. This will install MediaPipe, which uses around 850MB of disk space. This will fail if you haven't done Step 3. If the `.venv` folder becomes corrupted, you can just delete it and have the program create it for you again. If you want to run this step manually, you can run `scripts/mediapipe-install.sh` and it expects your working directory (current folder) to be `scripts`.
 
+## Connecting
+
+### VBridger
+
+If you have VBridger running on the same computer as Marmalade, then the IP address you need to use is `127.0.0.1`.
+
+On VBridger, do not select the "MediaPipe" option, instead, select "VTube Studio" and type in the relevant IP address. Even though it says "Connect to iPhone", clicking on that button will connect to Marmalade instead.
+
 ## Config File
 
-If using the GTK 4 (GUI) version, you do not need to worry about this file unless it becomes corrupted somehow, as the UI allows you to edit it seamlessly. If using the command line version, you'll need to edit it manually to use the settings that you want. it is located right beside the app's executable as `config.json`.
+If using the GTK 4 (GUI) version, you do not need to worry about this file unless it becomes corrupted somehow, as the UI allows you to edit it seamlessly. If using the command line version, you'll need to edit it manually to use the settings that you want. It is located right beside the app's executable as `config.json`.
 
 Here's what each field in this file is responsible for:
 
 * port: The UDP port that Marmalade will be listening to. If you don't know what to do with this, keep the default value of `21412`.
 * camera: Camera ID (index). Starts at `0` and goes up from there.
-* width: Camera horizontal resolution.
-* height: Camera vertical resolution.
+* width: Camera horizontal resolution (number of pixels).
+* height: Camera vertical resolution (number of pixels).
 * fps: Camera frames per second.
 * format: Camera format. Examples: `"YUYV"`, `"MJPG"`, etc...
 * model: Filename of the model file that MediaPipe will use for face tracking. Since this is a string value, it is surrounded by `"` (double quotes) unlike the numeric fields above.

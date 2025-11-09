@@ -4,6 +4,7 @@ __pycache__
 __debug*
 marmalade
 marmalade-gtk4
+misc
 
 # Go workspace file
 go.work
