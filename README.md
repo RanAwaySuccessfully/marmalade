@@ -39,8 +39,11 @@ Here's what each field in this file is responsible for:
 * height: Camera vertical resolution (number of pixels).
 * fps: Camera frames per second.
 * format: Camera format. Examples: `"YUYV"`, `"MJPG"`, etc...
-* model: Filename of the model file that MediaPipe will use for face tracking. Since this is a string value, it is surrounded by `"` (double quotes) unlike the numeric fields above.
+* model: Filename of the model file that MediaPipe will use for face tracking.
 * use_gpu: Set to `true` to attempt to use the GPU for processing MediaPipe, and leave it at `false` otherwise.
+* prime_id: PCI slot/address of the GPU that should be used by MediaPipe. An empty string is valid, in which case, the default GPU will be used. Has no effect if `use_gpu` is `false`.
+
+The fields `model` and `prime_id` are string values, and as such they're surrounded by `"` (double quotes) unlike other fields.
 
 ## Building, Testing, Debugging
 
@@ -57,6 +60,12 @@ If you want to debug it, it comes with some Visual Studio Code configuration dep
 - If you want to debug the Go code, specifically the command-line version, run `Go: Launch Package`.
 - If you want to debug the Python code, run `Python Debugger: Current File` while having the `main.py` file open and selected. Once it's running, type in `+127.0.0.1:21499` for example, to start sending data to a specific IP address and port.
 - If you want to debug the GTK 4 version, run `Go: Debug GTK 4 Build`. Note that this one will pre-build a `marmalade-gtk4` executable to make it start faster.
+
+### Build Times
+
+The GTK4 version of this project takes about 7-8 minutes to compile on an 5700X3D CPU, most of this time is taken up by building GTK4 and its dependencies. This will happen when building the program for the first time, but if you're using VSCode with the Go extension, it will also happen the first time you open a .go file in this project as `settings.json` is, by default, configured to the GTK4 version, and so it will get busy generating all the IntelliSense data it needs.
+
+Go has a caching mechanism that makes it so you don't have to go through this every time, but the cache does not last forever, so don't be surprised if you see it recompiling the GTK4 dependencies again.
 
 ## License and Credits
 

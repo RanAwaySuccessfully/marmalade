@@ -6,5 +6,6 @@
     "fps": 30,
     "format": "MJPG",
     "model": "face_landmarker.task",
-    "use_gpu": true
+    "use_gpu": true,
+    "prime_id": "0000_0f_00_0"
 }

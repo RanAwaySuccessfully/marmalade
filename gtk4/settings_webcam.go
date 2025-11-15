@@ -24,6 +24,7 @@ func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 	webcam_input.SetHExpand(true)
 	webcam_box.Append(webcam_input)
 
+	// TODO: this triggers on refresh...
 	webcam_input.Connect("notify::selected", func() {
 		selected := webcam_input.Selected()
 		index := camera_indices[selected]
@@ -58,7 +59,7 @@ func fill_camera_list(input *gtk.DropDown) error {
 		return nil
 	}
 
-	var camera_list []string
+	camera_list := make([]string, 0, len(cameras))
 	selected_index := -1
 
 	for i, camera := range cameras {

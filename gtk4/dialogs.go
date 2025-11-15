@@ -40,7 +40,7 @@ func create_about_dialog() {
 	dialog.SetWebsite("https://github.com/RanAwaySuccessfully/marmalade")
 	dialog.SetWebsiteLabel("GitHub")
 	dialog.SetCopyright("© 2025 RanAwaySuccessfully")
-	dialog.SetVersion("v0.3.1")
+	dialog.SetVersion("v0.4.0")
 	dialog.SetAuthors(authors)
 	dialog.AddCreditSection("Logo by", artists)
 	dialog.SetVisible(true)

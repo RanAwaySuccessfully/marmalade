@@ -8,14 +8,15 @@ import (
 var Config ServerConfig
 
 type ServerConfig struct {
-	Port   float64 `json:"port"`
-	Camera float64 `json:"camera"`
-	Width  float64 `json:"width"`
-	Height float64 `json:"height"`
-	FPS    float64 `json:"fps"`
-	Format string  `json:"format"`
-	Model  string  `json:"model"`
-	UseGpu bool    `json:"use_gpu"`
+	Port    float64 `json:"port"`
+	Camera  float64 `json:"camera"`
+	Width   float64 `json:"width"`
+	Height  float64 `json:"height"`
+	FPS     float64 `json:"fps"`
+	Format  string  `json:"format"`
+	Model   string  `json:"model"`
+	UseGpu  bool    `json:"use_gpu"`
+	PrimeId string  `json:"prime_id"`
 }
 
 func (config *ServerConfig) Read() error {

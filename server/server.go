@@ -97,6 +97,11 @@ func (server *ServerData) Start(err_ch chan error) {
 	cmd := exec.Command("../.venv/bin/python3", args...)
 	cmd.Dir = "python"
 
+	if Config.PrimeId != "" {
+		prime := fmt.Sprintf("DRI_PRIME=%s", Config.PrimeId)
+		cmd.Env = append(cmd.Environ(), prime)
+	}
+
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		err_ch <- err
