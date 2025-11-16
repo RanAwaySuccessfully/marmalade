@@ -55,6 +55,7 @@ func create_error_window() (*gtk.Window, *gtk.Label) {
 	window.SetVisible(true)
 	window.SetVisible(false)
 	/*
+		TODO
 		error_handler() runs inside a goroutine, and if it tries to render a new window in any way shape or form, it will glitch or crash
 		so we gotta make sure the window is rendered ahead of time, and it should never unload
 	*/
@@ -110,7 +111,7 @@ func error_handler(button *gtk.Button, error_window *gtk.Window, error_label *gt
 				errTitle = "Too many failed attempts at reading an image from the camera."
 			}
 
-			// .Stderr is empty due to it being collected over on server.Start() at io.Copy(os.Stderr, stderr)
+			// TODO: .Stderr is empty due to it being collected over on server.Start() at io.Copy(os.Stderr, stderr)
 			err = fmt.Errorf("[%d] %s\n%s", exitCode, errTitle, string(exitError.Stderr))
 		}
 

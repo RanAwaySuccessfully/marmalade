@@ -98,8 +98,10 @@ func (server *ServerData) Start(err_ch chan error) {
 	cmd.Dir = "python"
 
 	if Config.PrimeId != "" {
-		prime := fmt.Sprintf("DRI_PRIME=%s", Config.PrimeId)
-		cmd.Env = append(cmd.Environ(), prime)
+		replacer := strings.NewReplacer(":", "_", ".", "_")
+		prime_id := replacer.Replace(Config.PrimeId)
+		prime_env := fmt.Sprintf("DRI_PRIME=pci-%s", prime_id)
+		cmd.Env = append(cmd.Environ(), prime_env)
 	}
 
 	stdin, err := cmd.StdinPipe()

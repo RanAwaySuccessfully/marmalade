@@ -64,7 +64,7 @@ func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
 			spinner.Connect("notify::spinning", func() {
 				app_window.SetVisible(true)
 				window.SetVisible(false)
-				// window.Close() will crash because of the goroutine...
+				// TODO: window.Close() will crash because of the goroutine...
 			})
 		})
 	}

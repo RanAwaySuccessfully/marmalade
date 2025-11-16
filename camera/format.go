@@ -29,12 +29,12 @@ func get_formats(device uintptr, result *VideoCapture) error {
 			Emulated:   isEmulated,
 		}
 
-		result.Formats = append(result.Formats, format)
-
 		err = get_resolutions(device, &format)
 		if err != nil {
 			return err
 		}
+
+		result.Formats = append(result.Formats, format)
 	}
 
 	return nil
@@ -53,12 +53,12 @@ func get_resolutions(device uintptr, format *VideoFormat) error {
 			Data: resolution_data,
 		}
 
-		format.Resolutions = append(format.Resolutions, resolution)
-
 		err = get_frame_rates(device, format, &resolution)
 		if err != nil {
 			return err
 		}
+
+		format.Resolutions = append(format.Resolutions, resolution)
 	}
 
 	return nil
@@ -66,9 +66,13 @@ func get_resolutions(device uintptr, format *VideoFormat) error {
 
 func get_frame_rates(device uintptr, format *VideoFormat, resolution *VideoFormatResolution) error {
 	resolution.FrameRates = make([]v4l2.FrameIntervalEnum, 0)
+	index := 0
 
 	for {
-		frame_interval, err := v4l2.GetFormatFrameInterval(device, 0, format.Data.PixelFormat, 0, 0)
+		width := resolution.Data.Size.MaxWidth
+		height := resolution.Data.Size.MaxHeight
+
+		frame_interval, err := v4l2.GetFormatFrameInterval(device, uint32(index), format.Data.PixelFormat, width, height)
 		if err != nil {
 			if len(resolution.FrameRates) <= 0 {
 				return err
@@ -78,5 +82,6 @@ func get_frame_rates(device uintptr, format *VideoFormat, resolution *VideoForma
 		}
 
 		resolution.FrameRates = append(resolution.FrameRates, frame_interval)
+		index++
 	}
 }

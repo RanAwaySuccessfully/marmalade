@@ -134,16 +134,16 @@ func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 		grid.Attach(name_value, 1, line_index, 1, 1)
 
 		slices.SortFunc(format.Resolutions, func(a camera.VideoFormatResolution, b camera.VideoFormatResolution) int {
-			if b.Data.Size.StepWidth != a.Data.Size.StepWidth {
-				return int(b.Data.Size.StepWidth) - int(a.Data.Size.StepWidth)
+			if b.Data.Size.MaxWidth != a.Data.Size.MaxWidth {
+				return int(b.Data.Size.MaxWidth) - int(a.Data.Size.MaxWidth)
 			} else {
-				return int(b.Data.Size.StepHeight) - int(a.Data.Size.StepHeight)
+				return int(b.Data.Size.MaxHeight) - int(a.Data.Size.MaxHeight)
 			}
 		})
 
 		for _, resolution := range format.Resolutions {
 			line_index++
-			label_text := fmt.Sprintf("%dx%d:", resolution.Data.Size.StepWidth, resolution.Data.Size.StepHeight)
+			label_text := fmt.Sprintf("%dx%d:", resolution.Data.Size.MaxWidth, resolution.Data.Size.MaxHeight)
 			label := gtk.NewLabel(label_text)
 			label.SetHAlign(gtk.AlignEnd)
 			label.SetSelectable(true)
@@ -205,7 +205,7 @@ func create_frame_rate_line(resolution *camera.VideoFormatResolution, grid *gtk.
 		frame_rates := make([]uint32, 0, len(resolution.FrameRates))
 
 		for _, frame_fraction := range resolution.FrameRates {
-			frame_rate := frac_to_int(frame_fraction.Interval.Step)
+			frame_rate := frac_to_int(frame_fraction.Interval.Max)
 			frame_rates = append(frame_rates, frame_rate)
 		}
 

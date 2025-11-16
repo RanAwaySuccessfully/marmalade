@@ -9,7 +9,8 @@
                 "build",
                 "-v",
                 "-tags", "withgtk4",
-                "-gcflags=\"!gotk4=-N -l\"",
+                "-gcflags=\"./...=-N -l\"",
+                "-gcflags=\"./std=-N -l\"",
                 "-o",
                 "marmalade-gtk4"
             ],

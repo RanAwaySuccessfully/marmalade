@@ -11,16 +11,13 @@
         "string.h": "c",
         "sstream": "c",
         "bitset": "c",
-        "videodev2.h": "c"
+        "videodev2.h": "c",
+        "header.h": "c",
+        "face_landmarker.h": "c",
+        "mediapipe.i": "swiglang",
     },
     "go.buildFlags": [
         "--tags",
         "withgtk4"
-    ],
-    "terminal.integrated.env.linux": {
-        "GOTOOLCHAIN": "go1.25.0"
-    },
-    "go.toolsEnvVars": {
-        "GOTOOLCHAIN": "go1.25.0"
-    }
+    ]
 }

@@ -60,7 +60,7 @@ func GetInputDevices() ([]VideoCapture, error) {
 			return nil, err
 		}
 
-		isVideoCapture := capabilities.IsVideoCaptureSupported()
+		isVideoCapture := (capabilities.DeviceCapabilities & v4l2.CapVideoCapture) == v4l2.CapVideoCapture
 
 		if isVideoCapture {
 			cardname := capabilities.Card

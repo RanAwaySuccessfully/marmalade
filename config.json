@@ -7,5 +7,5 @@
     "format": "MJPG",
     "model": "face_landmarker.task",
     "use_gpu": true,
-    "prime_id": "0000_0f_00_0"
+    "prime_id": "0000:0f:00.0"
 }
