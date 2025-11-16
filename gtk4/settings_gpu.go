@@ -25,6 +25,14 @@ func create_gpu_widget() *gtk.DropDown {
 	gpu_input := gtk.NewDropDown(nil, nil)
 	gpu_input.SetHExpand(true)
 
+	gpu_factory := create_custom_factory()
+	gpu_input.SetFactory(&gpu_factory.ListItemFactory)
+
+	gpu_list_factory := create_custom_list_factory(gpu_input)
+	gpu_input.SetListFactory(&gpu_list_factory.ListItemFactory)
+
+	fill_gpu_list(gpu_input)
+
 	gpu_input.Connect("notify::selected", func() {
 		selected := gpu_input.Selected()
 
@@ -43,7 +51,6 @@ func create_gpu_widget() *gtk.DropDown {
 		update_unsaved_config(true)
 	})
 
-	fill_gpu_list(gpu_input)
 	return gpu_input
 }
 
@@ -53,6 +60,7 @@ func fill_gpu_list(input *gtk.DropDown) error {
 		return err
 	}
 
+	gpu_ids = make([]string, 0, len(devices))
 	device_list := make([]string, 2, len(devices)+2)
 	device_list[0] = "CPU"
 	device_list[1] = "GPU (Auto)"
@@ -77,7 +85,13 @@ func fill_gpu_list(input *gtk.DropDown) error {
 	if selected_index >= 0 {
 		input.SetSelected(uint(selected_index + 2))
 	} else if server.Config.UseGpu {
-		input.SetSelected(1)
+
+		if server.Config.PrimeId == "" {
+			input.SetSelected(1)
+		} else {
+			input.SetSelected(gtk.InvalidListPosition)
+		}
+
 	} else {
 		input.SetSelected(0)
 	}
