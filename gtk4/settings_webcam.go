@@ -24,6 +24,12 @@ func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 	webcam_input.SetHExpand(true)
 	webcam_box.Append(webcam_input)
 
+	webcam_factory := create_custom_factory()
+	webcam_input.SetFactory(&webcam_factory.ListItemFactory)
+
+	webcam_list_factory := create_custom_list_factory(webcam_input)
+	webcam_input.SetListFactory(&webcam_list_factory.ListItemFactory)
+
 	is_refreshing := false
 
 	fill_camera_list(webcam_input, &is_refreshing)

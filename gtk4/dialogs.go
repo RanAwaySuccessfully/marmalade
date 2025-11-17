@@ -18,6 +18,9 @@ import (
 //go:embed resources/icons/marmalade_logo.svg
 var EmbeddedAboutLogo []byte
 
+//go:embed resources/version.txt
+var EmbeddedVersion string
+
 func create_about_dialog() {
 	authors := make([]string, 0, 1)
 	authors = append(authors, "RanAwaySuccessfully")
@@ -35,30 +38,26 @@ func create_about_dialog() {
 		dialog.SetLogo(texture)
 	}
 
+	version := "v" + EmbeddedVersion
+
 	dialog.SetProgramName("Marmalade")
 	dialog.SetComments("API server for MediaPipe, mimicking VTube Studio for iPhone")
 	dialog.SetWebsite("https://github.com/RanAwaySuccessfully/marmalade")
 	dialog.SetWebsiteLabel("GitHub")
 	dialog.SetCopyright("© 2025 RanAwaySuccessfully")
-	dialog.SetVersion("v0.4.0")
+	dialog.SetVersion(version)
 	dialog.SetAuthors(authors)
 	dialog.AddCreditSection("Logo by", artists)
 	dialog.SetVisible(true)
 }
 
-func create_error_window() (*gtk.Window, *gtk.Label) {
+func create_error_window(err error) {
 	window := gtk.NewWindow()
 	window.SetTitle("Marmalade - Error")
 	window.SetDefaultSize(300, 100)
 	window.SetResizable(false)
 	window.SetHideOnClose(true)
 	window.SetVisible(true)
-	window.SetVisible(false)
-	/*
-		TODO
-		error_handler() runs inside a goroutine, and if it tries to render a new window in any way shape or form, it will glitch or crash
-		so we gotta make sure the window is rendered ahead of time, and it should never unload
-	*/
 
 	box := gtk.NewBox(gtk.OrientationVertical, 5)
 	box.SetMarginStart(10)
@@ -67,7 +66,7 @@ func create_error_window() (*gtk.Window, *gtk.Label) {
 	box.SetMarginBottom(7)
 	window.SetChild(box)
 
-	label := gtk.NewLabel("(nothing)")
+	label := gtk.NewLabel(err.Error())
 	label.SetWrap(true)
 	label.SetVExpand(true)
 	box.Append(label)
@@ -77,17 +76,16 @@ func create_error_window() (*gtk.Window, *gtk.Label) {
 	box.Append(button)
 
 	button.Connect("clicked", func() {
-		window.SetVisible(false)
+		window.Close()
 	})
-
-	return window, label
 }
 
-func error_handler(button *gtk.Button, error_window *gtk.Window, error_label *gtk.Label, err_channel chan error) {
+func error_handler(button *gtk.Button, err_channel chan error) {
 	for err := range err_channel {
 		srv := &server.Server
 		srv.Stop()
 		button.SetLabel("Start MediaPipe")
+		// updating a label's text outside of glib.IdleAdd() could cause a crash...but it seems to be working fine so far
 
 		if errors.Is(err, os.ErrProcessDone) {
 			continue
@@ -115,7 +113,8 @@ func error_handler(button *gtk.Button, error_window *gtk.Window, error_label *gt
 			err = fmt.Errorf("[%d] %s\n%s", exitCode, errTitle, string(exitError.Stderr))
 		}
 
-		error_label.SetText(err.Error())
-		error_window.SetVisible(true)
+		glib.IdleAdd(func() {
+			create_error_window(err)
+		})
 	}
 }

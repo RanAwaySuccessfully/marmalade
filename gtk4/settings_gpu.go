@@ -3,21 +3,11 @@
 package gtk4
 
 import (
-	"bufio"
-	"fmt"
+	"marmalade/camera"
 	"marmalade/server"
-	"os/exec"
-	"strings"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
-
-type DisplayController struct {
-	Slot      string
-	Vendor    string
-	SubVendor string
-	Device    string
-}
 
 var gpu_ids []string
 
@@ -55,7 +45,7 @@ func create_gpu_widget() *gtk.DropDown {
 }
 
 func fill_gpu_list(input *gtk.DropDown) error {
-	devices, err := GetDisplayDevices()
+	devices, err := camera.GetDisplayDevices()
 	if err != nil {
 		return err
 	}
@@ -69,7 +59,7 @@ func fill_gpu_list(input *gtk.DropDown) error {
 
 	if len(devices) > 0 {
 		for i, device := range devices {
-			camera_string := fmt.Sprintf("GPU: %s", device.Device)
+			camera_string := "GPU: " + device.Device
 			device_list = append(device_list, camera_string)
 			gpu_ids = append(gpu_ids, device.Slot)
 
@@ -97,51 +87,4 @@ func fill_gpu_list(input *gtk.DropDown) error {
 	}
 
 	return nil
-}
-
-func GetDisplayDevices() ([]DisplayController, error) {
-	cmd := exec.Command("lspci", "-d", "::03xx", "-vmmD")
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-
-	err = cmd.Start()
-	if err != nil {
-		return nil, err
-	}
-
-	devices := make([]DisplayController, 0)
-	device := DisplayController{}
-
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if line == "" {
-			devices = append(devices, device)
-			device = DisplayController{}
-			continue
-		}
-
-		split := strings.SplitN(line, ":\t", 2)
-		//fmt.Printf("[LSPCI] %s %s\n", split[0], split[1])
-		switch split[0] {
-		case "Slot":
-			device.Slot = split[1]
-		case "Vendor":
-			device.Vendor = split[1]
-		case "Device":
-			device.Device = split[1]
-		case "SVendor":
-			device.SubVendor = split[1]
-		}
-	}
-
-	err = cmd.Wait()
-	if err != nil {
-		return nil, err
-	}
-
-	return devices, nil
 }

@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -46,7 +47,7 @@ func (server *ServerData) Start(err_ch chan error) {
 		Config.Port = 21412
 	}
 
-	port := fmt.Sprintf(":%d", int(Config.Port))
+	port := ":" + int_to_string(int(Config.Port))
 
 	var err error
 	server.udpListener, err = net.ListenPacket("udp", port)
@@ -61,32 +62,32 @@ func (server *ServerData) Start(err_ch chan error) {
 	args = append(args, "main.py")
 
 	if Config.Camera != 0 {
-		camera := fmt.Sprintf("--camera=%d", int(Config.Camera))
+		camera := "--camera=" + int_to_string(int(Config.Camera))
 		args = append(args, camera)
 	}
 
 	if Config.Width != 0 {
-		width := fmt.Sprintf("--width=%d", int(Config.Width))
+		width := "--width=" + int_to_string(int(Config.Width))
 		args = append(args, width)
 	}
 
 	if Config.Height != 0 {
-		height := fmt.Sprintf("--height=%d", int(Config.Height))
+		height := "--height=" + int_to_string(int(Config.Height))
 		args = append(args, height)
 	}
 
 	if Config.FPS != 0 {
-		fps := fmt.Sprintf("--fps=%d", int(Config.FPS))
+		fps := "--fps=" + int_to_string(int(Config.FPS))
 		args = append(args, fps)
 	}
 
 	if Config.Model != "" {
-		model := fmt.Sprintf("--model=%s", Config.Model)
+		model := "--model=%s" + Config.Model
 		args = append(args, model)
 	}
 
 	if Config.Format != "" {
-		cam_fmt := fmt.Sprintf("--fmt=%s", Config.Format)
+		cam_fmt := "--fmt=%s" + Config.Format
 		args = append(args, cam_fmt)
 	}
 
@@ -100,7 +101,7 @@ func (server *ServerData) Start(err_ch chan error) {
 	if Config.PrimeId != "" {
 		replacer := strings.NewReplacer(":", "_", ".", "_")
 		prime_id := replacer.Replace(Config.PrimeId)
-		prime_env := fmt.Sprintf("DRI_PRIME=pci-%s", prime_id)
+		prime_env := "DRI_PRIME=pci-" + prime_id
 		cmd.Env = append(cmd.Environ(), prime_env)
 	}
 
@@ -265,7 +266,7 @@ func (server *ServerData) updateClients(stdin io.WriteCloser, err_ch chan error)
 
 func (server *ServerData) sendUpdate(stdin io.WriteCloser, action string, ip string, ports []float64) error {
 	for _, port := range ports {
-		data := fmt.Sprintf("%s%s:%d", action, ip, int(port))
+		data := action + ip + ":" + int_to_string(int(port))
 		_, err := fmt.Fprintln(stdin, data)
 		if err != nil {
 			return err
@@ -273,4 +274,8 @@ func (server *ServerData) sendUpdate(stdin io.WriteCloser, action string, ip str
 	}
 
 	return nil
+}
+
+func int_to_string(number int) string {
+	return strconv.Itoa(number)
 }

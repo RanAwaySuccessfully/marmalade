@@ -40,7 +40,7 @@ func create_custom_factory() *gtk.SignalListItemFactory {
 
 func create_custom_list_factory(input *gtk.DropDown) *gtk.SignalListItemFactory {
 	factory := gtk.NewSignalListItemFactory()
-	signals := make(map[*glib.Object]glib.SignalHandle)
+	signals := make(map[uint]glib.SignalHandle)
 
 	factory.ConnectSetup(func(object *glib.Object) {
 		listItem := object.Cast().(*gtk.ListItem)
@@ -71,6 +71,10 @@ func create_custom_list_factory(input *gtk.DropDown) *gtk.SignalListItemFactory 
 		icon := box.LastChild().(*gtk.Image)
 		icon.SetVisible(false)
 
+		/*
+			listItem.Selected() will be true if the item is being hovered over, rather than if the item is currently selected or "activated"
+			there is no property such as listItem.Activated(), so I'm forced to keep a reference to the DropDown element as a hacky workaround
+		*/
 		if listItem.Position() == input.Selected() {
 			icon.SetVisible(true)
 		}
@@ -83,7 +87,8 @@ func create_custom_list_factory(input *gtk.DropDown) *gtk.SignalListItemFactory 
 			}
 		})
 
-		signals[object] = signalId
+		index := listItem.Position()
+		signals[index] = signalId
 	})
 
 	// NOTE: if using X11, DO NOT PUT BREAKPOINTS INSIDE THIS FUNCTION
@@ -91,21 +96,13 @@ func create_custom_list_factory(input *gtk.DropDown) *gtk.SignalListItemFactory 
 		listItem := object.Cast().(*gtk.ListItem)
 
 		box := listItem.Child().(*gtk.Box)
-		label := box.FirstChild().(*gtk.Label)
-		label.SetText("")
-
 		icon := box.LastChild().(*gtk.Image)
 		icon.SetVisible(false)
 
-		var signalId glib.SignalHandle
-
-		for objPointer, signal := range signals {
-			if object.Eq(objPointer) {
-				signalId = signal
-				input.HandlerDisconnect(signalId)
-				delete(signals, objPointer)
-			}
-		}
+		index := listItem.Position()
+		signalId := signals[index]
+		input.HandlerDisconnect(signalId)
+		delete(signals, index)
 	})
 
 	factory.ConnectTeardown(func(object *glib.Object) {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
@@ -59,25 +60,22 @@ func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
 			spinner.InsertBefore(box, label)
 			spinner.Start()
 
-			go install_mediapipe(spinner, err_chan)
-
-			spinner.Connect("notify::spinning", func() {
-				app_window.SetVisible(true)
-				window.SetVisible(false)
-				// TODO: window.Close() will crash because of the goroutine...
-			})
+			go install_mediapipe(app_window, window, err_chan)
 		})
 	}
 }
 
-func install_mediapipe(spinner *gtk.Spinner, err_chan chan error) {
+func install_mediapipe(app_window *gtk.ApplicationWindow, window *gtk.Window, err_chan chan error) {
 	cmd := exec.Command("./mediapipe-install.sh")
 	cmd.Dir = "scripts"
 
 	err := cmd.Run()
-	spinner.Stop()
-
 	if err != nil {
 		err_chan <- err
 	}
+
+	glib.IdleAdd(func() {
+		window.Close()
+		app_window.SetVisible(true)
+	})
 }

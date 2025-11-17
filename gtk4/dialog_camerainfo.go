@@ -222,10 +222,15 @@ func create_frame_rate_line(resolution *camera.VideoFormatResolution, grid *gtk.
 		label_text = strings.Join(label_slice, ", ")
 	case v4l2.FrameIntervalTypeContinuous:
 		frame_rate := resolution.FrameRates[0]
-		label_text = fmt.Sprintf("Min: %d / Max: %d", frac_to_int(frame_rate.Interval.Min), frac_to_int(frame_rate.Interval.Max))
+		min := frac_to_int(frame_rate.Interval.Min)
+		max := frac_to_int(frame_rate.Interval.Max)
+		label_text = fmt.Sprintf("Min: %d / Max: %d", min, max)
 	case v4l2.FrameIntervalTypeStepwise:
 		frame_rate := resolution.FrameRates[0]
-		label_text = fmt.Sprintf("Min: %d / Max: %d / Step: %d", frac_to_int(frame_rate.Interval.Min), frac_to_int(frame_rate.Interval.Max), frac_to_int(frame_rate.Interval.Step))
+		min := frac_to_int(frame_rate.Interval.Min)
+		max := frac_to_int(frame_rate.Interval.Max)
+		step := frac_to_int(frame_rate.Interval.Step)
+		label_text = fmt.Sprintf("Min: %d / Max: %d / Step: %d", min, max, step)
 	}
 
 	label := gtk.NewLabel(label_text)
