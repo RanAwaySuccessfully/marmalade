@@ -99,9 +99,7 @@ func (server *ServerData) Start(err_ch chan error) {
 	cmd.Dir = "python"
 
 	if Config.PrimeId != "" {
-		replacer := strings.NewReplacer(":", "_", ".", "_")
-		prime_id := replacer.Replace(Config.PrimeId)
-		prime_env := "DRI_PRIME=pci-" + prime_id
+		prime_env := "DRI_PRIME=" + Config.PrimeId
 		cmd.Env = append(cmd.Environ(), prime_env)
 	}
 

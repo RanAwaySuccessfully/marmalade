@@ -5,6 +5,7 @@ package gtk4
 import (
 	"marmalade/camera"
 	"marmalade/server"
+	"strings"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
@@ -61,9 +62,12 @@ func fill_gpu_list(input *gtk.DropDown) error {
 		for i, device := range devices {
 			camera_string := "GPU: " + device.Device
 			device_list = append(device_list, camera_string)
-			gpu_ids = append(gpu_ids, device.Slot)
 
-			if device.Slot == server.Config.PrimeId {
+			replacer := strings.NewReplacer(":", "_", ".", "_")
+			gpu_id := "pci-" + replacer.Replace(device.Slot)
+			gpu_ids = append(gpu_ids, gpu_id)
+
+			if gpu_id == server.Config.PrimeId {
 				selected_index = i
 			}
 		}

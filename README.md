@@ -11,9 +11,13 @@ Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Trac
 1. Download the [latest release](https://github.com/RanAwaySuccessfully/marmalade/releases/latest) of Marmalade.
 2. Download the latest [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) file from Google's MediaPipe page and place it inside the `python` folder.
 3. Install `python3`, `python3-venv` and `pip3`.
-4. If using the GTK 4 (GUI) version, you'll also need to have `libgtk-4` and `libv4l-0` installed.¹
+4. If using the GTK 4 (GUI) version, you'll also need to have the following installed, although they probably already are installed by default:
+    - `libgtk-4`¹ or `gtk4`¹
+    - `libv4l`¹
+    - `xdg-utils`
+    - `pciutils`
 
-<small>¹ Might already be installed. If you need to install these, please be aware your Linux distribution may use different package names such as `gtk4` or `libv4l` respectively.</small>
+<small>¹ May be suffixed by another version number, for example: `libgtk-4-1`, `libv4l-0`.</small>
 
 And you're done. You can just run the program at any time, and it should take care of the rest for you.
 
@@ -33,7 +37,7 @@ On VBridger, do not select the "MediaPipe" option, instead, select "VTube Studio
 
 ## Config File
 
-If using the GTK 4 (GUI) version, you do not need to worry about this file unless it becomes corrupted somehow, as the UI allows you to edit it seamlessly. If using the command line version, you'll need to edit it manually to use the settings that you want. It is located right beside the app's executable as `config.json`.
+**If using the GTK 4 (GUI) version, you do not need to worry about this file** unless it becomes corrupted somehow, as the UI allows you to edit it seamlessly. If using the command line version, you'll need to edit it manually to use the settings that you want. It is located right beside the app's executable as `config.json`.
 
 Here's what each field in this file is responsible for:
 
@@ -45,13 +49,17 @@ Here's what each field in this file is responsible for:
 * format: Camera format. Examples: `"YUYV"`, `"MJPG"`, etc...
 * model: Filename of the model file that MediaPipe will use for face tracking.
 * use_gpu: Set to `true` to attempt to use the GPU for processing MediaPipe, and leave it at `false` otherwise.
-* prime_id: PCI slot/address of the GPU that should be used by MediaPipe. An empty string is valid, in which case, the default GPU will be used. Has no effect if `use_gpu` is `false`.
+* prime_id: PCIe bus (slot/address) of the GPU that should be used by MediaPipe.* An empty string is valid, in which case, the default GPU will be used. Has no effect if `use_gpu` is `false`.
 
 The fields `model` and `prime_id` are string values, and as such they're surrounded by `"` (double quotes) unlike other fields.
 
+<small>* This is the same as the `DRI_PRIME` environment variable, and any valid value for it is also valid for this field, although the GTK 4 (GUI) version only expects PCIe bus IDs and may glitch otherwise.</small>
+
 ## Building, Testing, Debugging
 
-You'll need to install [Go](https://go.dev/).
+**You do not need to do any of this to install Marmalade. See the "Installing" section above instead.**
+
+If you want to develop or tinker with this program, you'll need to install the [Go programming language](https://go.dev/).
 
 For building, run: `go build -v`
 
