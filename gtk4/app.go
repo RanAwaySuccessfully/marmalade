@@ -81,9 +81,7 @@ func Activate(app *gtk.Application) {
 	/* ERROR HANDLING */
 
 	check_venv_folder(window, err_channel)
-
-	error_window, error_label := create_error_window()
-	go error_handler(button, error_window, error_label, err_channel)
+	go error_handler(button, err_channel)
 }
 
 func set_window_size(window *gtk.ApplicationWindow) {

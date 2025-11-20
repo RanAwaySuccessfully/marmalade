@@ -4,16 +4,17 @@ package gtk4
 
 import (
 	"fmt"
-	"marmalade/v4l2"
+	"marmalade/camera"
 	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/vladimirvivien/go4vl/v4l2"
 )
 
 func create_camera_info_window(camera_id uint8) error {
-	camera, err := v4l2.GetDetailsForDevice(camera_id)
+	camera, err := camera.GetDetailsForDevice(camera_id)
 	if err != nil {
 		return err
 	}
@@ -54,7 +55,7 @@ func create_camera_info_window(camera_id uint8) error {
 		}
 
 		create_line("ID:", format.Id, grid, 0)
-		create_line("Name:", format.Name, grid, 1)
+		create_line("Name:", format.Data.Description, grid, 1)
 		create_line("Compressed:", compressed, grid, 2)
 		create_line("Emulated:", emulated, grid, 3)
 
@@ -95,12 +96,14 @@ func create_camera_info_window(camera_id uint8) error {
 	return nil
 }
 
-func create_resolution_list(format *v4l2.VideoFormat, grid *gtk.Grid) {
+func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 	line_index := 3
 
 	var header_text string
 
-	switch format.ResolutionType {
+	frameSizeType := format.Resolutions[0].Data.Type
+
+	switch frameSizeType {
 	case v4l2.FrameSizeTypeDiscrete:
 		header_text = "Discrete resolutions"
 	case v4l2.FrameSizeTypeContinuous:
@@ -121,7 +124,7 @@ func create_resolution_list(format *v4l2.VideoFormat, grid *gtk.Grid) {
 	sep_2 := gtk.NewSeparator(gtk.OrientationHorizontal)
 	grid.Attach(sep_2, 0, line_index, 2, 1)
 
-	if format.ResolutionType == v4l2.FrameSizeTypeDiscrete {
+	if frameSizeType == v4l2.FrameSizeTypeDiscrete {
 
 		line_index++
 		name_value := gtk.NewLabel("Supported frame rates:")
@@ -130,17 +133,17 @@ func create_resolution_list(format *v4l2.VideoFormat, grid *gtk.Grid) {
 
 		grid.Attach(name_value, 1, line_index, 1, 1)
 
-		slices.SortFunc(format.Resolutions, func(a v4l2.VideoFormatResolution, b v4l2.VideoFormatResolution) int {
-			if b.Width != a.Width {
-				return int(b.Width) - int(a.Width)
+		slices.SortFunc(format.Resolutions, func(a camera.VideoFormatResolution, b camera.VideoFormatResolution) int {
+			if b.Data.Size.MaxWidth != a.Data.Size.MaxWidth {
+				return int(b.Data.Size.MaxWidth) - int(a.Data.Size.MaxWidth)
 			} else {
-				return int(b.Height) - int(a.Height)
+				return int(b.Data.Size.MaxHeight) - int(a.Data.Size.MaxHeight)
 			}
 		})
 
 		for _, resolution := range format.Resolutions {
 			line_index++
-			label_text := fmt.Sprintf("%dx%d:", resolution.Width, resolution.Height)
+			label_text := fmt.Sprintf("%dx%d:", resolution.Data.Size.MaxWidth, resolution.Data.Size.MaxHeight)
 			label := gtk.NewLabel(label_text)
 			label.SetHAlign(gtk.AlignEnd)
 			label.SetSelectable(true)
@@ -154,16 +157,16 @@ func create_resolution_list(format *v4l2.VideoFormat, grid *gtk.Grid) {
 		resolution := format.Resolutions[0]
 
 		line_index++
-		minimum := fmt.Sprintf("%dx%d", resolution.RangeWidth[0], resolution.RangeHeight[0])
+		minimum := fmt.Sprintf("%dx%d", resolution.Data.Size.MinWidth, resolution.Data.Size.MinHeight)
 		create_line("Minimum:", minimum, grid, line_index)
 
 		line_index++
-		maximum := fmt.Sprintf("%dx%d", resolution.RangeWidth[1], resolution.RangeHeight[1])
+		maximum := fmt.Sprintf("%dx%d", resolution.Data.Size.MaxWidth, resolution.Data.Size.MaxHeight)
 		create_line("Maximum:", maximum, grid, line_index)
 
-		if format.ResolutionType == v4l2.FrameSizeTypeStepwise {
+		if frameSizeType == v4l2.FrameSizeTypeStepwise {
 			line_index++
-			step_res := fmt.Sprintf("%dx%d", resolution.Width, resolution.Height)
+			step_res := fmt.Sprintf("%dx%d", resolution.Data.Size.StepWidth, resolution.Data.Size.StepHeight)
 			create_line("Step:", step_res, grid, line_index)
 		}
 
@@ -191,31 +194,52 @@ func create_line(label_text string, value_text string, grid *gtk.Grid, line_inde
 	grid.Attach(value, 1, line_index, 1, 1)
 }
 
-func create_frame_rate_line(resolution *v4l2.VideoFormatResolution, grid *gtk.Grid, line_index int) {
+func create_frame_rate_line(resolution *camera.VideoFormatResolution, grid *gtk.Grid, line_index int) {
 
 	var label_text string
 
-	switch resolution.FrameRateType {
-	case v4l2.FrameIntervalTypeDiscrete:
-		frame_rates := make([]string, 0, len(resolution.FrameRates))
+	frameRateType := resolution.FrameRates[0].Type
 
-		slices.SortFunc(resolution.FrameRates, func(a uint32, b uint32) int {
+	switch frameRateType {
+	case v4l2.FrameIntervalTypeDiscrete:
+		frame_rates := make([]uint32, 0, len(resolution.FrameRates))
+
+		for _, frame_fraction := range resolution.FrameRates {
+			frame_rate := frac_to_int(frame_fraction.Interval.Max)
+			frame_rates = append(frame_rates, frame_rate)
+		}
+
+		slices.SortFunc(frame_rates, func(a uint32, b uint32) int {
 			return int(b) - int(a)
 		})
 
-		for _, frame_rate := range resolution.FrameRates {
-			frame_rates = append(frame_rates, strconv.FormatUint(uint64(frame_rate), 10))
+		label_slice := make([]string, 0, len(resolution.FrameRates))
+
+		for _, frame_rate := range frame_rates {
+			label_slice = append(label_slice, strconv.FormatUint(uint64(frame_rate), 10))
 		}
 
-		label_text = strings.Join(frame_rates, ", ")
+		label_text = strings.Join(label_slice, ", ")
 	case v4l2.FrameIntervalTypeContinuous:
-		label_text = fmt.Sprintf("Min: %d / Max: %d", resolution.FrameRates[0], resolution.FrameRates[1])
+		frame_rate := resolution.FrameRates[0]
+		min := frac_to_int(frame_rate.Interval.Min)
+		max := frac_to_int(frame_rate.Interval.Max)
+		label_text = fmt.Sprintf("Min: %d / Max: %d", min, max)
 	case v4l2.FrameIntervalTypeStepwise:
-		label_text = fmt.Sprintf("Min: %d / Max: %d / Step: %d", resolution.FrameRates[0], resolution.FrameRates[1], resolution.FrameRates[2])
+		frame_rate := resolution.FrameRates[0]
+		min := frac_to_int(frame_rate.Interval.Min)
+		max := frac_to_int(frame_rate.Interval.Max)
+		step := frac_to_int(frame_rate.Interval.Step)
+		label_text = fmt.Sprintf("Min: %d / Max: %d / Step: %d", min, max, step)
 	}
 
 	label := gtk.NewLabel(label_text)
 	label.SetHAlign(gtk.AlignStart)
 	label.SetSelectable(true)
 	grid.Attach(label, 1, line_index, 1, 1)
+}
+
+func frac_to_int(frac v4l2.Fract) uint32 {
+	result := uint32(frac.Denominator) / uint32(frac.Numerator)
+	return result
 }

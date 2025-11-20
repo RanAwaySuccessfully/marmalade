@@ -15,7 +15,7 @@ type miscWidgets struct {
 	port_label  *gtk.Label
 	port_input  *gtk.Entry
 	gpu_label   *gtk.Label
-	gpu_input   *gtk.Switch
+	gpu_input   *gtk.DropDown
 }
 
 func create_misc_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
@@ -65,16 +65,9 @@ func create_misc_widgets() miscWidgets {
 		update_numeric_config(port_input, &server.Config.Port)
 	})
 
-	gpu_label := gtk.NewLabel("Use GPU?")
+	gpu_label := gtk.NewLabel("Device:")
 	gpu_label.SetHAlign(gtk.AlignStart)
-	gpu_input := gtk.NewSwitch()
-	gpu_input.SetState(server.Config.UseGpu)
-
-	gpu_input.Connect("state-set", func() {
-		state := gpu_input.State()
-		server.Config.UseGpu = state
-		update_unsaved_config(true)
-	})
+	gpu_input := create_gpu_widget()
 
 	widgets := miscWidgets{
 		model_label,

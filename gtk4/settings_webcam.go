@@ -4,8 +4,8 @@ package gtk4
 
 import (
 	"fmt"
+	"marmalade/camera"
 	"marmalade/server"
-	"marmalade/v4l2"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
@@ -24,7 +24,21 @@ func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 	webcam_input.SetHExpand(true)
 	webcam_box.Append(webcam_input)
 
+	webcam_factory := create_custom_factory()
+	webcam_input.SetFactory(&webcam_factory.ListItemFactory)
+
+	webcam_list_factory := create_custom_list_factory(webcam_input)
+	webcam_input.SetListFactory(&webcam_list_factory.ListItemFactory)
+
+	is_refreshing := false
+
+	fill_camera_list(webcam_input, &is_refreshing)
+
 	webcam_input.Connect("notify::selected", func() {
+		if is_refreshing {
+			return
+		}
+
 		selected := webcam_input.Selected()
 		index := camera_indices[selected]
 		server.Config.Camera = float64(index)
@@ -35,19 +49,18 @@ func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 	webcam_box.Append(webcam_refresh)
 
 	webcam_refresh.Connect("clicked", func() {
-		err := fill_camera_list(webcam_input)
+		err := fill_camera_list(webcam_input, &is_refreshing)
 		if err != nil {
 			err_chan <- err
 		}
 	})
 
-	fill_camera_list(webcam_input)
 	grid.Attach(webcam_label, 0, 1, 1, 1)
 	grid.Attach(webcam_box, 1, 1, 1, 1)
 }
 
-func fill_camera_list(input *gtk.DropDown) error {
-	cameras, err := v4l2.GetInputDevices()
+func fill_camera_list(input *gtk.DropDown, is_refreshing *bool) error {
+	cameras, err := camera.GetInputDevices()
 	if err != nil {
 		return err
 	}
@@ -58,7 +71,8 @@ func fill_camera_list(input *gtk.DropDown) error {
 		return nil
 	}
 
-	var camera_list []string
+	camera_indices = make([]uint8, 0, len(cameras))
+	camera_list := make([]string, 0, len(cameras))
 	selected_index := -1
 
 	for i, camera := range cameras {
@@ -71,12 +85,16 @@ func fill_camera_list(input *gtk.DropDown) error {
 		}
 	}
 
+	*is_refreshing = true
+
 	model := gtk.NewStringList(camera_list)
 	input.SetModel(model)
 
 	if selected_index >= 0 {
 		input.SetSelected(uint(selected_index))
+		*is_refreshing = false
 	} else {
+		*is_refreshing = false
 		input.SetSelected(gtk.InvalidListPosition)
 	}
 

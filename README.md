@@ -8,35 +8,58 @@ Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Trac
 
 ## Installing
 
-1. Download the latest release of Marmalade.
-2. Download the latest [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) from Google's MediaPipe page and place it inside the `python` folder.
+1. Download the [latest release](https://github.com/RanAwaySuccessfully/marmalade/releases/latest) of Marmalade.
+2. Download the latest [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) file from Google's MediaPipe page and place it inside the `python` folder.
 3. Install `python3`, `python3-venv` and `pip3`.
-4. If using the GTK 4 (GUI) version, you'll also need to have `libgtk-4` and `libv4l-0` installed.¹
+4. If using the GTK 4 (GUI) version, you'll also need to have the following installed, although they probably already are installed by default:
+    - `libgtk-4`¹ or `gtk4`¹
+    - `libv4l`¹
+    - `xdg-utils`
+    - `pciutils`
 
-<small>¹ Might already be installed. If you need to install these, please be aware your Linux distribution may use different package names such as `gtk4` or `libv4l` respectively.</small>
+<small>¹ May be suffixed by another version number, for example: `libgtk-4-1`, `libv4l-0`.</small>
 
-And you're done. You can just run the program at any time, and it'll take care of the rest for you.
+And you're done. You can just run the program at any time, and it should take care of the rest for you.
 
-Note: On startup, if Marmalade does not find a `.venv` hidden folder when starting up, it will ask you if it should create one for you. This will install MediaPipe, which uses around 850MB of disk space. This will fail if you haven't done Step 3. If the `.venv` folder becomes corrupted, you can just delete it and have the program create it for you again. If you want to run this step manually, you can run `scripts/mediapipe-install.sh` and it expects your working directory (current folder) to be `scripts`.
+### First-time setup
+
+- If Marmalade does not find a `.venv` hidden folder when starting up, it will ask you if it should create one for you. This will install MediaPipe, which uses around 850MB of disk space. This will fail if you haven't done Step 3. If the `.venv` folder becomes corrupted, you can just delete it and have the program create it for you again. If you want to run this step manually, you can run `scripts/mediapipe-install.sh` and it expects your working directory (current folder) to be `scripts`.
+
+- If using the GTK 4 (GUI) version, and it notices its icon is not installed, it will install a local copy to distinguish it between just a random executable. If you wish to uninstall the icon, run the command-line version of Marmalade like so: `./marmalade -u`.
+
+## Connecting
+
+### VBridger
+
+If you have VBridger running on the same computer as Marmalade, then the IP address you need to use is `127.0.0.1`.
+
+On VBridger, do not select the "MediaPipe" option, instead, select "VTube Studio" and type in the relevant IP address. Even though it says "Connect to iPhone", clicking on that button will connect to Marmalade instead.
 
 ## Config File
 
-If using the GTK 4 (GUI) version, you do not need to worry about this file unless it becomes corrupted somehow, as the UI allows you to edit it seamlessly. If using the command line version, you'll need to edit it manually to use the settings that you want. it is located right beside the app's executable as `config.json`.
+**If using the GTK 4 (GUI) version, you do not need to worry about this file** unless it becomes corrupted somehow, as the UI allows you to edit it seamlessly. If using the command line version, you'll need to edit it manually to use the settings that you want. It is located right beside the app's executable as `config.json`.
 
 Here's what each field in this file is responsible for:
 
 * port: The UDP port that Marmalade will be listening to. If you don't know what to do with this, keep the default value of `21412`.
 * camera: Camera ID (index). Starts at `0` and goes up from there.
-* width: Camera horizontal resolution.
-* height: Camera vertical resolution.
+* width: Camera horizontal resolution (number of pixels).
+* height: Camera vertical resolution (number of pixels).
 * fps: Camera frames per second.
 * format: Camera format. Examples: `"YUYV"`, `"MJPG"`, etc...
-* model: Filename of the model file that MediaPipe will use for face tracking. Since this is a string value, it is surrounded by `"` (double quotes) unlike the numeric fields above.
+* model: Filename of the model file that MediaPipe will use for face tracking.
 * use_gpu: Set to `true` to attempt to use the GPU for processing MediaPipe, and leave it at `false` otherwise.
+* prime_id: PCIe bus (slot/address) of the GPU that should be used by MediaPipe.* An empty string is valid, in which case, the default GPU will be used. Has no effect if `use_gpu` is `false`.
+
+The fields `model` and `prime_id` are string values, and as such they're surrounded by `"` (double quotes) unlike other fields.
+
+<small>* This is the same as the `DRI_PRIME` environment variable, and any valid value for it is also valid for this field, although the GTK 4 (GUI) version only expects PCIe bus IDs and may glitch otherwise.</small>
 
 ## Building, Testing, Debugging
 
-You'll need to install [Go](https://go.dev/).
+**You do not need to do any of this to install Marmalade. See the "Installing" section above instead.**
+
+If you want to develop or tinker with this program, you'll need to install the [Go programming language](https://go.dev/).
 
 For building, run: `go build -v`
 
@@ -49,6 +72,12 @@ If you want to debug it, it comes with some Visual Studio Code configuration dep
 - If you want to debug the Go code, specifically the command-line version, run `Go: Launch Package`.
 - If you want to debug the Python code, run `Python Debugger: Current File` while having the `main.py` file open and selected. Once it's running, type in `+127.0.0.1:21499` for example, to start sending data to a specific IP address and port.
 - If you want to debug the GTK 4 version, run `Go: Debug GTK 4 Build`. Note that this one will pre-build a `marmalade-gtk4` executable to make it start faster.
+
+### Build Times
+
+The GTK4 version of this project takes about 7-8 minutes to compile on an 5700X3D CPU, most of this time is taken up by building GTK4 and its dependencies. This will happen when building the program for the first time, but if you're using VSCode with the Go extension, it will also happen the first time you open a .go file in this project as `settings.json` is, by default, configured to the GTK4 version, and so it will get busy generating all the IntelliSense data it needs.
+
+Go has a caching mechanism that makes it so you don't have to go through this every time, but the cache does not last forever, so don't be surprised if you see it recompiling the GTK4 dependencies again.
 
 ## License and Credits
 
