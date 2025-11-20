@@ -107,7 +107,7 @@ func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 	case v4l2.FrameSizeTypeDiscrete:
 		header_text = "Discrete resolutions"
 	case v4l2.FrameSizeTypeContinuous:
-		header_text = "Continouous resolutions"
+		header_text = "Continuous resolutions"
 	case v4l2.FrameSizeTypeStepwise:
 		header_text = "Stepwise resolutions"
 	}
