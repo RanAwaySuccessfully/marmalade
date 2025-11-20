@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
@@ -22,6 +21,8 @@ var EmbeddedAboutLogo []byte
 var EmbeddedVersion string
 
 func create_about_dialog() {
+	version := "v" + EmbeddedVersion
+
 	authors := make([]string, 0, 1)
 	authors = append(authors, "RanAwaySuccessfully")
 
@@ -29,17 +30,7 @@ func create_about_dialog() {
 	artists = append(artists, "vexamour")
 
 	dialog := gtk.NewAboutDialog()
-
-	gbytes := glib.NewBytesWithGo(EmbeddedAboutLogo)
-	texture, err := gdk.NewTextureFromBytes(gbytes)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-	} else {
-		dialog.SetLogo(texture)
-	}
-
-	version := "v" + EmbeddedVersion
-
+	dialog.SetLogoIconName("xyz.randev.marmalade")
 	dialog.SetProgramName("Marmalade")
 	dialog.SetComments("API server for MediaPipe, mimicking VTube Studio for iPhone")
 	dialog.SetWebsite("https://github.com/RanAwaySuccessfully/marmalade")
@@ -48,6 +39,7 @@ func create_about_dialog() {
 	dialog.SetVersion(version)
 	dialog.SetAuthors(authors)
 	dialog.AddCreditSection("Logo by", artists)
+
 	dialog.SetVisible(true)
 }
 

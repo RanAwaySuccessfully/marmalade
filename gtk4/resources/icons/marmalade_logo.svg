@@ -4,9 +4,9 @@
 <svg
    version="1.1"
    id="svg2"
-   width="438.85715"
-   height="493.71429"
-   viewBox="0 0 438.85715 493.71429"
+   width="512"
+   height="512"
+   viewBox="0 0 512.00002 511.99999"
    sodipodi:docname="marmalade_logo.svg"
    inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -26,21 +26,23 @@
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
      inkscape:zoom="1.6973379"
-     inkscape:cx="205.6161"
-     inkscape:cy="246.85715"
+     inkscape:cx="140.51415"
+     inkscape:cy="269.83431"
      inkscape:window-width="1920"
      inkscape:window-height="1008"
-     inkscape:window-x="0"
+     inkscape:window-x="1920"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:current-layer="g8" />
   <g
      inkscape:groupmode="layer"
      inkscape:label="Image"
-     id="g8">
+     id="g8"
+     transform="translate(-31.841395,-23.910394)">
     <g
        id="g170"
-       style="display:inline">
+       style="display:inline"
+       transform="matrix(1.1337324,0,0,1.1337324,39.532332,-2.4184151)">
       <path
          id="path934"
          style="display:inline;fill:#ffffff;fill-opacity:1;stroke-width:0.589158"

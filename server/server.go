@@ -82,12 +82,12 @@ func (server *ServerData) Start(err_ch chan error) {
 	}
 
 	if Config.Model != "" {
-		model := "--model=%s" + Config.Model
+		model := "--model=" + Config.Model
 		args = append(args, model)
 	}
 
 	if Config.Format != "" {
-		cam_fmt := "--fmt=%s" + Config.Format
+		cam_fmt := "--fmt=" + Config.Format
 		args = append(args, cam_fmt)
 	}
 
