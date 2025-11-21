@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Marmalade
+Exec=marmalade-gtk4
+Icon=xyz.randev.marmalade
+Type=Application
+Categories=Utility;
+Keywords=facetracker;vtube;webcam;
