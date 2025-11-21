@@ -37,7 +37,7 @@ jobs:
 
     - name: Build AppImage
       run: |
-        mv gtk4/resources/icons/marmalade_icon.svg gtk4/resources/icons/xyz.randev.marmalade.svg
+        mv gtk4/resources/icons/marmalade_logo.svg gtk4/resources/icons/xyz.randev.marmalade.svg
         ./linuxdeploy-x86_64.AppImage \
           --appdir AppDir \
           --executable marmalade-gtk4 \
