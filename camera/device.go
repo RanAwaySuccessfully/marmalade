@@ -1,4 +1,4 @@
-//go:build withgtk4
+//go:build withgtk4 || withgtk3
 
 package camera
 

@@ -18,6 +18,24 @@
             "presentation": {
                 "reveal": "silent"
             }
+        },
+        {
+            "label": "goWithGtk3",
+            "type": "shell",
+            "command": "go",
+            "args": [
+                "build",
+                "-v",
+                "-tags", "withgtk3",
+                "-gcflags=\"./...=-N -l\"",
+                "-gcflags=\"./std=-N -l\"",
+                "-o",
+                "marmalade-gtk3"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            }
         }
     ]
 }
