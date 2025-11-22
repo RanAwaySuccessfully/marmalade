@@ -1,10 +1,12 @@
-//go:build !withgtk4
+//go:build !withgtk4 && !withgtk3
 
 package main
 
 import (
+	"marmalade/resources"
 	"marmalade/server"
 
+	_ "embed"
 	"fmt"
 	"log"
 	"os"
@@ -13,6 +15,26 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "-u":
+			fmt.Println("Uninstalling Marmalade icons...")
+			cmd := exec.Command(
+				"xdg-icon-resource", "uninstall",
+				"--size", "256",
+				"xyz.randev.marmalade",
+			)
+
+			cmd.Run()
+		case "-v":
+			fmt.Println("[MARMALADE] v" + resources.EmbeddedVersion)
+		default:
+			fmt.Println("Unknown argument. Use -v for version. Use -u for uninstalling icons. Do not provide any command line argument for normal usage.")
+		}
+
+		return
+	}
+
 	info, err := os.Stat(".venv")
 	if err != nil || !info.IsDir() {
 		fmt.Println("[MARMALADE] .venv folder is missing. This likely indicates that mediapipe-install.sh has not been run yet.")

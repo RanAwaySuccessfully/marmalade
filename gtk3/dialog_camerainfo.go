@@ -1,6 +1,6 @@
-//go:build withgtk4
+//go:build withgtk3
 
-package gtk4
+package gtk3
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 	"github.com/vladimirvivien/go4vl/v4l2"
 )
 
@@ -19,19 +19,17 @@ func create_camera_info_window(camera_id uint8) error {
 		return err
 	}
 
-	window := gtk.NewWindow()
-	titlebar := gtk.NewHeaderBar()
-	window.SetTitlebar(titlebar)
+	window := gtk.NewWindow(WindowToplevel)
 
 	window.SetTitle("Marmalade - " + camera.Name)
 	window.SetDefaultSize(400, 550)
 	window.SetResizable(false)
 	window.SetVisible(true)
 
-	box := gtk.NewBox(gtk.OrientationVertical, 0)
-	window.SetChild(box)
+	box := gtk.NewBox(OrientationVertical, 0)
+	window.Add(box)
 
-	content_box := gtk.NewBox(gtk.OrientationHorizontal, 10)
+	content_box := gtk.NewBox(OrientationHorizontal, 10)
 
 	stack := gtk.NewStack()
 
@@ -63,32 +61,32 @@ func create_camera_info_window(camera_id uint8) error {
 		create_resolution_list(&format, grid)
 
 		scrollable_content := gtk.NewViewport(nil, nil)
-		scrollable_content.SetChild(grid)
+		scrollable_content.Add(grid)
 
-		scrollable_container := gtk.NewScrolledWindow()
-		scrollable_container.SetChild(scrollable_content)
+		scrollable_container := gtk.NewScrolledWindow(nil, nil)
+		scrollable_container.Add(scrollable_content)
 
-		stack.AddChild(scrollable_container)
-		page := stack.Page(scrollable_container)
-		page.SetTitle(format.Id)
+		stack.AddTitled(scrollable_container, format.Id, format.Id)
 	}
 
 	sidebar := gtk.NewStackSidebar()
 	sidebar.SetStack(stack)
 	sidebar.SetVExpand(true)
 
-	content_box.Append(sidebar)
-	content_box.Append(stack)
+	content_box.Add(sidebar)
+	content_box.Add(stack)
 
-	box.Append(content_box)
+	box.Add(content_box)
 
 	action_bar := gtk.NewActionBar()
-	box.Append(action_bar)
+	box.Add(action_bar)
 
 	button := gtk.NewButton()
 	button.SetLabel("Close")
 
 	action_bar.SetCenterWidget(button)
+
+	window.ShowAll()
 
 	button.Connect("clicked", func() {
 		window.Destroy()
@@ -114,7 +112,7 @@ func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 	}
 
 	line_index++
-	sep_1 := gtk.NewSeparator(gtk.OrientationHorizontal)
+	sep_1 := gtk.NewSeparator(OrientationHorizontal)
 	grid.Attach(sep_1, 0, line_index, 2, 1)
 
 	line_index++
@@ -122,14 +120,14 @@ func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 	grid.Attach(header, 0, line_index, 2, 1)
 
 	line_index++
-	sep_2 := gtk.NewSeparator(gtk.OrientationHorizontal)
+	sep_2 := gtk.NewSeparator(OrientationHorizontal)
 	grid.Attach(sep_2, 0, line_index, 2, 1)
 
 	if frameSizeType == v4l2.FrameSizeTypeDiscrete {
 
 		line_index++
 		name_value := gtk.NewLabel("Supported frame rates:")
-		name_value.SetHAlign(gtk.AlignStart)
+		name_value.SetHAlign(AlignStart)
 		name_value.SetHExpand(true)
 
 		grid.Attach(name_value, 1, line_index, 1, 1)
@@ -146,7 +144,7 @@ func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 			line_index++
 			label_text := fmt.Sprintf("%dx%d:", resolution.Data.Size.MaxWidth, resolution.Data.Size.MaxHeight)
 			label := gtk.NewLabel(label_text)
-			label.SetHAlign(gtk.AlignEnd)
+			label.SetHAlign(AlignEnd)
 			label.SetSelectable(true)
 			grid.Attach(label, 0, line_index, 1, 1)
 
@@ -173,7 +171,7 @@ func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 
 		line_index++
 		fps_label := gtk.NewLabel("Frame rates:")
-		fps_label.SetHAlign(gtk.AlignEnd)
+		fps_label.SetHAlign(AlignEnd)
 		fps_label.SetSelectable(true)
 		grid.Attach(fps_label, 0, line_index, 1, 1)
 
@@ -184,10 +182,10 @@ func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 
 func create_line(label_text string, value_text string, grid *gtk.Grid, line_index int) {
 	label := gtk.NewLabel(label_text)
-	label.SetHAlign(gtk.AlignEnd)
+	label.SetHAlign(AlignEnd)
 
 	value := gtk.NewLabel(value_text)
-	value.SetHAlign(gtk.AlignStart)
+	value.SetHAlign(AlignStart)
 	value.SetHExpand(true)
 	value.SetSelectable(true)
 
@@ -235,7 +233,7 @@ func create_frame_rate_line(resolution *camera.VideoFormatResolution, grid *gtk.
 	}
 
 	label := gtk.NewLabel(label_text)
-	label.SetHAlign(gtk.AlignStart)
+	label.SetHAlign(AlignStart)
 	label.SetSelectable(true)
 	grid.Attach(label, 1, line_index, 1, 1)
 }

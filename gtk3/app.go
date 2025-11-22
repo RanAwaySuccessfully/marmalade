@@ -1,29 +1,32 @@
-//go:build withgtk4
+//go:build withgtk3
 
-package gtk4
+package gtk3
 
 import (
 	_ "embed"
-	"marmalade/resources"
 	"marmalade/server"
 	"regexp"
 	"strconv"
 
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
 var savedConfigRevealer *gtk.Revealer
+
+var OrientationHorizontal = interface{}(gtk.OrientationHorizontal).(gtk.Orientation)
+var OrientationVertical = interface{}(gtk.OrientationVertical).(gtk.Orientation)
+var WindowToplevel = interface{}(gtk.WindowToplevel).(gtk.WindowType)
+var AlignStart = interface{}(gtk.AlignStart).(gtk.Align)
+var AlignEnd = interface{}(gtk.AlignEnd).(gtk.Align)
 
 func Activate(app *gtk.Application) {
 	server.Config.Read()
 
 	window := gtk.NewApplicationWindow(app)
+	window.ConnectDestroy(gtk.MainQuit)
 	titlebar := gtk.NewHeaderBar()
-
-	display := window.Widget.Display()
-	css := gtk.NewCSSProvider()
-	css.LoadFromString(resources.EmbeddedCSS)
-	gtk.StyleContextAddProviderForDisplay(display, css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+	titlebar.SetShowCloseButton(true)
 
 	window.SetTitlebar(titlebar)
 	window.SetTitle("Marmalade")
@@ -31,14 +34,14 @@ func Activate(app *gtk.Application) {
 	set_window_size(window)
 	window.SetVisible(true)
 
-	about_button := gtk.NewButtonFromIconName("help-about-symbolic")
+	about_button := gtk.NewButtonFromIconName("help-about-symbolic", 4)
 	titlebar.PackStart(about_button)
 	about_button.Connect("clicked", create_about_dialog)
 
 	/* MAIN CONTENT */
 
-	main_box := gtk.NewBox(gtk.OrientationVertical, 0)
-	window.SetChild(main_box)
+	main_box := gtk.NewBox(OrientationVertical, 0)
+	window.Add(main_box)
 
 	grid := gtk.NewGrid()
 	grid.SetRowSpacing(7)
@@ -47,7 +50,7 @@ func Activate(app *gtk.Application) {
 	grid.SetMarginEnd(30)
 	grid.SetMarginTop(15)
 	grid.SetMarginBottom(20)
-	main_box.Append(grid)
+	main_box.PackStart(grid, true, true, 0)
 
 	button := gtk.NewButtonWithLabel("Start MediaPipe")
 	button.SetHExpand(true)
@@ -74,25 +77,28 @@ func Activate(app *gtk.Application) {
 	create_misc_settings(grid, window)
 
 	savedConfigRevealer = gtk.NewRevealer()
-	main_box.Append(savedConfigRevealer)
+	main_box.Add(savedConfigRevealer)
 	create_footer()
 
 	/* ERROR HANDLING */
 
 	check_venv_folder(window, err_channel)
 	go error_handler(button, err_channel)
+
+	window.ShowAll()
+	gtk.Main()
 }
 
 func set_window_size(window *gtk.ApplicationWindow) {
-	window.SetDefaultSize(450, 150)
+	window.SetSizeRequest(450, 150)
 }
 
 func create_footer() {
-	footer_box := gtk.NewBox(gtk.OrientationVertical, 5)
-	savedConfigRevealer.SetChild(footer_box)
+	footer_box := gtk.NewBox(OrientationVertical, 5)
+	savedConfigRevealer.Add(footer_box)
 
 	action_bar := gtk.NewActionBar()
-	footer_box.Append(action_bar)
+	footer_box.Add(action_bar)
 
 	footer_warning := gtk.NewLabel("You have unsaved changes.")
 	action_bar.SetCenterWidget(footer_warning)
@@ -143,4 +149,12 @@ func update_unsaved_config(value bool) {
 	if savedConfigRevealer != nil {
 		savedConfigRevealer.SetRevealChild(value)
 	}
+}
+
+func query_child_row(grid *gtk.Grid, child gtk.Widgetter) int {
+	var row64 int64
+	value := glib.NewValue(row64)
+	grid.ChildGetProperty(child, "top-attach", value)
+	row64 = value.GoValueAsType(glib.TypeInt64).(int64)
+	return int(row64)
 }

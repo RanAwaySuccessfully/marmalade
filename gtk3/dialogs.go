@@ -1,8 +1,9 @@
-//go:build withgtk4
+//go:build withgtk3
 
-package gtk4
+package gtk3
 
 import (
+	_ "embed"
 	"errors"
 	"fmt"
 	"marmalade/resources"
@@ -10,9 +11,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
 func create_about_dialog() {
@@ -25,7 +25,7 @@ func create_about_dialog() {
 	artists = append(artists, "vexamour")
 
 	dialog := gtk.NewAboutDialog()
-	dialog.SetProgramName("Marmalade (GTK 4)")
+	dialog.SetProgramName("Marmalade (GTK 3)")
 	dialog.SetComments("API server for MediaPipe, mimicking VTube Studio for iPhone")
 	dialog.SetWebsite("https://github.com/RanAwaySuccessfully/marmalade")
 	dialog.SetWebsiteLabel("GitHub")
@@ -33,50 +33,41 @@ func create_about_dialog() {
 	dialog.SetVersion(version)
 	dialog.SetAuthors(authors)
 	dialog.AddCreditSection("Logo by", artists)
-
-	display := dialog.Widget.Display()
-	theme := gtk.IconThemeGetForDisplay(display)
-	hasIcon := theme.HasIcon("xyz.randev.marmalade")
-
-	if hasIcon {
-		dialog.SetLogoIconName("xyz.randev.marmalade")
-	} else {
-		gbytes := glib.NewBytesWithGo(resources.EmbeddedAboutLogo)
-		texture, err := gdk.NewTextureFromBytes(gbytes)
-
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-		} else {
-			dialog.SetLogo(texture)
-		}
-	}
+	dialog.SetLogoIconName("xyz.randev.marmalade")
 
 	dialog.SetVisible(true)
+
+	dialog.ConnectResponse(func(response int) {
+		if response == int(gtk.ResponseDeleteEvent) {
+			dialog.Close()
+		}
+	})
 }
 
 func create_error_window(err error) {
-	window := gtk.NewWindow()
+	window := gtk.NewWindow(WindowToplevel)
 	window.SetTitle("Marmalade - Error")
 	window.SetDefaultSize(300, 100)
 	window.SetResizable(false)
-	window.SetHideOnClose(true)
 	window.SetVisible(true)
 
-	box := gtk.NewBox(gtk.OrientationVertical, 5)
+	box := gtk.NewBox(OrientationVertical, 5)
 	box.SetMarginStart(10)
 	box.SetMarginEnd(10)
 	box.SetMarginTop(5)
 	box.SetMarginBottom(7)
-	window.SetChild(box)
+	window.Add(box)
 
 	label := gtk.NewLabel(err.Error())
-	label.SetWrap(true)
+	label.SetLineWrap(true)
 	label.SetVExpand(true)
-	box.Append(label)
+	box.Add(label)
 
 	button := gtk.NewButton()
 	button.SetLabel("Close")
-	box.Append(button)
+	box.Add(button)
+
+	window.ShowAll()
 
 	button.Connect("clicked", func() {
 		window.Close()

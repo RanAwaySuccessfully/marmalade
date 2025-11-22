@@ -1,10 +1,4 @@
 {
-    "gopls": {
-        "build.buildFlags": [
-            "--tags",
-            "withgtk4"
-        ]
-    },
     "files.associations": {
         "chrono": "c",
         "ranges": "c",
@@ -17,6 +11,13 @@
         "string.h": "c",
         "sstream": "c",
         "bitset": "c",
-        "videodev2.h": "c"
-    }
+        "videodev2.h": "c",
+        "header.h": "c",
+        "face_landmarker.h": "c",
+        "mediapipe.i": "swiglang",
+    },
+    "go.buildFlags": [
+        "--tags",
+        "withgtk3"
+    ]
 }

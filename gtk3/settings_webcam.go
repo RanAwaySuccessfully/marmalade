@@ -1,13 +1,13 @@
-//go:build withgtk4
+//go:build withgtk3
 
-package gtk4
+package gtk3
 
 import (
 	"fmt"
 	"marmalade/camera"
 	"marmalade/server"
 
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
 var camera_indices []uint8
@@ -15,20 +15,14 @@ var camera_indices []uint8
 func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 	webcam_label := gtk.NewLabel("Webcam:")
 	webcam_label.SetSizeRequest(125, 1)
-	webcam_label.SetHAlign(gtk.AlignStart)
+	webcam_label.SetHAlign(AlignStart)
 	webcam_label.SetXAlign(0)
 
-	webcam_box := gtk.NewBox(gtk.OrientationHorizontal, 3)
+	webcam_box := gtk.NewBox(OrientationHorizontal, 3)
 
-	webcam_input := gtk.NewDropDown(nil, nil)
+	webcam_input := gtk.NewComboBoxText()
 	webcam_input.SetHExpand(true)
-	webcam_box.Append(webcam_input)
-
-	webcam_factory := create_custom_factory()
-	webcam_input.SetFactory(&webcam_factory.ListItemFactory)
-
-	webcam_list_factory := create_custom_list_factory(webcam_input)
-	webcam_input.SetListFactory(&webcam_list_factory.ListItemFactory)
+	webcam_box.Add(webcam_input)
 
 	is_refreshing := false
 
@@ -39,14 +33,14 @@ func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 			return
 		}
 
-		selected := webcam_input.Selected()
+		selected := webcam_input.Active()
 		index := camera_indices[selected]
 		server.Config.Camera = float64(index)
 		update_unsaved_config(true)
 	})
 
-	webcam_refresh := gtk.NewButtonFromIconName("view-refresh-symbolic")
-	webcam_box.Append(webcam_refresh)
+	webcam_refresh := gtk.NewButtonFromIconName("view-refresh-symbolic", 4)
+	webcam_box.Add(webcam_refresh)
 
 	webcam_refresh.Connect("clicked", func() {
 		err := fill_camera_list(webcam_input, &is_refreshing)
@@ -59,25 +53,25 @@ func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 	grid.Attach(webcam_box, 1, 1, 1, 1)
 }
 
-func fill_camera_list(input *gtk.DropDown, is_refreshing *bool) error {
+func fill_camera_list(input *gtk.ComboBoxText, is_refreshing *bool) error {
 	cameras, err := camera.GetInputDevices()
 	if err != nil {
 		return err
 	}
 
 	if len(cameras) == 0 {
-		input.SetSelected(gtk.InvalidListPosition)
-		input.SetModel(nil)
+		input.SetActive(-1)
+		input.RemoveAll()
 		return nil
 	}
 
 	camera_indices = make([]uint8, 0, len(cameras))
-	camera_list := make([]string, 0, len(cameras))
+	input.RemoveAll()
 	selected_index := -1
 
 	for i, camera := range cameras {
 		camera_string := fmt.Sprintf("%d: %s", camera.Index, camera.Name)
-		camera_list = append(camera_list, camera_string)
+		input.AppendText(camera_string)
 		camera_indices = append(camera_indices, camera.Index)
 
 		if camera.Index == uint8(server.Config.Camera) {
@@ -87,15 +81,12 @@ func fill_camera_list(input *gtk.DropDown, is_refreshing *bool) error {
 
 	*is_refreshing = true
 
-	model := gtk.NewStringList(camera_list)
-	input.SetModel(model)
-
 	if selected_index >= 0 {
-		input.SetSelected(uint(selected_index))
+		input.SetActive(selected_index)
 		*is_refreshing = false
 	} else {
 		*is_refreshing = false
-		input.SetSelected(gtk.InvalidListPosition)
+		input.SetActive(-1)
 	}
 
 	return nil

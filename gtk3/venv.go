@@ -1,13 +1,13 @@
-//go:build withgtk4
+//go:build withgtk3
 
-package gtk4
+package gtk3
 
 import (
 	"os"
 	"os/exec"
 
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
 func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
@@ -16,34 +16,36 @@ func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
 
 		app_window.SetVisible(false)
 
-		window := gtk.NewWindow()
+		window := gtk.NewWindow(WindowToplevel)
 		window.SetTitle("Marmalade - .venv folder missing")
 		window.SetDefaultSize(400, 100)
 		window.SetResizable(false)
 		window.SetVisible(true)
 
-		box := gtk.NewBox(gtk.OrientationVertical, 5)
+		box := gtk.NewBox(OrientationVertical, 5)
 		box.SetMarginStart(10)
 		box.SetMarginEnd(10)
 		box.SetMarginTop(5)
 		box.SetMarginBottom(7)
-		window.SetChild(box)
+		window.Add(box)
 
 		label := gtk.NewLabel("The folder .venv is missing. This likely indicates that mediapipe-install.sh has not been run yet. Run it now?")
-		label.SetWrap(true)
+		label.SetLineWrap(true)
 		label.SetVExpand(true)
-		box.Append(label)
+		box.Add(label)
 
-		button_box := gtk.NewBox(gtk.OrientationHorizontal, 5)
-		box.Append(button_box)
+		button_box := gtk.NewBox(OrientationHorizontal, 5)
+		box.Add(button_box)
 
 		button := gtk.NewButtonWithLabel("Yes")
 		button.SetHExpand(true)
-		button_box.Append(button)
+		button_box.Add(button)
 
 		button_no := gtk.NewButtonWithLabel("No")
 		button_no.SetHExpand(true)
-		button_box.Append(button_no)
+		button_box.Add(button_no)
+
+		window.ShowAll()
 
 		button_no.Connect("clicked", func() {
 			app_window.SetVisible(true)
@@ -57,7 +59,7 @@ func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
 			label.SetText("Installing MediaPipe...")
 
 			spinner := gtk.NewSpinner()
-			spinner.InsertBefore(box, label)
+			box.Add(spinner)
 			spinner.Start()
 
 			go install_mediapipe(app_window, window, err_chan)

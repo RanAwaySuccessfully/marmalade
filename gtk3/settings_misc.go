@@ -1,12 +1,12 @@
-//go:build withgtk4
+//go:build withgtk3
 
-package gtk4
+package gtk3
 
 import (
 	"marmalade/server"
 	"strconv"
 
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
 type miscWidgets struct {
@@ -15,12 +15,12 @@ type miscWidgets struct {
 	port_label  *gtk.Label
 	port_input  *gtk.Entry
 	gpu_label   *gtk.Label
-	gpu_input   *gtk.DropDown
+	gpu_input   *gtk.ComboBoxText
 }
 
 func create_misc_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
 	misc_row := gtk.NewExpander("Misc settings")
-	misc_row.AddCSSClass("boldText")
+	misc_row.StyleContext().AddClass("boldText")
 	misc_row.SetMarginTop(5)
 	misc_row.SetMarginBottom(5)
 
@@ -29,7 +29,7 @@ func create_misc_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
 
 	misc_row.Connect("notify::expanded", func() {
 		expanded := misc_row.Expanded()
-		_, row, _, _ := grid.QueryChild(misc_row)
+		row := query_child_row(grid, misc_row)
 		row++
 
 		if expanded {
@@ -43,7 +43,7 @@ func create_misc_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
 
 func create_misc_widgets() miscWidgets {
 	model_label := gtk.NewLabel("Model filename:")
-	model_label.SetHAlign(gtk.AlignStart)
+	model_label.SetHAlign(AlignStart)
 	model_input := gtk.NewEntry()
 	model_input.SetText(server.Config.Model)
 	model_input.SetPlaceholderText("face_landmarker.task")
@@ -55,7 +55,7 @@ func create_misc_widgets() miscWidgets {
 	})
 
 	port_label := gtk.NewLabel("UDP port:")
-	port_label.SetHAlign(gtk.AlignStart)
+	port_label.SetHAlign(AlignStart)
 	port_input := gtk.NewEntry()
 	port := strconv.FormatFloat(server.Config.Port, 'f', 0, 64)
 	port_input.SetText(port)
@@ -66,7 +66,7 @@ func create_misc_widgets() miscWidgets {
 	})
 
 	gpu_label := gtk.NewLabel("Device:")
-	gpu_label.SetHAlign(gtk.AlignStart)
+	gpu_label.SetHAlign(AlignStart)
 	gpu_input := create_gpu_widget()
 
 	widgets := miscWidgets{
@@ -94,6 +94,8 @@ func show_misc_widgets(grid *gtk.Grid, widgets *miscWidgets, row int) {
 
 	grid.Attach(widgets.gpu_label, 0, row+2, 1, 1)
 	grid.Attach(widgets.gpu_input, 1, row+2, 1, 1)
+
+	grid.ShowAll()
 }
 
 func hide_misc_widgets(grid *gtk.Grid, row int) {
