@@ -1,6 +1,3 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
 name: Build Marmalade
 
 on:
@@ -8,9 +5,9 @@ on:
 
 jobs:
 
-  gtk3:
-    name: Build GTK-3 version on Ubuntu 22.04
-    runs-on: ubuntu-22.04
+  ubuntu24:
+    name: Build on Ubuntu 24.04
+    runs-on: ubuntu-24.04
     steps:
     
     - uses: actions/checkout@v4
@@ -22,33 +19,23 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: '1.23'
+
+    - name: Build CMD version
+      run: env CGO_ENABLED=0 go build -v
     
+    - name: Build GTK-4 version
+      run: go build -v -tags withgtk4 -o marmalade-gtk4
+
     - name: Build GTK-3 version
       run: go build -v -tags withgtk3 -o marmalade-gtk3
 
-    - name: Download Linux Deploy
-      run: |
-        wget -O linuxdeploy-x86_64.AppImage https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20250213-2/linuxdeploy-x86_64.AppImage
-        chmod +x linuxdeploy-x86_64.AppImage
-
-    - name: Build AppImage
-      run: |
-        mv resources/icons/marmalade_logo.svg resources/icons/xyz.randev.marmalade.svg
-        sed -i.bak "s/gtk4/gtk3/g" marmalade.desktop
-        ./linuxdeploy-x86_64.AppImage \
-          --appdir AppDir \
-          --executable marmalade-gtk3 \
-          --icon-file resources/icons/xyz.randev.marmalade.svg \
-          --desktop-file marmalade.desktop \
-          --output appimage
-
     - name: Create Distributable Folder
-      run: mkdir dist && mv -t dist python scripts config.json LICENSE marmalade-gtk3 Marmalade-x86_64.AppImage
+      run: mkdir dist && mv -t dist python scripts config.json LICENSE marmalade marmalade-gtk3 marmalade-gtk4
 
     - name: Export Distributable Folder
       uses: actions/upload-artifact@v4
       with:
-        name: marmalade-gtk3
+        name: marmalade
         path: dist
         if-no-files-found: error
         retention-days: 1
