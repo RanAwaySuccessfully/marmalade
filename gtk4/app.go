@@ -4,6 +4,7 @@ package gtk4
 
 import (
 	_ "embed"
+	"marmalade/resources"
 	"marmalade/server"
 	"regexp"
 	"strconv"
@@ -13,9 +14,6 @@ import (
 
 var savedConfigRevealer *gtk.Revealer
 
-//go:embed resources/style.css
-var EmbeddedCSS string
-
 func Activate(app *gtk.Application) {
 	server.Config.Read()
 
@@ -24,7 +22,7 @@ func Activate(app *gtk.Application) {
 
 	display := window.Widget.Display()
 	css := gtk.NewCSSProvider()
-	css.LoadFromString(EmbeddedCSS)
+	css.LoadFromString(resources.EmbeddedCSS)
 	gtk.StyleContextAddProviderForDisplay(display, css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 	window.SetTitlebar(titlebar)
@@ -63,7 +61,8 @@ func Activate(app *gtk.Application) {
 
 		if started {
 			srv.Stop()
-			button.SetLabel("Start MediaPipe")
+			button.SetLabel("Stopping MediaPipe...")
+			button.SetSensitive(false)
 		} else {
 			go srv.Start(err_channel)
 			button.SetLabel("Stop MediaPipe")
