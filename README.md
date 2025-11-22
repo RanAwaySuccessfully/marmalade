@@ -6,18 +6,21 @@ Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Trac
 | ---- | ---- |
 | ![Command-line](docs/readme_cmd.png) | ![GTK 4](docs/readme_gtk4.png) |
 
+Also available under GTK 3 (GUI).
+
 ## Installing
 
 1. Download the [latest release](https://github.com/RanAwaySuccessfully/marmalade/releases/latest) of Marmalade.
 2. Download the latest [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) file from Google's MediaPipe page and place it inside the `python` folder.
 3. Install `python3`, `python3-venv` and `pip3`.
-4. If using the GTK 4 (GUI) version, you'll also need to have the following installed, although they probably already are installed by default:
-    - `libgtk-4`¹ or `gtk4`¹
+4. If using any of the GUI versions, you'll also need to have the following installed, although they probably already are installed by default:
+    - `libgtk-3`¹ or `gtk3`¹ (>=3.24, only if using GTK 3)
+    - `libgtk-4`¹ or `gtk4`¹ (>=4.14, only if using GTK 4)
     - `libv4l`¹
     - `xdg-utils`
     - `pciutils`
 
-<sub>¹ May be suffixed by another version number, for example: `libgtk-4-1`, `libv4l-0`.</sub>
+<sub>¹ May be suffixed by another version number, for example: `libgtk-3-0t64`, `libgtk-4-1`, `libv4l-0`.</sub>
 
 And you're done. You can just run the program at any time, and it should take care of the rest for you.
 
@@ -25,7 +28,7 @@ And you're done. You can just run the program at any time, and it should take ca
 
 - If Marmalade does not find a `.venv` hidden folder when starting up, it will ask you if it should create one for you. This will install MediaPipe, which uses around 850MB of disk space. This will fail if you haven't done Step 3. If the `.venv` folder becomes corrupted, you can just delete it and have the program create it for you again. If you want to run this step manually, you can run `scripts/mediapipe-install.sh` and it expects your working directory (current folder) to be `scripts`.
 
-- If using the GTK 4 (GUI) version, and it notices its icon is not installed, it will install a local copy to distinguish it between just a random executable. If you wish to uninstall the icon, run the command-line version of Marmalade like so: `./marmalade -u`.
+- If using a GUI version, and it notices its icon is not installed, it will install a local copy to distinguish it between just a random executable. If you wish to uninstall the icon, run the command-line version of Marmalade like so: `./marmalade -u`.
 
 ## Connecting
 
@@ -37,7 +40,7 @@ On VBridger, do not select the "MediaPipe" option, instead, select "VTube Studio
 
 ## Config File
 
-**If using the GTK 4 (GUI) version, you do not need to worry about this file** unless it becomes corrupted somehow, as the UI allows you to edit it seamlessly. If using the command line version, you'll need to edit it manually to use the settings that you want. It is located right beside the app's executable as `config.json`.
+**If using a GUI version, you do not need to worry about this file** unless it becomes corrupted somehow, as the UI allows you to edit it seamlessly. If using the command line version, you'll need to edit it manually to use the settings that you want. It is located right beside the app's executable as `config.json`.
 
 Here's what each field in this file is responsible for:
 
@@ -65,19 +68,19 @@ For building, run: `go build -v`
 
 For running it without building it, run: `go run -v ./`
 
-For building or running the GTK 4 version, just add `-tags withgtk4` to the commands. Do note that in this case, you'll also need to install the `libgtk-4-dev` and `libv4l-dev` packages.
+For building or running the GTK 4 version, just add `-tags withgtk4` to the commands above. Do note that in this case, you'll also need to install the `libgtk-4-dev` and `libv4l-dev` packages. For GTK 3 it's `-tags withgtk3` and you'll need `libgtk-3-dev` instead.
 
 If you want to debug it, it comes with some Visual Studio Code configuration depending on what you want to debug:
 
 - If you want to debug the Go code, specifically the command-line version, run `Go: Launch Package`.
 - If you want to debug the Python code, run `Python Debugger: Current File` while having the `main.py` file open and selected. Once it's running, type in `+127.0.0.1:21499` for example, to start sending data to a specific IP address and port.
-- If you want to debug the GTK 4 version, run `Go: Debug GTK 4 Build`. Note that this one will pre-build a `marmalade-gtk4` executable to make it start faster.
+- If you want to debug the GTK 4 version, run `Go: Debug GTK 4 Build`. Note that this one will pre-build a `marmalade-gtk4` executable to make it start faster. The same applies for the GTK 3 version.
 
 ### Build Times
 
-The GTK4 version of this project takes about 7-8 minutes to compile on an 5700X3D CPU, most of this time is taken up by building GTK4 and its dependencies. This will happen when building the program for the first time, but if you're using VSCode with the Go extension, it will also happen the first time you open a .go file in this project as `settings.json` is, by default, configured to the GTK4 version, and so it will get busy generating all the IntelliSense data it needs.
+The GUI version of this project takes about 7-8 minutes to compile on an 5700X3D CPU, most of this time is taken up by building GTK and its dependencies. This will happen when building the program for the first time, but if you're using VSCode with the Go extension, it will also happen the first time you open a .go file in this project as `.vscode/settings.json` is, by default, configured to the GTK4 version, and so it will get busy generating all the IntelliSense data it needs.
 
-Go has a caching mechanism that makes it so you don't have to go through this every time, but the cache does not last forever, so don't be surprised if you see it recompiling the GTK4 dependencies again.
+Go has a caching mechanism that makes it so you don't have to go through this every time, but the cache does not last forever, so don't be surprised if you see it recompiling the GTK dependencies again. If you compile the GTK4 version, the GTK3 version will take slightly less time and vice-versa.
 
 ## License and Credits
 
