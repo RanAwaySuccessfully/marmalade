@@ -45,6 +45,8 @@ func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
 		button_no.SetHExpand(true)
 		button_box.Add(button_no)
 
+		window.ShowAll()
+
 		button_no.Connect("clicked", func() {
 			app_window.SetVisible(true)
 			window.Close()

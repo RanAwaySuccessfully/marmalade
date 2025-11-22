@@ -26,9 +26,10 @@ type udpMessage struct {
 
 type ServerData struct {
 	udpListener net.PacketConn
-	mu          sync.Mutex
+	mutex       sync.Mutex
 	exit        bool
 	clients     map[string]*udpMessage
+	ErrPipe     *ServerErrPipe
 }
 
 var Server = ServerData{
@@ -121,8 +122,9 @@ func (server *ServerData) Start(err_ch chan error) {
 		return
 	}
 
+	server.ErrPipe = &ServerErrPipe{}
+	go io.Copy(server.ErrPipe, stderr)
 	go io.Copy(os.Stdout, stdout)
-	go io.Copy(os.Stderr, stderr)
 
 	err = cmd.Start()
 	if err != nil {
@@ -131,7 +133,7 @@ func (server *ServerData) Start(err_ch chan error) {
 	}
 
 	go server.updateClients(stdin, err_ch)
-	go server.Wait(cmd, err_ch)
+	go server.wait(cmd, err_ch)
 
 	for !server.exit {
 		buf := make([]byte, 1024)
@@ -162,7 +164,7 @@ func (server *ServerData) Start(err_ch chan error) {
 	fmt.Println("[MARMALADE] Ended")
 }
 
-func (server *ServerData) Wait(cmd *exec.Cmd, err_ch chan error) {
+func (server *ServerData) wait(cmd *exec.Cmd, err_ch chan error) {
 	err := cmd.Wait()
 	if err != nil {
 		err_ch <- err
@@ -202,7 +204,7 @@ func (server *ServerData) handlePacket(buf []byte, addr net.Addr) error {
 	msg.source = addr.String()
 	msg.Time *= 1000
 
-	server.mu.Lock()
+	server.mutex.Lock()
 	if server.clients[msg.SentBy] == nil {
 		msg.fresh = true
 	} else {
@@ -210,7 +212,7 @@ func (server *ServerData) handlePacket(buf []byte, addr net.Addr) error {
 	}
 
 	server.clients[msg.SentBy] = &msg
-	server.mu.Unlock()
+	server.mutex.Unlock()
 
 	return nil
 }
@@ -222,7 +224,7 @@ func (server *ServerData) updateClients(stdin io.WriteCloser, err_ch chan error)
 
 		min := int64(100)
 
-		server.mu.Lock()
+		server.mutex.Lock()
 
 		for clientId, client := range server.clients {
 
@@ -250,7 +252,7 @@ func (server *ServerData) updateClients(stdin io.WriteCloser, err_ch chan error)
 			client.Time -= float64(min)
 		}
 
-		server.mu.Unlock()
+		server.mutex.Unlock()
 
 		end := time.Now().UnixMilli()
 		diff := end - start
@@ -276,4 +278,16 @@ func (server *ServerData) sendUpdate(stdin io.WriteCloser, action string, ip str
 
 func int_to_string(number int) string {
 	return strconv.Itoa(number)
+}
+
+type ServerErrPipe struct {
+	Log string
+}
+
+func (err_pipe *ServerErrPipe) Write(data []byte) (n int, err error) {
+	n, err = os.Stderr.Write(data)
+	err_pipe.Log += string(data[:n])
+	return
+	// this is interesting...
+	// since i specified the variable names on the function definition line, i don't need to specify them on the return statement!
 }

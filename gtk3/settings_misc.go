@@ -6,7 +6,6 @@ import (
 	"marmalade/server"
 	"strconv"
 
-	"github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
@@ -30,9 +29,7 @@ func create_misc_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
 
 	misc_row.Connect("notify::expanded", func() {
 		expanded := misc_row.Expanded()
-		value := &glib.Value{}
-		grid.ChildGetProperty(misc_row, "top-attach", value)
-		row := value.GoValue().(int)
+		row := query_child_row(grid, misc_row)
 		row++
 
 		if expanded {
@@ -97,6 +94,8 @@ func show_misc_widgets(grid *gtk.Grid, widgets *miscWidgets, row int) {
 
 	grid.Attach(widgets.gpu_label, 0, row+2, 1, 1)
 	grid.Attach(widgets.gpu_input, 1, row+2, 1, 1)
+
+	grid.ShowAll()
 }
 
 func hide_misc_widgets(grid *gtk.Grid, row int) {

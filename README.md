@@ -17,7 +17,7 @@ Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Trac
     - `xdg-utils`
     - `pciutils`
 
-<sup><sub>¹ May be suffixed by another version number, for example: `libgtk-4-1`, `libv4l-0`.</sub></sup>
+<sub>¹ May be suffixed by another version number, for example: `libgtk-4-1`, `libv4l-0`.</sub>
 
 And you're done. You can just run the program at any time, and it should take care of the rest for you.
 
@@ -53,7 +53,7 @@ Here's what each field in this file is responsible for:
 
 The fields `model` and `prime_id` are string values, and as such they're surrounded by `"` (double quotes) unlike other fields.
 
-<sup><sub>* This is the same as the `DRI_PRIME` environment variable, and any valid value for it is also valid for this field, although the GTK 4 (GUI) version only expects PCIe bus IDs and may glitch otherwise.</sub></sup>
+<sub>* This is the same as the `DRI_PRIME` environment variable, and any valid value for it is also valid for this field, although the GTK 4 (GUI) version only expects PCIe bus IDs and may glitch otherwise.</sub>
 
 ## Building, Testing, Debugging
 

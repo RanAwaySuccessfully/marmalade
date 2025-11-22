@@ -55,9 +55,6 @@ func create_camera_widgets() cameraWidgets {
 		update_numeric_config(width_input, &server.Config.Width)
 	})
 
-	height_label := gtk.NewLabel("Height:")
-	height_label.SetHAlign(gtk.AlignStart)
-
 	height_input := gtk.NewEntry()
 	height := strconv.FormatFloat(server.Config.Height, 'f', 0, 64)
 	height_input.SetText(height)

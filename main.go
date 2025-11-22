@@ -3,6 +3,7 @@
 package main
 
 import (
+	"marmalade/resources"
 	"marmalade/server"
 
 	_ "embed"
@@ -12,9 +13,6 @@ import (
 	"os/exec"
 	"os/signal"
 )
-
-//go:embed gtk4/resources/version.txt
-var EmbeddedVersion string
 
 func main() {
 	if len(os.Args) > 1 {
@@ -29,7 +27,7 @@ func main() {
 
 			cmd.Run()
 		case "-v":
-			fmt.Println("[MARMALADE] v" + EmbeddedVersion)
+			fmt.Println("[MARMALADE] v" + resources.EmbeddedVersion)
 		default:
 			fmt.Println("Unknown argument. Use -v for version. Use -u for uninstalling icons. Do not provide any command line argument for normal usage.")
 		}

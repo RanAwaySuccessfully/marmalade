@@ -5,7 +5,6 @@ package main
 import (
 	"marmalade/gtk4"
 	"os"
-	"os/exec"
 
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
@@ -15,15 +14,7 @@ func main() {
 	theme := gtk.NewIconTheme()
 	hasIcon := theme.HasIcon("xyz.randev.marmalade")
 	if !hasIcon {
-		cmd := exec.Command(
-			"xdg-icon-resource", "install",
-			"--novendor",
-			"--size", "256",
-			"gtk4/resources/icons/marmalade_logo_256.png",
-			"xyz.randev.marmalade",
-		)
-
-		cmd.Run()
+		resources.InstallIcon()
 	}
 
 	gtk.WindowSetDefaultIconName("xyz.randev.marmalade")

@@ -39,7 +39,7 @@ func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 		update_unsaved_config(true)
 	})
 
-	webcam_refresh := gtk.NewButtonFromIconName("view-refresh-symbolic", 16)
+	webcam_refresh := gtk.NewButtonFromIconName("view-refresh-symbolic", 4)
 	webcam_box.Add(webcam_refresh)
 
 	webcam_refresh.Connect("clicked", func() {

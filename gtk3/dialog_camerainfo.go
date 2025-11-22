@@ -40,9 +40,10 @@ func create_camera_info_window(camera_id uint8) error {
 		grid := gtk.NewGrid()
 		grid.SetRowSpacing(7)
 		grid.SetColumnSpacing(10)
-		grid.SetMarginEnd(10)
+		grid.SetMarginStart(2)
+		grid.SetMarginEnd(12)
 		grid.SetMarginTop(10)
-		grid.SetMarginBottom(10)
+		grid.SetMarginBottom(12)
 
 		compressed := "No"
 		if format.Compressed {
@@ -86,6 +87,8 @@ func create_camera_info_window(camera_id uint8) error {
 	button.SetLabel("Close")
 
 	action_bar.SetCenterWidget(button)
+
+	window.ShowAll()
 
 	button.Connect("clicked", func() {
 		window.Destroy()

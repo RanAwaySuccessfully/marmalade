@@ -3,25 +3,20 @@
 package gtk4
 
 import (
-	_ "embed"
 	"errors"
 	"fmt"
+	"marmalade/resources"
 	"marmalade/server"
 	"os"
 	"os/exec"
 
+	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
-//go:embed resources/icons/marmalade_logo.svg
-var EmbeddedAboutLogo []byte
-
-//go:embed resources/version.txt
-var EmbeddedVersion string
-
 func create_about_dialog() {
-	version := "v" + EmbeddedVersion
+	version := "v" + resources.EmbeddedVersion
 
 	authors := make([]string, 0, 1)
 	authors = append(authors, "RanAwaySuccessfully")
@@ -30,7 +25,6 @@ func create_about_dialog() {
 	artists = append(artists, "vexamour")
 
 	dialog := gtk.NewAboutDialog()
-	dialog.SetLogoIconName("xyz.randev.marmalade")
 	dialog.SetProgramName("Marmalade")
 	dialog.SetComments("API server for MediaPipe, mimicking VTube Studio for iPhone")
 	dialog.SetWebsite("https://github.com/RanAwaySuccessfully/marmalade")
@@ -39,6 +33,23 @@ func create_about_dialog() {
 	dialog.SetVersion(version)
 	dialog.SetAuthors(authors)
 	dialog.AddCreditSection("Logo by", artists)
+
+	display := dialog.Widget.Display()
+	theme := gtk.IconThemeGetForDisplay(display)
+	hasIcon := theme.HasIcon("xyz.randev.marmalade")
+
+	if hasIcon {
+		dialog.SetLogoIconName("xyz.randev.marmalade")
+	} else {
+		gbytes := glib.NewBytesWithGo(resources.EmbeddedAboutLogo)
+		texture, err := gdk.NewTextureFromBytes(gbytes)
+
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+		} else {
+			dialog.SetLogo(texture)
+		}
+	}
 
 	dialog.SetVisible(true)
 }
@@ -76,8 +87,11 @@ func error_handler(button *gtk.Button, err_channel chan error) {
 	for err := range err_channel {
 		srv := &server.Server
 		srv.Stop()
-		button.SetLabel("Start MediaPipe")
-		// updating a label's text outside of glib.IdleAdd() could cause a crash...but it seems to be working fine so far
+
+		glib.IdleAdd(func() {
+			button.SetLabel("Start MediaPipe")
+			button.SetSensitive(true)
+		})
 
 		if errors.Is(err, os.ErrProcessDone) {
 			continue
@@ -101,8 +115,8 @@ func error_handler(button *gtk.Button, err_channel chan error) {
 				errTitle = "Too many failed attempts at reading an image from the camera."
 			}
 
-			// TODO: .Stderr is empty due to it being collected over on server.Start() at io.Copy(os.Stderr, stderr)
-			err = fmt.Errorf("[%d] %s\n%s", exitCode, errTitle, string(exitError.Stderr))
+			// exitError.Stderr is empty, so we use our own copy of Stderr instead
+			err = fmt.Errorf("[%d] %s\n%s", exitCode, errTitle, srv.ErrPipe.Log)
 		}
 
 		glib.IdleAdd(func() {

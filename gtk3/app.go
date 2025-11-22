@@ -8,13 +8,11 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
 var savedConfigRevealer *gtk.Revealer
-
-//go:embed resources/style.css
-var EmbeddedCSS string
 
 var OrientationHorizontal = interface{}(gtk.OrientationHorizontal).(gtk.Orientation)
 var OrientationVertical = interface{}(gtk.OrientationVertical).(gtk.Orientation)
@@ -26,11 +24,9 @@ func Activate(app *gtk.Application) {
 	server.Config.Read()
 
 	window := gtk.NewApplicationWindow(app)
+	window.ConnectDestroy(gtk.MainQuit)
 	titlebar := gtk.NewHeaderBar()
-
-	css := gtk.NewCSSProvider()
-	css.LoadFromData(EmbeddedCSS)
-	window.StyleContext().AddProvider(css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+	titlebar.SetShowCloseButton(true)
 
 	window.SetTitlebar(titlebar)
 	window.SetTitle("Marmalade")
@@ -38,7 +34,7 @@ func Activate(app *gtk.Application) {
 	set_window_size(window)
 	window.SetVisible(true)
 
-	about_button := gtk.NewButtonFromIconName("help-about-symbolic", 16)
+	about_button := gtk.NewButtonFromIconName("help-about-symbolic", 4)
 	titlebar.PackStart(about_button)
 	about_button.Connect("clicked", create_about_dialog)
 
@@ -54,7 +50,7 @@ func Activate(app *gtk.Application) {
 	grid.SetMarginEnd(30)
 	grid.SetMarginTop(15)
 	grid.SetMarginBottom(20)
-	main_box.Add(grid)
+	main_box.PackStart(grid, true, true, 0)
 
 	button := gtk.NewButtonWithLabel("Start MediaPipe")
 	button.SetHExpand(true)
@@ -68,7 +64,8 @@ func Activate(app *gtk.Application) {
 
 		if started {
 			srv.Stop()
-			button.SetLabel("Start MediaPipe")
+			button.SetLabel("Stopping MediaPipe...")
+			button.SetSensitive(false)
 		} else {
 			go srv.Start(err_channel)
 			button.SetLabel("Stop MediaPipe")
@@ -87,10 +84,13 @@ func Activate(app *gtk.Application) {
 
 	check_venv_folder(window, err_channel)
 	go error_handler(button, err_channel)
+
+	window.ShowAll()
+	gtk.Main()
 }
 
 func set_window_size(window *gtk.ApplicationWindow) {
-	window.SetDefaultSize(450, 150)
+	window.SetSizeRequest(450, 150)
 }
 
 func create_footer() {
@@ -149,4 +149,12 @@ func update_unsaved_config(value bool) {
 	if savedConfigRevealer != nil {
 		savedConfigRevealer.SetRevealChild(value)
 	}
+}
+
+func query_child_row(grid *gtk.Grid, child gtk.Widgetter) int {
+	var row64 int64
+	value := glib.NewValue(row64)
+	grid.ChildGetProperty(child, "top-attach", value)
+	row64 = value.GoValueAsType(glib.TypeInt64).(int64)
+	return int(row64)
 }

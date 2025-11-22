@@ -18,6 +18,12 @@ func create_gpu_widget() *gtk.ComboBoxText {
 
 	fill_gpu_list(gpu_input)
 
+	cells := gpu_input.Cells()
+	for _, cell := range cells {
+		cell.SetObjectProperty("width", 50)
+		cell.SetObjectProperty("height", 24)
+	}
+
 	gpu_input.Connect("notify::selected", func() {
 		selected := gpu_input.Active()
 

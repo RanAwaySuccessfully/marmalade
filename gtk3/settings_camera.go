@@ -6,18 +6,19 @@ import (
 	"marmalade/server"
 	"strconv"
 
-	"github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
 type cameraWidgets struct {
-	resolution_label *gtk.Label
-	resolution_box   *gtk.Box
-	fps_label        *gtk.Label
-	fps_input        *gtk.Entry
-	format_label     *gtk.Label
-	format_input     *gtk.Entry
-	camera_info      *gtk.Button
+	width_label  *gtk.Label
+	width_input  *gtk.Entry
+	height_label *gtk.Label
+	height_input *gtk.Entry
+	fps_label    *gtk.Label
+	fps_input    *gtk.Entry
+	format_label *gtk.Label
+	format_input *gtk.Entry
+	camera_info  *gtk.Button
 }
 
 func create_camera_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
@@ -31,9 +32,7 @@ func create_camera_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
 
 	camera_row.Connect("notify::expanded", func() {
 		expanded := camera_row.Expanded()
-		value := &glib.Value{}
-		grid.ChildGetProperty(camera_row, "top-attach", value)
-		row := value.GoValue().(int)
+		row := query_child_row(grid, camera_row)
 		row++
 
 		if expanded {
@@ -46,8 +45,8 @@ func create_camera_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
 }
 
 func create_camera_widgets() cameraWidgets {
-	resolution_label := gtk.NewLabel("Width, Height:")
-	resolution_label.SetHAlign(AlignStart)
+	width_label := gtk.NewLabel("Width:")
+	width_label.SetHAlign(AlignStart)
 
 	width_input := gtk.NewEntry()
 	width := strconv.FormatFloat(server.Config.Width, 'f', 0, 64)
@@ -69,10 +68,6 @@ func create_camera_widgets() cameraWidgets {
 	height_input.Connect("changed", func() {
 		update_numeric_config(height_input, &server.Config.Height)
 	})
-
-	resolution_box := gtk.NewBox(OrientationHorizontal, 3)
-	resolution_box.Add(width_input)
-	resolution_box.Add(height_input)
 
 	fps_label := gtk.NewLabel("Frame rate (FPS):")
 	fps_label.SetHAlign(AlignStart)
@@ -105,8 +100,10 @@ func create_camera_widgets() cameraWidgets {
 	})
 
 	widgets := cameraWidgets{
-		resolution_label,
-		resolution_box,
+		width_label,
+		width_input,
+		height_label,
+		height_input,
 		fps_label,
 		fps_input,
 		format_label,
@@ -122,20 +119,27 @@ func show_camera_widgets(grid *gtk.Grid, widgets *cameraWidgets, row int) {
 	grid.InsertRow(row + 1)
 	grid.InsertRow(row + 2)
 	grid.InsertRow(row + 3)
+	grid.InsertRow(row + 4)
 
-	grid.Attach(widgets.resolution_label, 0, row, 1, 1)
-	grid.Attach(widgets.resolution_box, 1, row, 1, 1)
+	grid.Attach(widgets.width_label, 0, row, 1, 1)
+	grid.Attach(widgets.width_input, 1, row, 1, 1)
 
-	grid.Attach(widgets.fps_label, 0, row+1, 1, 1)
-	grid.Attach(widgets.fps_input, 1, row+1, 1, 1)
+	grid.Attach(widgets.height_label, 0, row+1, 1, 1)
+	grid.Attach(widgets.height_input, 1, row+1, 1, 1)
 
-	grid.Attach(widgets.format_label, 0, row+2, 1, 1)
-	grid.Attach(widgets.format_input, 1, row+2, 1, 1)
+	grid.Attach(widgets.fps_label, 0, row+2, 1, 1)
+	grid.Attach(widgets.fps_input, 1, row+2, 1, 1)
 
-	grid.Attach(widgets.camera_info, 1, row+3, 1, 1)
+	grid.Attach(widgets.format_label, 0, row+3, 1, 1)
+	grid.Attach(widgets.format_input, 1, row+3, 1, 1)
+
+	grid.Attach(widgets.camera_info, 1, row+4, 1, 1)
+
+	grid.ShowAll()
 }
 
 func hide_camera_widgets(grid *gtk.Grid, row int) {
+	grid.RemoveRow(row + 4)
 	grid.RemoveRow(row + 3)
 	grid.RemoveRow(row + 2)
 	grid.RemoveRow(row + 1)
