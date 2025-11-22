@@ -10,8 +10,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/diamondburned/gotk4/pkg/gdk/v4"
-	"github.com/diamondburned/gotk4/pkg/glib/v2"
+	"github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
@@ -33,23 +32,7 @@ func create_about_dialog() {
 	dialog.SetVersion(version)
 	dialog.SetAuthors(authors)
 	dialog.AddCreditSection("Logo by", artists)
-
-	display := dialog.Widget.Display()
-	theme := gtk.IconThemeGetForDisplay(display)
-	hasIcon := theme.HasIcon("xyz.randev.marmalade")
-
-	if hasIcon {
-		dialog.SetLogoIconName("xyz.randev.marmalade")
-	} else {
-		gbytes := glib.NewBytesWithGo(resources.EmbeddedAboutLogo)
-		texture, err := gdk.NewTextureFromBytes(gbytes)
-
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-		} else {
-			dialog.SetLogo(texture)
-		}
-	}
+	dialog.SetLogoIconName("xyz.randev.marmalade")
 
 	dialog.SetVisible(true)
 }

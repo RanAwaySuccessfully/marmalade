@@ -3,6 +3,7 @@
 package main
 
 import (
+	"fmt"
 	"marmalade/gtk3"
 	"marmalade/resources"
 	"os"
@@ -12,6 +13,12 @@ import (
 )
 
 func main() {
+	isIncompatible := gtk.CheckVersion(3, 24, 0)
+	if isIncompatible != "" {
+		fmt.Fprintf(os.Stderr, "[MARMALADE] Incompatible: %s\n", isIncompatible)
+		os.Exit(109)
+	}
+
 	theme := gtk.NewIconTheme()
 	hasIcon := theme.HasIcon("xyz.randev.marmalade")
 	if !hasIcon {
@@ -19,6 +26,7 @@ func main() {
 	}
 
 	gtk.WindowSetDefaultIconName("xyz.randev.marmalade")
+
 	app := gtk.NewApplication("xyz.randev.marmalade", gio.ApplicationDefaultFlags)
 	app.ConnectActivate(func() {
 		gtk3.Activate(app)
