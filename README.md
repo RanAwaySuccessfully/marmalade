@@ -1,5 +1,7 @@
 # Marmalade
 
+[![build status](https://github.com/ranawaysuccessfully/marmalade/actions/workflows/gtk4.yml/badge.svg)](https://github.com/ranawaysuccessfully/marmalade/actions) [![build status](https://github.com/ranawaysuccessfully/marmalade/actions/workflows/gtk3.yml/badge.svg)](https://github.com/ranawaysuccessfully/marmalade/actions)
+
 Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Tracking data. You can connect it to programs such as VBridger.
 
 | Command-line | GTK 4 (GUI) |
