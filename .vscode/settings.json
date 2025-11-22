@@ -18,6 +18,6 @@
     },
     "go.buildFlags": [
         "--tags",
-        "withgtk3"
+        "withgtk4"
     ]
 }
