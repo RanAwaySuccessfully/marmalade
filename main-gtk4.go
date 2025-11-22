@@ -4,6 +4,7 @@ package main
 
 import (
 	"marmalade/gtk4"
+	"marmalade/resources"
 	"os"
 
 	"github.com/diamondburned/gotk4/pkg/gio/v2"

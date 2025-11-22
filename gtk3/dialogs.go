@@ -25,7 +25,7 @@ func create_about_dialog() {
 	artists = append(artists, "vexamour")
 
 	dialog := gtk.NewAboutDialog()
-	dialog.SetProgramName("Marmalade")
+	dialog.SetProgramName("Marmalade (GTK 3)")
 	dialog.SetComments("API server for MediaPipe, mimicking VTube Studio for iPhone")
 	dialog.SetWebsite("https://github.com/RanAwaySuccessfully/marmalade")
 	dialog.SetWebsiteLabel("GitHub")

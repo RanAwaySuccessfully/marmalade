@@ -20,8 +20,6 @@ func create_camera_info_window(camera_id uint8) error {
 	}
 
 	window := gtk.NewWindow(WindowToplevel)
-	titlebar := gtk.NewHeaderBar()
-	window.SetTitlebar(titlebar)
 
 	window.SetTitle("Marmalade - " + camera.Name)
 	window.SetDefaultSize(400, 550)
