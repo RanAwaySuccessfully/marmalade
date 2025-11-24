@@ -4,7 +4,7 @@ package gtk4
 
 import (
 	"fmt"
-	"marmalade/camera"
+	"marmalade/devices"
 	"slices"
 	"strconv"
 	"strings"
@@ -14,7 +14,7 @@ import (
 )
 
 func create_camera_info_window(camera_id uint8) error {
-	camera, err := camera.GetDetailsForDevice(camera_id)
+	camera, err := devices.GetVideoCaptureDetails(camera_id)
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func create_camera_info_window(camera_id uint8) error {
 	return nil
 }
 
-func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
+func create_resolution_list(format *devices.VideoFormat, grid *gtk.Grid) {
 	line_index := 3
 
 	var header_text string
@@ -134,7 +134,7 @@ func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 
 		grid.Attach(name_value, 1, line_index, 1, 1)
 
-		slices.SortFunc(format.Resolutions, func(a camera.VideoFormatResolution, b camera.VideoFormatResolution) int {
+		slices.SortFunc(format.Resolutions, func(a devices.VideoFormatResolution, b devices.VideoFormatResolution) int {
 			if b.Data.Size.MaxWidth != a.Data.Size.MaxWidth {
 				return int(b.Data.Size.MaxWidth) - int(a.Data.Size.MaxWidth)
 			} else {
@@ -195,7 +195,7 @@ func create_line(label_text string, value_text string, grid *gtk.Grid, line_inde
 	grid.Attach(value, 1, line_index, 1, 1)
 }
 
-func create_frame_rate_line(resolution *camera.VideoFormatResolution, grid *gtk.Grid, line_index int) {
+func create_frame_rate_line(resolution *devices.VideoFormatResolution, grid *gtk.Grid, line_index int) {
 
 	var label_text string
 

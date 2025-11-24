@@ -3,7 +3,7 @@
 package gtk3
 
 import (
-	"marmalade/camera"
+	"marmalade/devices"
 	"marmalade/server"
 	"strings"
 
@@ -46,20 +46,17 @@ func create_gpu_widget() *gtk.ComboBoxText {
 }
 
 func fill_gpu_list(input *gtk.ComboBoxText) error {
-	devices, err := camera.GetDisplayDevices()
-	if err != nil {
-		return err
-	}
+	gpus, err := devices.ListDisplayControllers()
 
-	gpu_ids = make([]string, 0, len(devices))
+	gpu_ids = make([]string, 0, len(gpus))
 	input.RemoveAll()
 	input.AppendText("CPU")
 	input.AppendText("GPU (Auto)")
 
 	selected_index := -1
 
-	if len(devices) > 0 {
-		for i, device := range devices {
+	if len(gpus) > 0 {
+		for i, device := range gpus {
 			camera_string := "GPU: " + device.Device
 			input.AppendText(camera_string)
 
@@ -87,5 +84,5 @@ func fill_gpu_list(input *gtk.ComboBoxText) error {
 		input.SetActive(0)
 	}
 
-	return nil
+	return err
 }

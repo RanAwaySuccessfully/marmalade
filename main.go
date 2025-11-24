@@ -6,7 +6,6 @@ import (
 	"marmalade/resources"
 	"marmalade/server"
 
-	_ "embed"
 	"fmt"
 	"log"
 	"os"

@@ -3,7 +3,6 @@
 package gtk3
 
 import (
-	_ "embed"
 	"marmalade/server"
 	"regexp"
 	"strconv"

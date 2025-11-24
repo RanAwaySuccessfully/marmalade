@@ -1,6 +1,6 @@
 //go:build withgtk4 || withgtk3
 
-package camera
+package devices
 
 import "github.com/vladimirvivien/go4vl/v4l2"
 

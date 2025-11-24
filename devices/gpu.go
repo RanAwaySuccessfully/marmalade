@@ -1,6 +1,6 @@
 //go:build withgtk4 || withgtk3
 
-package camera
+package devices
 
 import (
 	"bufio"
@@ -15,8 +15,8 @@ type DisplayController struct {
 	Device    string
 }
 
-func GetDisplayDevices() ([]DisplayController, error) {
-	cmd := exec.Command("lspci", "-d", "::0300", "-vmmD") // used to be ::03xx but that gives an error on older versions of lspci
+func ListDisplayControllers() ([]DisplayController, error) {
+	cmd := exec.Command("lspci", "-d", "::03xx", "-vmmD")
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {

@@ -154,7 +154,7 @@ def main(args):
     cam_format = args.fmt
 
     capture = cv2.VideoCapture(camera_id, cv2.CAP_V4L2)
-    capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*cam_format))
+    capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc(*cam_format))
     capture.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     capture.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
     capture.set(cv2.CAP_PROP_FPS, fps)

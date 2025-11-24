@@ -3,7 +3,6 @@
 package gtk4
 
 import (
-	_ "embed"
 	"marmalade/resources"
 	"marmalade/server"
 	"regexp"

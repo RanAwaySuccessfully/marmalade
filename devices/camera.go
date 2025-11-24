@@ -1,6 +1,6 @@
 //go:build withgtk4 || withgtk3
 
-package camera
+package devices
 
 import (
 	"os"
@@ -30,7 +30,7 @@ type VideoFormatResolution struct {
 	FrameRates []v4l2.FrameIntervalEnum
 }
 
-func GetInputDevices() ([]VideoCapture, error) {
+func ListVideoCaptures() ([]VideoCapture, error) {
 	devFiles, err := os.ReadDir("/dev/")
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func GetInputDevices() ([]VideoCapture, error) {
 	return inputs, nil
 }
 
-func GetDetailsForDevice(camera_id uint8) (*VideoCapture, error) {
+func GetVideoCaptureDetails(camera_id uint8) (*VideoCapture, error) {
 	devicePath := "/dev/video" + strconv.Itoa(int(camera_id)) // convert int to string
 
 	device, err := v4l2.OpenDevice(devicePath, syscall.O_RDWR, 0)

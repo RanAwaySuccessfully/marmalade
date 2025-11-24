@@ -3,7 +3,7 @@
 package gtk4
 
 import (
-	"marmalade/camera"
+	"marmalade/devices"
 	"marmalade/server"
 	"strings"
 
@@ -46,20 +46,17 @@ func create_gpu_widget() *gtk.DropDown {
 }
 
 func fill_gpu_list(input *gtk.DropDown) error {
-	devices, err := camera.GetDisplayDevices()
-	if err != nil {
-		return err
-	}
+	gpus, err := devices.ListDisplayControllers()
 
-	gpu_ids = make([]string, 0, len(devices))
-	device_list := make([]string, 2, len(devices)+2)
+	gpu_ids = make([]string, 0, len(gpus))
+	device_list := make([]string, 2, len(gpus)+2)
 	device_list[0] = "CPU"
 	device_list[1] = "GPU (Auto)"
 
 	selected_index := -1
 
-	if len(devices) > 0 {
-		for i, device := range devices {
+	if len(gpus) > 0 {
+		for i, device := range gpus {
 			camera_string := "GPU: " + device.Device
 			device_list = append(device_list, camera_string)
 
@@ -90,5 +87,5 @@ func fill_gpu_list(input *gtk.DropDown) error {
 		input.SetSelected(0)
 	}
 
-	return nil
+	return err
 }

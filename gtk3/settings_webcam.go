@@ -4,7 +4,7 @@ package gtk3
 
 import (
 	"fmt"
-	"marmalade/camera"
+	"marmalade/devices"
 	"marmalade/server"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
@@ -54,7 +54,7 @@ func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 }
 
 func fill_camera_list(input *gtk.ComboBoxText, is_refreshing *bool) error {
-	cameras, err := camera.GetInputDevices()
+	cameras, err := devices.ListVideoCaptures()
 	if err != nil {
 		return err
 	}
