@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	isIncompatible := gtk.CheckVersion(4, 14, 0)
+	isIncompatible := gtk.CheckVersion(4, 8, 0)
 	if isIncompatible != "" {
 		fmt.Fprintf(os.Stderr, "[MARMALADE] Incompatible: %s\n", isIncompatible)
 		os.Exit(109)

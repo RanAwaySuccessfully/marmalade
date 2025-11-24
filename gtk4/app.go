@@ -22,14 +22,13 @@ func Activate(app *gtk.Application) {
 
 	display := window.Widget.Display()
 	css := gtk.NewCSSProvider()
-	css.LoadFromString(resources.EmbeddedCSS)
+	css.LoadFromData(resources.EmbeddedCSS)
 	gtk.StyleContextAddProviderForDisplay(display, css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 	window.SetTitlebar(titlebar)
 	window.SetTitle("Marmalade")
 	window.SetResizable(false)
 	set_window_size(window)
-	window.SetVisible(true)
 
 	about_button := gtk.NewButtonFromIconName("help-about-symbolic")
 	titlebar.PackStart(about_button)
@@ -79,8 +78,12 @@ func Activate(app *gtk.Application) {
 
 	/* ERROR HANDLING */
 
-	check_venv_folder(window, err_channel)
+	ok := check_venv_folder(window, err_channel)
 	go error_handler(button, err_channel)
+
+	if ok {
+		window.SetVisible(true)
+	}
 }
 
 func set_window_size(window *gtk.ApplicationWindow) {

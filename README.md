@@ -17,7 +17,7 @@ Also available under GTK 3 (GUI).
 3. Install `python3`, `python3-venv` and `pip3`.
 4. If using any of the GUI versions, you'll also need to have the following installed, although they probably already are installed by default:
     - `libgtk-3`¹ or `gtk3`¹ (>=3.24, only if using GTK 3)
-    - `libgtk-4`¹ or `gtk4`¹ (>=4.14, only if using GTK 4)
+    - `libgtk-4`¹ or `gtk4`¹ (>=4.8, only if using GTK 4)
     - `libv4l`¹
     - `xdg-utils`
     - `pciutils`
@@ -70,7 +70,7 @@ For building, run: `go build -v`
 
 For running it without building it, run: `go run -v ./`
 
-For building or running the GTK 4 version, just add `-tags withgtk4` to the commands above. Do note that in this case, you'll also need to install the `libgtk-4-dev` and `libv4l-dev` packages. For GTK 3 it's `-tags withgtk3` and you'll need `libgtk-3-dev` instead.
+For building or running the GTK 4 version, just add `-tags withgtk4` to the commands above. Do note that in this case, you'll also need to install the `libgtk-4-dev` and `libv4l-dev` packages. For GTK 3 it's `-tags withgtk3` and you'll need `libgtk-3-dev` instead. You *may* also need `libgirepository1.0-dev`.
 
 If you want to debug it, it comes with some Visual Studio Code configuration depending on what you want to debug:
 

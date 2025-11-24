@@ -15,10 +15,10 @@ var camera_indices []uint8
 func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 	webcam_label := gtk.NewLabel("Webcam:")
 	webcam_label.SetSizeRequest(125, 1)
-	webcam_label.SetHAlign(AlignStart)
+	webcam_label.SetHAlign(gtk.AlignStart)
 	webcam_label.SetXAlign(0)
 
-	webcam_box := gtk.NewBox(OrientationHorizontal, 3)
+	webcam_box := gtk.NewBox(gtk.OrientationHorizontal, 3)
 
 	webcam_input := gtk.NewComboBoxText()
 	webcam_input.SetHExpand(true)

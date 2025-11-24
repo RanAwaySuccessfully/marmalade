@@ -19,17 +19,17 @@ func create_camera_info_window(camera_id uint8) error {
 		return err
 	}
 
-	window := gtk.NewWindow(WindowToplevel)
+	window := gtk.NewWindow(gtk.WindowToplevel)
 
 	window.SetTitle("Marmalade - " + camera.Name)
 	window.SetDefaultSize(400, 550)
 	window.SetResizable(false)
 	window.SetVisible(true)
 
-	box := gtk.NewBox(OrientationVertical, 0)
+	box := gtk.NewBox(gtk.OrientationVertical, 0)
 	window.Add(box)
 
-	content_box := gtk.NewBox(OrientationHorizontal, 10)
+	content_box := gtk.NewBox(gtk.OrientationHorizontal, 10)
 
 	stack := gtk.NewStack()
 
@@ -112,7 +112,7 @@ func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 	}
 
 	line_index++
-	sep_1 := gtk.NewSeparator(OrientationHorizontal)
+	sep_1 := gtk.NewSeparator(gtk.OrientationHorizontal)
 	grid.Attach(sep_1, 0, line_index, 2, 1)
 
 	line_index++
@@ -120,14 +120,14 @@ func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 	grid.Attach(header, 0, line_index, 2, 1)
 
 	line_index++
-	sep_2 := gtk.NewSeparator(OrientationHorizontal)
+	sep_2 := gtk.NewSeparator(gtk.OrientationHorizontal)
 	grid.Attach(sep_2, 0, line_index, 2, 1)
 
 	if frameSizeType == v4l2.FrameSizeTypeDiscrete {
 
 		line_index++
 		name_value := gtk.NewLabel("Supported frame rates:")
-		name_value.SetHAlign(AlignStart)
+		name_value.SetHAlign(gtk.AlignStart)
 		name_value.SetHExpand(true)
 
 		grid.Attach(name_value, 1, line_index, 1, 1)
@@ -144,7 +144,7 @@ func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 			line_index++
 			label_text := fmt.Sprintf("%dx%d:", resolution.Data.Size.MaxWidth, resolution.Data.Size.MaxHeight)
 			label := gtk.NewLabel(label_text)
-			label.SetHAlign(AlignEnd)
+			label.SetHAlign(gtk.AlignEnd)
 			label.SetSelectable(true)
 			grid.Attach(label, 0, line_index, 1, 1)
 
@@ -171,7 +171,7 @@ func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 
 		line_index++
 		fps_label := gtk.NewLabel("Frame rates:")
-		fps_label.SetHAlign(AlignEnd)
+		fps_label.SetHAlign(gtk.AlignEnd)
 		fps_label.SetSelectable(true)
 		grid.Attach(fps_label, 0, line_index, 1, 1)
 
@@ -182,10 +182,10 @@ func create_resolution_list(format *camera.VideoFormat, grid *gtk.Grid) {
 
 func create_line(label_text string, value_text string, grid *gtk.Grid, line_index int) {
 	label := gtk.NewLabel(label_text)
-	label.SetHAlign(AlignEnd)
+	label.SetHAlign(gtk.AlignEnd)
 
 	value := gtk.NewLabel(value_text)
-	value.SetHAlign(AlignStart)
+	value.SetHAlign(gtk.AlignStart)
 	value.SetHExpand(true)
 	value.SetSelectable(true)
 
@@ -233,7 +233,7 @@ func create_frame_rate_line(resolution *camera.VideoFormatResolution, grid *gtk.
 	}
 
 	label := gtk.NewLabel(label_text)
-	label.SetHAlign(AlignStart)
+	label.SetHAlign(gtk.AlignStart)
 	label.SetSelectable(true)
 	grid.Attach(label, 1, line_index, 1, 1)
 }

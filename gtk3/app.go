@@ -14,12 +14,6 @@ import (
 
 var savedConfigRevealer *gtk.Revealer
 
-var OrientationHorizontal = interface{}(gtk.OrientationHorizontal).(gtk.Orientation)
-var OrientationVertical = interface{}(gtk.OrientationVertical).(gtk.Orientation)
-var WindowToplevel = interface{}(gtk.WindowToplevel).(gtk.WindowType)
-var AlignStart = interface{}(gtk.AlignStart).(gtk.Align)
-var AlignEnd = interface{}(gtk.AlignEnd).(gtk.Align)
-
 func Activate(app *gtk.Application) {
 	server.Config.Read()
 
@@ -32,7 +26,6 @@ func Activate(app *gtk.Application) {
 	window.SetTitle("Marmalade")
 	window.SetResizable(false)
 	set_window_size(window)
-	window.SetVisible(true)
 
 	about_button := gtk.NewButtonFromIconName("help-about-symbolic", 4)
 	titlebar.PackStart(about_button)
@@ -40,7 +33,7 @@ func Activate(app *gtk.Application) {
 
 	/* MAIN CONTENT */
 
-	main_box := gtk.NewBox(OrientationVertical, 0)
+	main_box := gtk.NewBox(gtk.OrientationVertical, 0)
 	window.Add(main_box)
 
 	grid := gtk.NewGrid()
@@ -82,11 +75,13 @@ func Activate(app *gtk.Application) {
 
 	/* ERROR HANDLING */
 
-	check_venv_folder(window, err_channel)
+	ok := check_venv_folder(window, err_channel)
 	go error_handler(button, err_channel)
 
-	window.ShowAll()
-	gtk.Main()
+	if ok {
+		window.SetVisible(true)
+		window.ShowAll()
+	}
 }
 
 func set_window_size(window *gtk.ApplicationWindow) {
@@ -94,7 +89,7 @@ func set_window_size(window *gtk.ApplicationWindow) {
 }
 
 func create_footer() {
-	footer_box := gtk.NewBox(OrientationVertical, 5)
+	footer_box := gtk.NewBox(gtk.OrientationVertical, 5)
 	savedConfigRevealer.Add(footer_box)
 
 	action_bar := gtk.NewActionBar()

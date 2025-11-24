@@ -43,7 +43,7 @@ func create_misc_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
 
 func create_misc_widgets() miscWidgets {
 	model_label := gtk.NewLabel("Model filename:")
-	model_label.SetHAlign(AlignStart)
+	model_label.SetHAlign(gtk.AlignStart)
 	model_input := gtk.NewEntry()
 	model_input.SetText(server.Config.Model)
 	model_input.SetPlaceholderText("face_landmarker.task")
@@ -55,7 +55,7 @@ func create_misc_widgets() miscWidgets {
 	})
 
 	port_label := gtk.NewLabel("UDP port:")
-	port_label.SetHAlign(AlignStart)
+	port_label.SetHAlign(gtk.AlignStart)
 	port_input := gtk.NewEntry()
 	port := strconv.FormatFloat(server.Config.Port, 'f', 0, 64)
 	port_input.SetText(port)
@@ -66,7 +66,7 @@ func create_misc_widgets() miscWidgets {
 	})
 
 	gpu_label := gtk.NewLabel("Device:")
-	gpu_label.SetHAlign(AlignStart)
+	gpu_label.SetHAlign(gtk.AlignStart)
 	gpu_input := create_gpu_widget()
 
 	widgets := miscWidgets{

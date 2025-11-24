@@ -10,19 +10,17 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
-func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
+func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) bool {
 	info, err := os.Stat(".venv")
 	if err != nil || !info.IsDir() {
 
-		app_window.SetVisible(false)
-
-		window := gtk.NewWindow(WindowToplevel)
+		window := gtk.NewWindow(gtk.WindowToplevel)
 		window.SetTitle("Marmalade - .venv folder missing")
-		window.SetDefaultSize(400, 100)
+		window.SetSizeRequest(400, 100)
 		window.SetResizable(false)
 		window.SetVisible(true)
 
-		box := gtk.NewBox(OrientationVertical, 5)
+		box := gtk.NewBox(gtk.OrientationVertical, 5)
 		box.SetMarginStart(10)
 		box.SetMarginEnd(10)
 		box.SetMarginTop(5)
@@ -31,11 +29,12 @@ func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
 
 		label := gtk.NewLabel("The folder .venv is missing. This likely indicates that mediapipe-install.sh has not been run yet. Run it now?")
 		label.SetLineWrap(true)
+		label.SetMaxWidthChars(30)
 		label.SetVExpand(true)
-		box.Add(label)
+		box.PackStart(label, true, true, 0)
 
-		button_box := gtk.NewBox(OrientationHorizontal, 5)
-		box.Add(button_box)
+		button_box := gtk.NewBox(gtk.OrientationHorizontal, 5)
+		box.PackEnd(button_box, false, true, 0)
 
 		button := gtk.NewButtonWithLabel("Yes")
 		button.SetHExpand(true)
@@ -47,10 +46,13 @@ func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
 
 		window.ShowAll()
 
-		button_no.Connect("clicked", func() {
+		close_dialog := func() {
 			app_window.SetVisible(true)
+			app_window.ShowAll()
 			window.Close()
-		})
+		}
+
+		button_no.Connect("clicked", close_dialog)
 
 		button.Connect("clicked", func() {
 			button.SetSensitive(false)
@@ -59,15 +61,20 @@ func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
 			label.SetText("Installing MediaPipe...")
 
 			spinner := gtk.NewSpinner()
-			box.Add(spinner)
+			box.PackStart(spinner, true, true, 0)
+			spinner.Show()
 			spinner.Start()
 
-			go install_mediapipe(app_window, window, err_chan)
+			go install_mediapipe(close_dialog, err_chan)
 		})
+
+		return false
 	}
+
+	return true
 }
 
-func install_mediapipe(app_window *gtk.ApplicationWindow, window *gtk.Window, err_chan chan error) {
+func install_mediapipe(close_dialog func(), err_chan chan error) {
 	cmd := exec.Command("./mediapipe-install.sh")
 	cmd.Dir = "scripts"
 
@@ -76,8 +83,5 @@ func install_mediapipe(app_window *gtk.ApplicationWindow, window *gtk.Window, er
 		err_chan <- err
 	}
 
-	glib.IdleAdd(func() {
-		window.Close()
-		app_window.SetVisible(true)
-	})
+	glib.IdleAdd(close_dialog)
 }

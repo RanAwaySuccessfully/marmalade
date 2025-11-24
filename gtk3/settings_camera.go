@@ -46,7 +46,7 @@ func create_camera_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
 
 func create_camera_widgets() cameraWidgets {
 	width_label := gtk.NewLabel("Width:")
-	width_label.SetHAlign(AlignStart)
+	width_label.SetHAlign(gtk.AlignStart)
 
 	width_input := gtk.NewEntry()
 	width := strconv.FormatFloat(server.Config.Width, 'f', 0, 64)
@@ -58,7 +58,7 @@ func create_camera_widgets() cameraWidgets {
 	})
 
 	height_label := gtk.NewLabel("Height:")
-	height_label.SetHAlign(AlignStart)
+	height_label.SetHAlign(gtk.AlignStart)
 
 	height_input := gtk.NewEntry()
 	height := strconv.FormatFloat(server.Config.Height, 'f', 0, 64)
@@ -70,7 +70,7 @@ func create_camera_widgets() cameraWidgets {
 	})
 
 	fps_label := gtk.NewLabel("Frame rate (FPS):")
-	fps_label.SetHAlign(AlignStart)
+	fps_label.SetHAlign(gtk.AlignStart)
 
 	fps_input := gtk.NewEntry()
 	fps := strconv.FormatFloat(server.Config.FPS, 'f', 0, 64)
@@ -82,7 +82,7 @@ func create_camera_widgets() cameraWidgets {
 	})
 
 	format_label := gtk.NewLabel("Format:")
-	format_label.SetHAlign(AlignStart)
+	format_label.SetHAlign(gtk.AlignStart)
 	format_input := gtk.NewEntry()
 	format_input.SetText(server.Config.Format)
 	format_input.SetPlaceholderText("YUYV")

@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Marmalade
-Exec=marmalade-gtk4
+Exec=marmalade.sh
 Icon=xyz.randev.marmalade
 Type=Application
 Categories=Utility;

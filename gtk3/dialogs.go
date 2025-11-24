@@ -45,13 +45,13 @@ func create_about_dialog() {
 }
 
 func create_error_window(err error) {
-	window := gtk.NewWindow(WindowToplevel)
+	window := gtk.NewWindow(gtk.WindowToplevel)
 	window.SetTitle("Marmalade - Error")
-	window.SetDefaultSize(300, 100)
+	window.SetSizeRequest(300, 100)
 	window.SetResizable(false)
 	window.SetVisible(true)
 
-	box := gtk.NewBox(OrientationVertical, 5)
+	box := gtk.NewBox(gtk.OrientationVertical, 5)
 	box.SetMarginStart(10)
 	box.SetMarginEnd(10)
 	box.SetMarginTop(5)
@@ -60,6 +60,7 @@ func create_error_window(err error) {
 
 	label := gtk.NewLabel(err.Error())
 	label.SetLineWrap(true)
+	label.SetMaxWidthChars(20)
 	label.SetVExpand(true)
 	box.Add(label)
 

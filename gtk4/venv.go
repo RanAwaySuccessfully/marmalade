@@ -10,11 +10,9 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
-func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
+func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) bool {
 	info, err := os.Stat(".venv")
 	if err != nil || !info.IsDir() {
-
-		app_window.SetVisible(false)
 
 		window := gtk.NewWindow()
 		window.SetTitle("Marmalade - .venv folder missing")
@@ -45,10 +43,12 @@ func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
 		button_no.SetHExpand(true)
 		button_box.Append(button_no)
 
-		button_no.Connect("clicked", func() {
+		close_dialog := func() {
 			app_window.SetVisible(true)
 			window.Close()
-		})
+		}
+
+		button_no.Connect("clicked", close_dialog)
 
 		button.Connect("clicked", func() {
 			button.SetSensitive(false)
@@ -60,12 +60,16 @@ func check_venv_folder(app_window *gtk.ApplicationWindow, err_chan chan error) {
 			spinner.InsertBefore(box, label)
 			spinner.Start()
 
-			go install_mediapipe(app_window, window, err_chan)
+			go install_mediapipe(close_dialog, err_chan)
 		})
+
+		return false
 	}
+
+	return true
 }
 
-func install_mediapipe(app_window *gtk.ApplicationWindow, window *gtk.Window, err_chan chan error) {
+func install_mediapipe(close_dialog func(), err_chan chan error) {
 	cmd := exec.Command("./mediapipe-install.sh")
 	cmd.Dir = "scripts"
 
@@ -74,8 +78,5 @@ func install_mediapipe(app_window *gtk.ApplicationWindow, window *gtk.Window, er
 		err_chan <- err
 	}
 
-	glib.IdleAdd(func() {
-		window.Close()
-		app_window.SetVisible(true)
-	})
+	glib.IdleAdd(close_dialog)
 }

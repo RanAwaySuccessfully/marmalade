@@ -16,7 +16,7 @@ type DisplayController struct {
 }
 
 func GetDisplayDevices() ([]DisplayController, error) {
-	cmd := exec.Command("lspci", "-d", "::03xx", "-vmmD")
+	cmd := exec.Command("lspci", "-d", "::0300", "-vmmD") // used to be ::03xx but that gives an error on older versions of lspci
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
