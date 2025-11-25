@@ -13,7 +13,9 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y libv4l-dev libgtk-3-dev libgtk-4-dev gobject-introspection
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libv4l-dev libgtk-3-dev libgtk-4-dev gobject-introspection python3 python3-pip python3-venv
 
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -30,13 +32,26 @@ jobs:
 #      run: go build -v -tags withgtk3 -o marmalade-gtk3
 
     - name: Create distributable folder
-      run: mkdir dist && mv -t dist config.json LICENSE marmalade #marmalade-gtk3 marmalade-gtk4
+      run: |
+        mkdir dist
+        mv -t dist config.json LICENSE marmalade
+      #  marmalade-gtk3 marmalade-gtk4
+
+    - name: Set up Python environment
+      run: |
+        python3 -m venv ./.venv
+        source ./.venv/bin/activate
+        pip3 install -U pyinstaller
 
     - name: Build Python executable
-      run: cd python && pyinstaller -F main.py && cp LICENSE dist/LICENSE
+      run: |
+        cd python
+        pyinstaller -F main.py
+        cp LICENSE dist/LICENSE
 
     - name: Add Python executable to distributable folder
-      run: mv python/dist dist/python # LOL
+      run: mv python/dist dist/python
+      # LOL
 
     - name: Export Distributable Folder
       uses: actions/upload-artifact@v4
