@@ -96,7 +96,18 @@ func (server *ServerData) Start(err_ch chan error) {
 		args = append(args, "--use-gpu")
 	}
 
-	cmd := exec.Command("../.venv/bin/python3", args...)
+	var cmd *exec.Cmd
+
+	_, err = os.Stat("python/main")
+	if err == nil {
+		// python executable built by PyInstaller
+		args = args[1:]
+		cmd = exec.Command("./main", args...)
+	} else {
+		// regular python code
+		cmd = exec.Command("../.venv/bin/python3", args...)
+	}
+
 	cmd.Dir = "python"
 
 	if Config.PrimeId != "" {

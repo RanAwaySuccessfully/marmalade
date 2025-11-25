@@ -1,0 +1,6 @@
+*.task
+build
+dist
+main
+main.spec
+__pycache__
