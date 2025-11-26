@@ -6,8 +6,8 @@ on:
 jobs:
 
   ubuntu24:
-    name: Build on Ubuntu 24.04
-    runs-on: ubuntu-24.04
+    name: Build on Ubuntu 22.04
+    runs-on: ubuntu-22.04
     steps:
     
     - uses: actions/checkout@v4
@@ -20,7 +20,13 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.23'
+        go-version: '1.25'
+
+    - name: Set up GOTK4  
+      run: |
+        go work init
+        printf "replace github.com/diamondburned/gotk4/pkg => ../gotk4/pkg\n\n\nuse ." >> go.work
+        git clone -b 4.8 https://github.com/RanAwaySuccessfully/gotk4.git
 
     - name: Build CMD version
       run: env CGO_ENABLED=0 go build -v
@@ -41,6 +47,7 @@ jobs:
         python3 -m venv .venv
         source .venv/bin/activate
         .venv/bin/pip3 install -U pyinstaller
+        .venv/bin/pip3 install opencv-contrib-python mediapipe
 
     - name: Build Python executable
       run: |
