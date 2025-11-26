@@ -26,7 +26,7 @@ jobs:
       run: |
         go work init
         printf "replace github.com/diamondburned/gotk4/pkg => ../gotk4/pkg\n\n\nuse ." >> go.work
-        git clone -b 4.8 https://github.com/RanAwaySuccessfully/gotk4.git
+        git clone -b 4.8 https://github.com/RanAwaySuccessfully/gotk4.git ../gotk4
 
     - name: Build CMD version
       run: env CGO_ENABLED=0 go build -v
