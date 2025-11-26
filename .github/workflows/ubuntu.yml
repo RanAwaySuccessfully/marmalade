@@ -46,7 +46,7 @@ jobs:
     - name: Build Python executable
       run: |
         cd python
-        ../.venv/bin/python3 -m pyinstaller -F main.py
+        ../.venv/bin/pyinstaller -F main.py
         cp LICENSE dist/LICENSE
 
     - name: Add Python executable to distributable folder
