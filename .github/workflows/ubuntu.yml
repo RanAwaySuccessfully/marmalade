@@ -39,14 +39,14 @@ jobs:
 
     - name: Set up Python environment
       run: |
-        python3 -m venv ./.venv
+        python3 -m venv .venv
         source ./.venv/bin/activate
-        pip3 install -U pyinstaller
+        .venv/bin/pip3 install -U pyinstaller
 
     - name: Build Python executable
       run: |
         cd python
-        pyinstaller -F main.py
+        .venv/bin/python3 -m pyinstaller -F main.py
         cp LICENSE dist/LICENSE
 
     - name: Add Python executable to distributable folder
