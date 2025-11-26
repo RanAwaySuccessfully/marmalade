@@ -25,17 +25,16 @@ jobs:
     - name: Build CMD version
       run: env CGO_ENABLED=0 go build -v
     
-#    - name: Build GTK-4 version
-#      run: go build -v -tags withgtk4 -o marmalade-gtk4
+    - name: Build GTK-4 version
+      run: go build -v -tags withgtk4 -o marmalade-gtk4
 
-#    - name: Build GTK-3 version
-#      run: go build -v -tags withgtk3 -o marmalade-gtk3
+    - name: Build GTK-3 version
+      run: go build -v -tags withgtk3 -o marmalade-gtk3
 
     - name: Create distributable folder
       run: |
         mkdir dist
-        mv -t dist config.json LICENSE marmalade
-      #  marmalade-gtk3 marmalade-gtk4
+        mv -t dist config.json LICENSE marmalade marmalade-gtk3 marmalade-gtk4
 
     - name: Set up Python environment
       run: |
