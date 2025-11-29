@@ -5,8 +5,8 @@ on:
 
 jobs:
 
-  ubuntu24:
-    name: Build on Debian 12
+  marmalade-debian12:
+    name: Build Marmalade
     runs-on: ubuntu-latest
     container: debian:bookworm
     defaults:
@@ -19,26 +19,32 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y libv4l-dev libgtk-3-dev libgtk-4-dev libgirepository1.0-dev python3 python3-pip python3-venv git
+        apt-get install -y libv4l-dev libgtk-3-dev libgtk-4-dev libgirepository1.0-dev
 
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
         go-version: '1.25'
 
-    - name: Set up GOTK4  
+    - uses: actions/checkout@v4
+      with:
+        repository: 'RanAwaySuccessfully/gotk4'
+        ref: '4.8'
+        path: 'gotk4'
+
+    - name: Set up gotk4 replacement
       run: |
+        mv gotk4 ../
         go work init
         printf "\nreplace github.com/diamondburned/gotk4/pkg => ../gotk4/pkg\n\nuse ." >> go.work
-        git clone -b 4.8 https://github.com/RanAwaySuccessfully/gotk4.git ../gotk4
 
     - name: Build CMD version
       run: env CGO_ENABLED=0 go build -v
     
-    - name: Build GTK-4 version
+    - name: Build GTK 4 version
       run: go build -v -tags withgtk4 -o marmalade-gtk4
 
-    - name: Build GTK-3 version
+    - name: Build GTK 3 version
       run: go build -v -tags withgtk3 -o marmalade-gtk3
 
     - name: Create distributable folder
@@ -46,27 +52,80 @@ jobs:
         mkdir dist
         mv -t dist config.json LICENSE marmalade marmalade-gtk3 marmalade-gtk4
 
-    - name: Set up Python environment
-      run: |
-        python3 -m venv .venv
-        source .venv/bin/activate
-        .venv/bin/pip3 install -U pyinstaller
-        .venv/bin/pip3 install opencv-contrib-python mediapipe
+    - name: Export build
+      uses: actions/upload-artifact@v4
+      with:
+        name: marmalade-dist
+        path: dist
+        if-no-files-found: error
+        retention-days: 1
+        compression-level: 1
+        overwrite: true
+
+  mediapipe:
+    name: Build MediaPipe
+    runs-on: ubuntu-latest
+    steps:
+    
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+        pip-install: pyinstaller opencv-contrib-python mediapipe
 
     - name: Build Python executable
       run: |
         cd python
-        ../.venv/bin/pyinstaller -F main.py
+        pyinstaller -F main.py
         cp LICENSE dist/LICENSE
 
-    - name: Add Python executable to distributable folder
-      run: mv python/dist dist/python
-      # LOL
-
-    - name: Export Distributable Folder
+    - name: Export build
       uses: actions/upload-artifact@v4
       with:
-        name: marmalade
+        name: mediapipe-dist
+        path: python/dist
+        if-no-files-found: error
+        retention-days: 1
+        compression-level: 1
+        overwrite: true
+
+  merge:
+    needs:
+    - marmalade-debian12
+    - mediapipe
+    name: Merge builds
+    runs-on: ubuntu-latest
+    steps:
+    
+    - name: Import Marmalade build
+      uses: actions/download-artifact@v4
+      with:
+        name: marmalade-dist
+        path: dist
+
+    - name: Import MediaPipe build
+      uses: actions/download-artifact@v4
+      with:
+        name: mediapipe-dist
+        path: dist/python
+
+    - name: Delete temporary builds
+      uses: geekyeggo/delete-artifact@v5
+      with:
+          name: |
+            marmalade-dist
+            mediapipe-dist
+
+    - name: Set executables as executable
+      run: chmod +x marmalade marmalade-gtk3 marmalade-gtk4 python/main
+
+    - name: Export complete build
+      uses: actions/upload-artifact@v4
+      with:
+        name: mediapipe
         path: dist
         if-no-files-found: error
         retention-days: 1
