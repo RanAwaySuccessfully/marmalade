@@ -30,7 +30,7 @@ jobs:
       with:
         repository: 'RanAwaySuccessfully/gotk4'
         ref: '4.8'
-        path: 'gotk4'
+        path: '../gotk4'
 
     - name: Set up gotk4 replacement
       run: |
@@ -63,7 +63,7 @@ jobs:
 
   mediapipe:
     name: Build MediaPipe
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
     
     - uses: actions/checkout@v4
