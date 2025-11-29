@@ -14,8 +14,7 @@ Also available under GTK 3 (GUI).
 
 1. Download the [latest release](https://github.com/RanAwaySuccessfully/marmalade/releases/latest) of Marmalade.
 2. Download the latest [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) file from Google's MediaPipe page and place it inside the `python` folder.
-3. Install `python3`, `python3-venv` and `pip3`.
-4. If using any of the GUI versions, you'll also need to have the following installed, although they probably already are installed by default:
+3. If using any of the GUI versions, you'll also need to have the following installed, although they probably already are installed by default:
     - `libgtk-3`¹ or `gtk3`¹ (>=3.24, only if using GTK 3)
     - `libgtk-4`¹ or `gtk4`¹ (>=4.8, only if using GTK 4)
     - `libv4l`¹
@@ -27,8 +26,6 @@ Also available under GTK 3 (GUI).
 And you're done. You can just run the program at any time, and it should take care of the rest for you.
 
 ### First-time setup
-
-- If Marmalade does not find a `.venv` hidden folder when starting up, it will ask you if it should create one for you. This will install MediaPipe, which uses around 850MB of disk space. This will fail if you haven't done Step 3. If the `.venv` folder becomes corrupted, you can just delete it and have the program create it for you again. If you want to run this step manually, you can run `scripts/mediapipe-install.sh` and it expects your working directory (current folder) to be `scripts`.
 
 - If using a GUI version, and it notices its icon is not installed, it will install a local copy to distinguish it between just a random executable. If you wish to uninstall the icon, run the command-line version of Marmalade like so: `./marmalade -u`.
 
@@ -64,19 +61,29 @@ The fields `model` and `prime_id` are string values, and as such they're surroun
 
 **You do not need to do any of this to install Marmalade. See the "Installing" section above instead.**
 
-If you want to develop or tinker with this program, you'll need to install the [Go programming language](https://go.dev/).
+If you want to develop or tinker with this program, you'll need to install the [Go programming language](https://go.dev/). You'll also need to setup the Python dependencies (see section below).
 
 For building, run: `go build -v`
 
 For running it without building it, run: `go run -v ./`
 
-For building or running the GTK 4 version, just add `-tags withgtk4` to the commands above. Do note that in this case, you'll also need to install the `libgtk-4-dev` and `libv4l-dev` packages. For GTK 3 it's `-tags withgtk3` and you'll need `libgtk-3-dev` instead. You *may* also need `libgirepository1.0-dev`.
+For building or running the GTK 4 version, just add `-tags withgtk4` to the commands above. Do note that in this case, you'll also need to install the `libgtk-4-dev` and `libv4l-dev` packages. For GTK 3 it's `-tags withgtk3` and you'll need `libgtk-3-dev` instead. You *may* also need `gobject-introspection`.
 
 If you want to debug it, it comes with some Visual Studio Code configuration depending on what you want to debug:
 
 - If you want to debug the Go code, specifically the command-line version, run `Go: Launch Package`.
 - If you want to debug the Python code, run `Python Debugger: Current File` while having the `main.py` file open and selected. Once it's running, type in `+127.0.0.1:21499` for example, to start sending data to a specific IP address and port.
 - If you want to debug the GTK 4 version, run `Go: Debug GTK 4 Build`. Note that this one will pre-build a `marmalade-gtk4` executable to make it start faster. The same applies for the GTK 3 version.
+
+### Python dependencies
+
+Since v0.4, Marmalade comes bundled with Python 3.12, OpenCV and MediaPipe. PyInstaller is used to make a portable and compressed executable.
+
+In order to test Marmalade locally, you'll need to set up a virtual environment (`.venv`) folder that contains MediaPipe, which will use around 850MB of disk space. You can run `scripts/mediapipe-install.sh` while making sure your working directory (current folder) is `scripts`. This will require you to install `python3`, `python3-venv` and `python3-pip`.
+
+If you want to install run PyInstaller manually, you'll also need to make sure you have make PyInstaller installed (such as by running `pip3 install -U pyinstaller`). Change your current directory to be the `python` folder, and run the following command: `pyinstaller -F main.py`.
+
+MediaPipe will not install if your version of Python is 3.13.
 
 ### Build Times
 
