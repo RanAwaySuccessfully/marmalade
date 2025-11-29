@@ -65,6 +65,10 @@ jobs:
   mediapipe:
     name: Build MediaPipe
     runs-on: ubuntu-latest
+    container: ubuntu:jammy
+    defaults:
+      run:
+        shell: bash
     steps:
     
     - uses: actions/checkout@v4
