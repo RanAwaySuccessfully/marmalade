@@ -73,6 +73,11 @@ jobs:
     
     - uses: actions/checkout@v4
 
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y lsb-release
+
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
