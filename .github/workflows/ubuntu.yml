@@ -30,10 +30,11 @@ jobs:
       with:
         repository: 'RanAwaySuccessfully/gotk4'
         ref: '4.8'
-        path: '../gotk4'
+        path: 'gotk4'
 
     - name: Set up gotk4 replacement
       run: |
+        mv gotk4 ../
         go work init
         printf "\nreplace github.com/diamondburned/gotk4/pkg => ../gotk4/pkg\n\nuse ." >> go.work
 
