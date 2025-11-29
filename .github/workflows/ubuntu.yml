@@ -125,7 +125,7 @@ jobs:
     - name: Export complete build
       uses: actions/upload-artifact@v4
       with:
-        name: mediapipe
+        name: marmalade
         path: dist
         if-no-files-found: error
         retention-days: 1
