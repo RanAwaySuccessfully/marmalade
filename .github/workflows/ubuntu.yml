@@ -119,6 +119,9 @@ jobs:
             marmalade-dist
             mediapipe-dist
 
+    - name: Set executables as executable
+      run: chmod +x marmalade marmalade-gtk3 marmalade-gtk4 python/main
+
     - name: Export complete build
       uses: actions/upload-artifact@v4
       with:
