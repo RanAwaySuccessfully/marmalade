@@ -106,7 +106,7 @@ jobs:
         name: marmalade-dist
         path: dist
 
-    - name: Import Mediapipe build
+    - name: Import MediaPipe build
       uses: actions/download-artifact@v4
       with:
         name: mediapipe-dist
