@@ -284,6 +284,7 @@ def signal_handler(sig, frame):
     clients.clear()
 
 signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGHUP, signal_handler)
 
 if __name__ == "__main__":
     args = get_args()
