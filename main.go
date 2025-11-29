@@ -34,32 +34,7 @@ func main() {
 		return
 	}
 
-	info, err := os.Stat(".venv")
-	if err != nil || !info.IsDir() {
-		fmt.Println("[MARMALADE] .venv folder is missing. This likely indicates that mediapipe-install.sh has not been run yet.")
-		fmt.Println("[MARMALADE] Run it now? [y/N]")
-
-		var response string
-		fmt.Scanln(&response)
-
-		if response == "y" || response == "Y" {
-			fmt.Println("[MARMALADE] Installing MediaPipe...")
-			cmd := exec.Command("./mediapipe-install.sh")
-			cmd.Dir = "scripts"
-
-			err := cmd.Run()
-			if err != nil {
-				fmt.Println("[MARMALADE] Unable to install MediaPipe. Error details below:")
-				log.Fatalln(err)
-			}
-
-			fmt.Println("[MARMALADE] Installed!")
-		} else {
-			fmt.Println("[MARMALADE] Skipping...")
-		}
-	}
-
-	err = server.Config.Read()
+	err := server.Config.Read()
 	if err != nil {
 		log.Fatalln(err)
 	}

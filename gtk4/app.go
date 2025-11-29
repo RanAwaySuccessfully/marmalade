@@ -77,12 +77,9 @@ func Activate(app *gtk.Application) {
 
 	/* ERROR HANDLING */
 
-	//ok := check_venv_folder(window, err_channel)
 	go error_handler(button, err_channel)
 
-	//if ok {
 	window.SetVisible(true)
-	//}
 }
 
 func set_window_size(window *gtk.ApplicationWindow) {

@@ -30,6 +30,7 @@ func main() {
 	app := gtk.NewApplication("xyz.randev.marmalade", gio.ApplicationDefaultFlags)
 	app.ConnectActivate(func() {
 		gtk3.Activate(app)
+		gtk.Main()
 	})
 
 	if code := app.Run(os.Args); code > 0 {
