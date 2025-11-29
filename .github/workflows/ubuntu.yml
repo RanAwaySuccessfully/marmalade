@@ -64,19 +64,10 @@ jobs:
 
   mediapipe:
     name: Build MediaPipe
-    runs-on: ubuntu-latest
-    container: ubuntu:jammy
-    defaults:
-      run:
-        shell: bash
+    runs-on: ubuntu-22.04
     steps:
     
     - uses: actions/checkout@v4
-
-    - name: Install dependencies
-      run: |
-        apt-get update
-        apt-get install -y lsb-release
 
     - name: Set up Python
       uses: actions/setup-python@v6
