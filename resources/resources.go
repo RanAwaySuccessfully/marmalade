@@ -6,9 +6,6 @@ import (
 	"os/exec"
 )
 
-//go:embed icons/marmalade_logo.svg
-var EmbeddedAboutLogo []byte
-
 //go:embed icons/marmalade_logo_256.png
 var EmbeddedIconLogo []byte
 

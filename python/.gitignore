@@ -4,3 +4,5 @@ dist
 main
 main.spec
 __pycache__
+*.pex
+mediapipe

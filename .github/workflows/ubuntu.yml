@@ -74,13 +74,13 @@ jobs:
       with:
         python-version: '3.12'
         cache: 'pip'
-        pip-install: pyinstaller opencv-contrib-python mediapipe
+        pip-install: pex opencv-contrib-python mediapipe
 
     - name: Build Python executable
       run: |
         cd python
-        pyinstaller -F main.py
-        cp LICENSE dist/LICENSE
+        pex -v -r requirements.txt --scie eager -o dist/mediapipe
+        cp LICENSE main.py compute_params.py dist/
 
     - name: Export build
       uses: actions/upload-artifact@v4
@@ -120,7 +120,7 @@ jobs:
             mediapipe-dist
 
     - name: Set executables as executable
-      run: chmod +x dist/marmalade dist/marmalade-gtk3 dist/marmalade-gtk4 dist/python/main
+      run: chmod +x dist/marmalade dist/marmalade-gtk3 dist/marmalade-gtk4 dist/python/mediapipe
 
     - name: Export complete build
       uses: actions/upload-artifact@v4
