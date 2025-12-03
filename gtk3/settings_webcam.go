@@ -34,9 +34,11 @@ func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 		}
 
 		selected := webcam_input.Active()
-		index := camera_indices[selected]
-		server.Config.Camera = float64(index)
-		update_unsaved_config(true)
+		if selected != -1 {
+			index := camera_indices[selected]
+			server.Config.Camera = float64(index)
+			update_unsaved_config(true)
+		}
 	})
 
 	webcam_refresh := gtk.NewButtonFromIconName("view-refresh-symbolic", 4)

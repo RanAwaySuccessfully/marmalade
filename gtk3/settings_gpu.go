@@ -27,6 +27,10 @@ func create_gpu_widget() *gtk.ComboBoxText {
 	gpu_input.Connect("notify::selected", func() {
 		selected := gpu_input.Active()
 
+		if selected == -1 {
+			return
+		}
+
 		switch selected {
 		case 0:
 			server.Config.UseGpu = false
