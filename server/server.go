@@ -19,6 +19,7 @@ type udpMessage struct {
 	fresh   bool
 	Type    string    `json:"messageType"`
 	Time    float64   `json:"time"`
+	SendFor float64   `json:"sendForSeconds"`
 	SentBy  string    `json:"sentBy"`
 	Ports   []float64 `json:"ports"`
 }
@@ -135,6 +136,10 @@ func (server *ServerData) handlePacket(buf []byte, addr net.Addr) error {
 
 	if msg.Type != "iOSTrackingDataRequest" {
 		return nil
+	}
+
+	if msg.Time == 0 {
+		msg.Time = msg.SendFor
 	}
 
 	if msg.Time < 0.5 {

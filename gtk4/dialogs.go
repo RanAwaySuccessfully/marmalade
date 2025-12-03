@@ -28,6 +28,7 @@ func create_about_dialog() {
 	dialog.SetComments("API server for MediaPipe, mimicking VTube Studio for iPhone")
 	dialog.SetWebsite("https://github.com/RanAwaySuccessfully/marmalade")
 	dialog.SetWebsiteLabel("GitHub")
+	dialog.SetLicenseType(gtk.LicenseMITX11)
 	dialog.SetCopyright("© 2025 RanAwaySuccessfully")
 	dialog.SetVersion(version)
 	dialog.SetAuthors(authors)

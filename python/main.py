@@ -84,7 +84,7 @@ def send_data(detection_result, timestamp):
         eye_params = compute_params_from_blendshapes(face_blendshapes)
 
     data = {
-        "Timestamp": round(time.time()),
+        "Timestamp": timestamp,
         "Hotkey": -1,
         "FaceFound": faceFound,
         "Rotation": face_params["Rotation"],

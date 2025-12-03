@@ -1,6 +1,6 @@
 # Marmalade
 
-[![build status](https://github.com/ranawaysuccessfully/marmalade/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/ranawaysuccessfully/marmalade/actions)
+[![build status](https://github.com/ranawaysuccessfully/marmalade/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/ranawaysuccessfully/marmalade/actions) [![latest release](https://img.shields.io/github/v/release/ranawaysuccessfully/marmalade)](https://github.com/RanAwaySuccessfully/marmalade/releases/latest)
 
 Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Tracking data. You can connect it to programs such as VBridger.
 
@@ -31,13 +31,37 @@ And you're done. You can just run the program at any time, and it should take ca
 
 ## Connecting
 
+If you're running Marmalade on the same PC as the program you want to connect to, then you can use the IP address `127.0.0.1`, which is the loopback IP (always points to your own PC).
+
+If you're running it on another machine over LAN, you'll need to figure out its IP address and to make sure it is reachable via UDP port that Marmalade is configured to use (see "Config file" section below).
+
 ### VBridger
 
-If you have VBridger running on the same computer as Marmalade, then the IP address you need to use is `127.0.0.1`.
+Do not select the "MediaPipe" option, instead, select "VTube Studio" and type in the relevant IP address. Even though it says "Connect to iPhone", clicking on that button will connect to Marmalade instead.
 
-On VBridger, do not select the "MediaPipe" option, instead, select "VTube Studio" and type in the relevant IP address. Even though it says "Connect to iPhone", clicking on that button will connect to Marmalade instead.
+### VNyan¹
 
-## Config File
+During the first time setup, select Skip when it asks you which options will be used for tracking.
+
+Go to "Settings", then on the "Tracking" tab, select "Phone / ARKit". Choose "VTube Studio" and type in the relevant IP address.
+
+### VSeeFace¹
+
+Select any option during the first time setup (this will be overriden later).
+
+Go to "General Settings" then scroll down to "iFacialMocap/FaceMocap3D/VTube Studio" and set the tracking app to "VTube Studio", then type in the relevant IP address.
+
+### Warudo
+
+Marmalade does not support VMC (Virtual Motion Capture Protocol). You may try to connect Warudo to another program such as VSeeFace, and have said program connect to Marmalade.
+
+### Notes
+
+I haven't tested with other programs yet, but in case it doesn't work or works weirdly, feel free to open an issue and/or feature request.
+
+¹ During testing, these programs worked best when running using Proton 10. You should also install the font arial.ttf by copying it from a Windows installation to the folder `[wine prefix]/drive_c/windows/Fonts/`. Your wine prefix folder will vary (the default one is at `~/.wine`).
+
+## Config file
 
 **If using a GUI version, you do not need to worry about this file** unless it becomes corrupted somehow, as the UI allows you to edit it seamlessly. If using the command line version, you'll need to edit it manually to use the settings that you want. It is located right beside the app's executable as `config.json`.
 
@@ -55,7 +79,7 @@ Here's what each field in this file is responsible for:
 
 The fields `model` and `prime_id` are string values, and as such they're surrounded by `"` (double quotes) unlike other fields.
 
-<sub>* This is the same as the `DRI_PRIME` environment variable, and any valid value for it is also valid for this field, although the GTK 4 (GUI) version only expects PCIe bus IDs and may glitch otherwise.</sub>
+<sub>* This is the same as the `DRI_PRIME` environment variable, and any valid value for it is also valid for this field, although the GUI versions only expects PCIe bus IDs and may glitch otherwise.</sub>
 
 ## Building, Testing, Debugging
 
@@ -77,17 +101,21 @@ If you want to debug it, it comes with some Visual Studio Code configuration dep
 
 ### Python dependencies
 
-Since v0.4, Marmalade comes bundled with Python 3.12, OpenCV and MediaPipe. PyInstaller is used to make a portable and compressed executable.
+Since v0.4, Marmalade comes bundled with Python 3.12, OpenCV and MediaPipe. PEX is used to make a portable and compressed executable.
 
 In order to test Marmalade locally, you'll need to set up a virtual environment (`.venv`) folder that contains MediaPipe, which will use around 850MB of disk space. You can run `scripts/mediapipe-install.sh` while making sure your working directory (current folder) is `scripts`. This will require you to install `python3`, `python3-venv` and `python3-pip`.
 
-If you want to install run PyInstaller manually, you'll also need to make sure you have make PyInstaller installed (such as by running `pip3 install -U pyinstaller`). Change your current directory to be the `python` folder, and run the following command: `pyinstaller -F main.py`.
+If you want to install run PEX manually, you'll also need to make sure you have PEX installed (such as by running `pip3 install pex`). Change your current directory to be the `python` folder, and run the following command:
+
+```sh
+pex -v -r requirements.txt --scie eager -o dist/mediapipe
+```
 
 MediaPipe will not install if your version of Python is 3.13.
 
-### Build Times
+### Build times
 
-The GUI version of this project takes about 7-8 minutes to compile on an 5700X3D CPU, most of this time is taken up by building GTK and its dependencies. This will happen when building the program for the first time, but if you're using VSCode with the Go extension, it will also happen the first time you open a .go file in this project as `.vscode/settings.json` is, by default, configured to the GTK4 version, and so it will get busy generating all the IntelliSense data it needs.
+The GUI version of this project takes about 10 minutes to compile when building via GitHub Actions (probably faster on your PC), most of this time is taken up by building GTK and its dependencies. This will happen when building the program for the first time, but if you're using VSCode with the Go extension, it will also happen the first time you open a .go file in this project as `.vscode/settings.json` is, by default, configured to the GTK4 version, and so it will get busy generating all the IntelliSense data it needs.
 
 Go has a caching mechanism that makes it so you don't have to go through this every time, but the cache does not last forever, so don't be surprised if you see it recompiling the GTK dependencies again. If you compile the GTK4 version, the GTK3 version will take slightly less time and vice-versa.
 
