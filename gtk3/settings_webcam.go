@@ -28,7 +28,7 @@ func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 
 	fill_camera_list(webcam_input, &is_refreshing)
 
-	webcam_input.Connect("notify::selected", func() {
+	webcam_input.Connect("changed", func() {
 		if is_refreshing {
 			return
 		}

@@ -24,7 +24,7 @@ func create_gpu_widget() *gtk.ComboBoxText {
 		cell.SetObjectProperty("height", 24)
 	}
 
-	gpu_input.Connect("notify::selected", func() {
+	gpu_input.Connect("changed", func() {
 		selected := gpu_input.Active()
 
 		if selected == -1 {
