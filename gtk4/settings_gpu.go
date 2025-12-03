@@ -27,6 +27,10 @@ func create_gpu_widget() *gtk.DropDown {
 	gpu_input.Connect("notify::selected", func() {
 		selected := gpu_input.Selected()
 
+		if selected == gtk.InvalidListPosition {
+			return
+		}
+
 		switch selected {
 		case 0:
 			server.Config.UseGpu = false

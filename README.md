@@ -55,6 +55,12 @@ Go to "General Settings" then scroll down to "iFacialMocap/FaceMocap3D/VTube Stu
 
 Marmalade does not support VMC (Virtual Motion Capture Protocol). You may try to connect Warudo to another program such as VSeeFace, and have said program connect to Marmalade.
 
+### VTube Studio
+
+I couldn't find a way to connect Marmalade to VTube Studio directly. You may need an intermediary program such as VBridger.
+
+You might also want to consider OpenSeeFace instead, for this scenario. Check out [VTS's Linux Guide](https://github.com/DenchiSoft/VTubeStudio/wiki/Running-VTS-on-Linux) or use [Facetracker](https://codeberg.org/ZRayEntertainment/Facetracker). Note that even if using Facetracker, you need to check the linked guide in order to setup the `ip.txt` file.
+
 ### Notes
 
 I haven't tested with other programs yet, but in case it doesn't work or works weirdly, feel free to open an issue and/or feature request.
