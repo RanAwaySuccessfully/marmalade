@@ -35,6 +35,18 @@ If you're running Marmalade on the same PC as the program you want to connect to
 
 If you're running it on another machine over LAN, you'll need to figure out its IP address and to make sure it is reachable via UDP port that Marmalade is configured to use (see "Config file" section below).
 
+### Support matrix
+
+| Program | VTS iPhone Mimic | VMC Protocol | VTS Plugin |
+| ---- | ---- | ---- | ---- |
+| VBridger | ✅ | ✅ | - |
+| VNyan | ✅ | ✅ | - |
+| VSeeFace | ✅ | ✅ | - |
+| Warudo | - | ✅ | - |
+| VTube Studio¹ | - | - | ✅ |
+
+¹ Direct usage, without any other programs in-between.
+
 ### VBridger
 
 Do not select the "MediaPipe" option, instead, select "VTube Studio" and type in the relevant IP address. Even though it says "Connect to iPhone", clicking on that button will connect to Marmalade instead.
@@ -93,17 +105,17 @@ The fields `model` and `prime_id` are string values, and as such they're surroun
 
 If you want to develop or tinker with this program, you'll need to install the [Go programming language](https://go.dev/). You'll also need to setup the Python dependencies (see section below).
 
-For building, run: `go build -v`
+For building, run: `go build -v -o marmalade ./app/cmd`
 
-For running it without building it, run: `go run -v ./`
+For running it without building it, run: `go run -v ./app/cmd`
 
-For building or running the GTK 4 version, just add `-tags withgtk4` to the commands above. Do note that in this case, you'll also need to install the `libgtk-4-dev` and `libv4l-dev` packages. For GTK 3 it's `-tags withgtk3` and you'll need `libgtk-3-dev` instead. You *may* also need `gobject-introspection`.
+For building or running the GTK 3 or GTK 4 version, just replace `./app/cmd` with `./app/gtk3` or `./app/gtk4`. Do note that for GTK 4, you'll also need to install the `libgtk-4-dev` and `libv4l-dev` packages, and for GTK 3 you'll need `libgtk-3-dev` instead. In either case, you *may* also need `gobject-introspection`.
 
 If you want to debug it, it comes with some Visual Studio Code configuration depending on what you want to debug:
 
 - If you want to debug the Go code, specifically the command-line version, run `Go: Launch Package`.
 - If you want to debug the Python code, run `Python Debugger: Current File` while having the `main.py` file open and selected. Once it's running, type in `+127.0.0.1:21499` for example, to start sending data to a specific IP address and port.
-- If you want to debug the GTK 4 version, run `Go: Debug GTK 4 Build`. Note that this one will pre-build a `marmalade-gtk4` executable to make it start faster. The same applies for the GTK 3 version.
+- If you want to debug the GTK 4 version, run `Go: Debug GTK 4 Build`. Note that this one will pre-build a `marmalade-gtk4` executable (so you can see each step of the build process). The same applies for the GTK 3 version.
 
 ### Python dependencies
 
@@ -117,11 +129,11 @@ If you want to install run PEX manually, you'll also need to make sure you have 
 pex -v -r requirements.txt --scie eager -o dist/mediapipe
 ```
 
-MediaPipe will not install if your version of Python is 3.13.
+MediaPipe will not install if your version of Python is 3.13 or more recent.
 
 ### Build times
 
-The GUI version of this project takes about 10 minutes to compile when building via GitHub Actions (probably faster on your PC), most of this time is taken up by building GTK and its dependencies. This will happen when building the program for the first time, but if you're using VSCode with the Go extension, it will also happen the first time you open a .go file in this project as `.vscode/settings.json` is, by default, configured to the GTK4 version, and so it will get busy generating all the IntelliSense data it needs.
+The GUI version of this project takes about 10 minutes to compile when building via GitHub Actions (probably faster on your PC), most of this time is taken up by building GTK and its dependencies. This will happen when building the program for the first time, but if you're using VSCode with the Go extension, it will also happen the first time you open a .go file in this project as VSCode will get busy generating all the IntelliSense data it needs.
 
 Go has a caching mechanism that makes it so you don't have to go through this every time, but the cache does not last forever, so don't be surprised if you see it recompiling the GTK dependencies again. If you compile the GTK4 version, the GTK3 version will take slightly less time and vice-versa.
 

@@ -121,7 +121,7 @@ def get_args():
         "-m",
         "--model",
         help="mediapipe model file",
-        default="face_landmarker.task",
+        default="holistic_landmarker.task",
     )
     parser.add_argument("-c", "--camera", help="index of camera device", default=0)
     parser.add_argument("-W", "--width", help="width of camera image", default=1280)
@@ -169,7 +169,7 @@ def main(args):
     result_tracker = ResultTracker(websocket_failures)
 
     def process_results(
-        detection_result: vision.FaceLandmarkerResult,
+        detection_result: vision.HolisticLandmarkerResult,
         image: Image,
         timestamp_ms: int,
     ):
@@ -188,29 +188,22 @@ def main(args):
         delegate=delegate,
     )
 
-    options = vision.FaceLandmarkerOptions(
+    options = vision.HolisticLandmarkerOptions(
         base_options,
         running_mode=vision.RunningMode.LIVE_STREAM,
         output_face_blendshapes=True,
-        output_facial_transformation_matrixes=True,
-        num_faces=1,
+        #output_facial_transformation_matrixes=True,
+        #num_faces=1,
         result_callback=process_results,
     )
 
-    # default: 0.5
-    # min_face_detection_confidence
-    # min_tracking_confidence
-    # min_face_presence_confidence
-
     try:
-        detector = vision.FaceLandmarker.create_from_options(options)
+        detector = vision.HolisticLandmarker.create_from_options(options)
     except RuntimeError:
-        eprint("Unable to create FaceLandmarker")
+        eprint("Unable to create HolisticLandmarker")
         traceback.print_exc()
         sys.exit(111)
     
-    # fourcc = capture.get(cv2.CAP_PROP_FOURCC)
-    # print(int(fourcc).to_bytes(4, byteorder=sys.byteorder).decode())
     fps = capture.get(cv2.CAP_PROP_FPS)
     wait_interval_sec = 0.1 / fps  # wait 10% of the time to get a frame
 

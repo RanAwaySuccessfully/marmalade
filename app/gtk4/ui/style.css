@@ -1,0 +1,12 @@
+.boldText {
+    font-weight: bold;
+}
+
+.smallIcon {
+    min-width: 0;
+    min-height: 0;
+}
+
+.smallIcon image {
+    -gtk-icon-transform: scale(0.75);
+}

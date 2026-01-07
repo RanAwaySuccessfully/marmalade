@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkApplicationWindow" id="main_app">
+    <property name="title" translatable="yes">Marmalade</property>
+    <property name="default-width">450</property>
+    <property name="default-height">150</property>
+    <property name="resizable">false</property>
+
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+
+        <child>
+          <object class="GtkToolButton">
+            <property name="icon-name">help-about-symbolic</property>
+            <signal name="clicked" handler="about_button_clicked" />
+          </object>
+          <packing>
+            <property name="pack_type">start</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+        <property name="spacing">0</property>
+
+        <child>
+          <object class="GtkGrid" id="main_grid">
+            <property name="row-spacing">7</property>
+            <property name="column-spacing">0</property>
+            <property name="margin-start">30</property>
+            <property name="margin-end">30</property>
+            <property name="margin-top">15</property>
+            <property name="margin-bottom">20</property>
+            
+            <!-- HEADER / ALWAYS VISIBLE -->
+
+            <child>
+              <object class="GtkToolButton" id="main_button">
+                <property name="label" translatable="yes">Start MediaPipe</property>
+                <property name="hexpand">true</property>
+                <signal name="clicked" handler="main_button_clicked" />
+              </object>
+              <packing>
+                  <property name="top-attach">0</property>
+                  <property name="left-attach">0</property>
+                  <property name="height">1</property>
+                  <property name="width">2</property>
+                </packing>
+            </child>
+
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="yes">Webcam:</property>
+                <property name="width-request">125</property>
+                <property name="halign">GTK_ALIGN_START</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="top-attach">1</property>
+                <property name="left-attach">0</property>
+              </packing>
+            </child>
+
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+                <property name="spacing">3</property>
+
+                <child>
+                  <object class="GtkComboBoxText" id="webcam_dropdown">
+                    <property name="hexpand">true</property>
+                    <signal name="notify::selected" handler="webcam_notify_selected" />
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkToolButton" id="webcam_refresh">
+                    <property name="icon-name">view-refresh-symbolic</property>
+                    <signal name="clicked" handler="webcam_refresh_clicked" />
+                  </object>
+                </child>
+
+              </object>
+              <packing>
+                <property name="top-attach">1</property>
+                <property name="left-attach">1</property>
+              </packing>
+            </child>
+
+            <!-- EXPANDERS / ONLY VISIBLE WHEN CLICKED -->
+
+            <child>
+              <object class="GtkExpander" id="camera_expander">
+                <property name="label" translatable="yes">Camera settings</property>
+                <property name="margin-top">5</property>
+                <property name="margin-bottom">5</property>
+                <signal name="notify::expanded" handler="camera_notify_expanded" />
+                <style>
+                  <class name="boldText" />
+                </style>
+              </object>
+              <packing>
+                <property name="top-attach">2</property>
+                <property name="left-attach">0</property>
+                <property name="width">2</property>
+              </packing>
+            </child>
+
+            <child>
+              <object class="GtkExpander" id="mediapipe_expander">
+                <property name="label" translatable="yes">MediaPipe settings</property>
+                <property name="margin-top">5</property>
+                <property name="margin-bottom">5</property>
+                <signal name="notify::expanded" handler="mediapipe_notify_expanded" />
+                <style>
+                  <class name="boldText" />
+                </style>
+              </object>
+              <packing>
+                <property name="top-attach">3</property>
+                <property name="left-attach">0</property>
+                <property name="width">2</property>
+              </packing>
+            </child>
+
+            <child>
+              <object class="GtkExpander" id="misc_expander">
+                <property name="label" translatable="yes">Connection / Port settings</property>
+                <property name="margin-top">5</property>
+                <property name="margin-bottom">5</property>
+                <style>
+                  <class name="boldText" />
+                </style>
+              </object>
+              <packing>
+                <property name="top-attach">4</property>
+                <property name="left-attach">0</property>
+                <property name="width">2</property>
+              </packing>
+            </child>
+
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkRevealer" id="unsaved_revealer">
+            <child>
+              <object class="GtkActionBar">
+
+                <child type="center">
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">You have unsaved changes.</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkToolButton">
+                    <property name="label" translatable="yes">Save</property>
+                    <signal name="clicked" handler="save_button_clicked" />
+                  </object>
+                  <packing>
+                    <property name="pack_type">end</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+
+              </object>
+            </child>
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+  </object>
+</interface>

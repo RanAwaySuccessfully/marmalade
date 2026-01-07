@@ -1,11 +1,12 @@
 {
     "port": 21412,
-    "camera": 0,
+    "camera": 2,
     "width": 1920,
     "height": 1080,
     "fps": 30,
     "format": "MJPG",
-    "model": "face_landmarker.task",
+    "model_face": "face_landmarker.task",
+    "model_hand": "",
     "use_gpu": true,
-    "prime_id": ""
+    "prime_id": "pci-0000_0c_00_0"
 }

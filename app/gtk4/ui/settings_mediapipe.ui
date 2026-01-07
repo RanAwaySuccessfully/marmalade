@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+
+  <object class="GtkLabel" id="facem_label">
+    <property name="label" translatable="yes">Face tracking file:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkEntry" id="facem_input">
+    <property name="placeholder-text">face_landmarker.task</property>
+  </object>
+
+  <object class="GtkLabel" id="handm_label">
+    <property name="label" translatable="yes">Hand tracking file:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+    <property name="visible">false</property>
+  </object>
+
+  <object class="GtkEntry" id="handm_input">
+    <property name="sensitive">false</property>
+    <property name="visible">false</property>
+    <!--<property name="placeholder-text">hand_landmarker.task</property>-->
+  </object>
+
+  <object class="GtkLabel" id="device_label">
+    <property name="label" translatable="yes">Device:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkDropDown" id="device_input">
+    <property name="hexpand">true</property>
+  </object>
+
+</interface>
