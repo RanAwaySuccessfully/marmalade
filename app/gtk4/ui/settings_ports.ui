@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+
+  <!-- VTS iPhone API -->
+
+  <object class="GtkLabel" id="mimic_label">
+    <property name="label" translatable="yes">VTS 3rd Party API:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkBox" id="mimic_box">
+    <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+    <property name="spacing">3</property>
+
+    <child>
+      <object class="GtkSwitch" id="mimic_enable">
+        <property name="sensitive">false</property>
+        <property name="active">true</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkLabel" id="mimic_port_label">
+        <property name="label" translatable="yes">Port:</property>
+        <property name="halign">GTK_ALIGN_END</property>
+        <property name="margin-start">50</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkEntry" id="mimic_port">
+        <property name="placeholder-text">21412</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkMenuButton" id="mimic_settings">
+        <property name="icon-name">help-about-symbolic</property>
+        <property name="popover">mimic_popover</property>
+        <style>
+          <class name="smallIcon" />
+        </style>
+      </object>
+    </child>
+
+  </object>
+
+  <object class="GtkPopover" id="mimic_popover">
+    <child>
+      <object class="GtkLabel">
+        <property name="max-width-chars">50</property>
+        <property name="wrap">true</property>
+        <property name="label" translatable="yes">Marmalade can mimic VTube Studio's "3rd Party PC Apps" API, and will connect to any application that is expecting it (usually worded like "VTube Studio / iPhone"). Note that there is no support for hand tracking using this type of connection.</property>
+      </object>
+    </child>
+  </object>
+
+  <!-- VTS Plugin -->
+
+  <object class="GtkLabel" id="plugin_label">
+    <property name="label" translatable="yes">VTS Plugin:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkBox" id="plugin_box">
+    <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+    <property name="spacing">3</property>
+
+    <child>
+      <object class="GtkSwitch" id="plugin_enable">
+        <property name="sensitive">false</property>
+        <property name="active">false</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkLabel" id="plugin_port_label">
+        <property name="label" translatable="yes">Port:</property>
+        <property name="halign">GTK_ALIGN_END</property>
+        <property name="margin-start">50</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkEntry" id="plugin_port">
+        <property name="sensitive">false</property>
+        <property name="placeholder-text">8001</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkMenuButton" id="plugin_settings">
+        <property name="menu-model">plugin_menu</property>
+        <style>
+          <class name="smallIcon" />
+        </style>
+      </object>
+    </child>
+
+  </object>
+
+  <object class="GtkPopover" id="plugin_popover">
+    <signal name="closed" handler="ports_plugin_popover_closed" />
+    <child>
+      <object class="GtkLabel">
+        <property name="max-width-chars">50</property>
+        <property name="wrap">true</property>
+        <property name="label" translatable="yes">Marmalade can connect directly to VTube Studio as a plugin.</property>
+      </object>
+    </child>
+  </object>
+
+  <menu id="plugin_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Face tracking</attribute>
+        <attribute name="action">app.ports_plugin_facem</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Hand tracking</attribute>
+        <attribute name="action">app.ports_plugin_handm</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">About</attribute>
+        <attribute name="action">app.ports_plugin_about</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <!-- VMC Protocol -->
+
+  <object class="GtkLabel" id="vmcap_label">
+    <property name="label" translatable="yes">VMC Protocol:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkBox" id="vmcap_box">
+    <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+    <property name="spacing">3</property>
+
+    <child>
+      <object class="GtkSwitch" id="vmcap_enable">
+        <property name="sensitive">false</property>
+        <property name="active">false</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkLabel" id="vmcap_port_label">
+        <property name="label" translatable="yes">Port:</property>
+        <property name="halign">GTK_ALIGN_END</property>
+        <property name="margin-start">50</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkEntry" id="vmcap_port">
+        <property name="sensitive">false</property>
+        <property name="placeholder-text">39540</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkMenuButton" id="vmcap_settings">
+        <property name="menu-model">vmcap_menu</property>
+        <style>
+          <class name="smallIcon" />
+        </style>
+      </object>
+    </child>
+
+  </object>
+
+  <object class="GtkPopover" id="vmcap_popover">
+    <signal name="closed" handler="ports_vmcap_popover_closed" />
+    <child>
+      <object class="GtkLabel">
+        <property name="max-width-chars">50</property>
+        <property name="wrap">true</property>
+        <property name="label" translatable="yes">Marmalade supports the Virtual Motion Capture (VMC) protocol.</property>
+      </object>
+    </child>
+  </object>
+
+  <menu id="vmcap_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Face tracking</attribute>
+        <attribute name="action">app.ports_vmcap_facem</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Hand tracking</attribute>
+        <attribute name="action">app.ports_vmcap_handm</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">About</attribute>
+        <attribute name="action">app.ports_vmcap_about</attribute>
+      </item>
+    </section>
+  </menu>
+
+</interface>

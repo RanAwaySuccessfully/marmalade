@@ -4,6 +4,7 @@ marmalade-gtk3
 marmalade-gtk4
 misc
 AppDir
+*.so
 
 .venv
 

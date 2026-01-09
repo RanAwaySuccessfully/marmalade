@@ -56,8 +56,8 @@ func create_camera_info_window(camera_id uint8) error {
 	sidebar := builder.GetObject("camerainfo_dialog_sidebar").(*gtk.StackSidebar)
 	sidebar.SetStack(stack)
 
-	button := gtk.NewButton()
-	button.Connect("clicked", func() {
+	button := builder.GetObject("camerainfo_dialog_close").(*gtk.Button)
+	button.ConnectClicked(func() {
 		window.Destroy()
 	})
 

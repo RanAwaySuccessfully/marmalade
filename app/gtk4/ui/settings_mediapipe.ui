@@ -13,12 +13,10 @@
   <object class="GtkLabel" id="handm_label">
     <property name="label" translatable="yes">Hand tracking file:</property>
     <property name="halign">GTK_ALIGN_START</property>
-    <property name="visible">false</property>
   </object>
 
   <object class="GtkEntry" id="handm_input">
     <property name="sensitive">false</property>
-    <property name="visible">false</property>
     <!--<property name="placeholder-text">hand_landmarker.task</property>-->
   </object>
 

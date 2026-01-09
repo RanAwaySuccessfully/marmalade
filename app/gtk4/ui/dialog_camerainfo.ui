@@ -38,7 +38,7 @@
           <object class="GtkActionBar">
 
             <child type="center">
-              <object class="GtkButton">
+              <object class="GtkButton" id="camerainfo_dialog_close">
                 <property name="label" translatable="yes">Close</property>
               </object>
             </child>

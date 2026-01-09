@@ -12,6 +12,16 @@
             "program": "${workspaceFolder}/app/cmd"
         },
         {
+            "name": "Go: Debug MediaPipe",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/app/mediapipe",
+            "env": {
+                "LD_LIBRARY_PATH": "${workspaceFolder}/app/mediapipe/cc:${env:LD_LIBRARY_PATH}"
+            }
+        },
+        {
             "name": "Go: Debug GTK 4",
             "type": "go",
             "request": "launch",

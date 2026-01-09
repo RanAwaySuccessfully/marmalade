@@ -39,13 +39,13 @@ jobs:
         printf "\nreplace github.com/diamondburned/gotk4/pkg => ../gotk4/pkg\n\nuse ." >> go.work
 
     - name: Build CMD version
-      run: env CGO_ENABLED=0 go build -v
+      run: env CGO_ENABLED=0 go build -v -o marmalade ./app/cmd
     
     - name: Build GTK 4 version
-      run: go build -v -tags withgtk4 -o marmalade-gtk4
+      run: go build -v -o marmalade-gtk4 ./app/gtk4
 
     - name: Build GTK 3 version
-      run: go build -v -tags withgtk3 -o marmalade-gtk3
+      run: go build -v -o marmalade-gtk3 ./app/gtk3
 
     - name: Create distributable folder
       run: |
@@ -115,9 +115,9 @@ jobs:
     - name: Delete temporary builds
       uses: geekyeggo/delete-artifact@v5
       with:
-          name: |
-            marmalade-dist
-            mediapipe-dist
+        name: |
+          marmalade-dist
+          mediapipe-dist
 
     - name: Set executables as executable
       run: chmod +x dist/marmalade dist/marmalade-gtk3 dist/marmalade-gtk4 dist/python/mediapipe

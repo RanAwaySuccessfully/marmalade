@@ -31,7 +31,7 @@ func main() {
 
 	gtk.WindowSetDefaultIconName("xyz.randev.marmalade")
 
-	app := gtk.NewApplication("xyz.randev.marmalade", gio.ApplicationDefaultFlags)
+	app := gtk.NewApplication("xyz.randev.marmalade.gtk3", gio.ApplicationDefaultFlags)
 	app.ConnectActivate(func() {
 		activate(app)
 		gtk.Main()

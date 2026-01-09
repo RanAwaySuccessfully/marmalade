@@ -16,6 +16,9 @@ var SettingsCamera string
 //go:embed settings_mediapipe.ui
 var SettingsMediaPipe string
 
+//go:embed settings_ports.ui
+var SettingsPorts string
+
 //go:embed dialog_about.ui
 var DialogAbout string
 

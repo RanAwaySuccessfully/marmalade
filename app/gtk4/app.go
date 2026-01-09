@@ -49,7 +49,9 @@ func main() {
 		init_webcam_setting()
 		init_camera_widgets()
 		init_mediapipe_widgets()
-		//create_connection_settings(grid, window)
+		init_ports_settings()
+
+		init_ports_actions(app)
 
 		/* ERROR HANDLING */
 		button := UI.GetObject("main_button").(*gtk.Button)
