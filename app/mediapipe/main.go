@@ -18,7 +18,7 @@ type IPC struct {
 var ipc = IPC{}
 
 func main() {
-	println("[MP +TOAST] Starting...")
+	fmt.Println("[MP +TOAST] Starting...")
 
 	ipc.enabled = false
 	if (len(os.Args) > 1) && (os.Args[1] == "--ipc") {
@@ -64,5 +64,5 @@ func main() {
 		}
 	*/
 
-	println("[MP +TOAST] Stopping...")
+	fmt.Println("[MP +TOAST] Stopping...")
 }

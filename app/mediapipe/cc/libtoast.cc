@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "libtoast.h"
+#include "./mediapipe/mediapipe/tasks/c/core/base_options.h"
 #include "./mediapipe/mediapipe/tasks/c/vision/core/image.h"
 #include "./mediapipe/mediapipe/tasks/c/vision/core/image_processing_options.h"
 #include "./mediapipe/mediapipe/tasks/c/vision/face_landmarker/face_landmarker.h"
@@ -54,11 +55,18 @@ void mediapipe_free_error() {
 
 // MEDIAPIPE MAIN FUNCTIONS
 
-void* mediapipe_start(char* face_model_path) {
+void* mediapipe_start(char* face_model_path, int delegate_opt) {
 	struct FaceLandmarkerOptions face_landmarker_options;
   face_landmarker_options.base_options.model_asset_buffer = NULL;
   face_landmarker_options.base_options.model_asset_buffer_count = 0;
   face_landmarker_options.base_options.model_asset_path = face_model_path;
+
+  if (delegate_opt) {
+    face_landmarker_options.base_options.delegate = (Delegate)delegate_opt;
+  } else {
+    face_landmarker_options.base_options.delegate = (Delegate)CPU;
+  }
+
   face_landmarker_options.running_mode = LIVE_STREAM;
   face_landmarker_options.output_face_blendshapes = true;
   face_landmarker_options.output_facial_transformation_matrixes = true;

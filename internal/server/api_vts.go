@@ -112,6 +112,7 @@ func (api *VTSApi) handleMessage(buf []byte, addr net.Addr) error {
 	client := &Client{}
 	client.source = addr.String()
 	client.udpSender, err = net.Dial("udp", ":"+port)
+	client.message = msg
 
 	api.clients[msg.SentBy] = client
 

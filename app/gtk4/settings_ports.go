@@ -2,6 +2,7 @@ package main
 
 import "C"
 import (
+	"fmt"
 	"marmalade/app/gtk4/ui"
 	"marmalade/internal/server"
 	"strconv"
@@ -65,7 +66,7 @@ func init_ports_actions_generic(app *gtk.Application, conn_type string) {
 	facem_variant := glib.NewVariantBoolean(true)
 	facem_action := gio.NewSimpleActionStateful("ports_"+conn_type+"_facem", nil, facem_variant)
 	facem_action.ConnectActivate(func(parameter *glib.Variant) {
-		println("ports_" + conn_type + "_facem")
+		fmt.Println("ports_" + conn_type + "_facem")
 		return
 	})
 

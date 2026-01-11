@@ -75,7 +75,12 @@ func (mp *MediaPipe) start() error {
 
 	mp.facem_path = C.CString(server.Config.ModelFace)
 
-	mp.facem_lm = C.mediapipe_start(mp.facem_path)
+	delegate := 0
+	if server.Config.UseGpu {
+		delegate = 1
+	}
+
+	mp.facem_lm = C.mediapipe_start(mp.facem_path, C.int(delegate))
 	if mp.facem_lm == nil {
 		error_str := C.GoString(C.mediapipe_read_error())
 		C.mediapipe_free_error()
@@ -147,7 +152,7 @@ func mediapipe_call_facem_result(mp_result *C.struct_FaceLandmarkerResult, statu
 
 	// Convert between C data types and structs to Go
 
-	if mp_result.face_blendshapes != nil {
+	if mp_result.face_blendshapes_count != 0 {
 		result.Blendshapes = make([]server.Blendshape, 0, int(mp_result.face_blendshapes.categories_count))
 
 		for i := 0; i < int(mp_result.face_blendshapes.categories_count); i++ {
@@ -164,7 +169,7 @@ func mediapipe_call_facem_result(mp_result *C.struct_FaceLandmarkerResult, statu
 		}
 	}
 
-	if mp_result.face_landmarks != nil {
+	if mp_result.face_landmarks_count != 0 {
 		result.Landmarks = make([]server.Landmark, 0, int(mp_result.face_landmarks.landmarks_count))
 
 		for i := 0; i < int(mp_result.face_landmarks.landmarks_count); i++ {
@@ -178,7 +183,7 @@ func mediapipe_call_facem_result(mp_result *C.struct_FaceLandmarkerResult, statu
 				Visibility:    float32(mp_landmark.visibility),
 				HasPresence:   bool(mp_landmark.has_presence),
 				Presence:      float32(mp_landmark.presence),
-				Name:          C.GoString(mp_landmark.name), // TODO: this can segfault?
+				Name:          C.GoString(mp_landmark.name),
 			}
 
 			result.Landmarks = append(result.Landmarks, landmark)
@@ -215,7 +220,7 @@ func mediapipe_call_facem_result(mp_result *C.struct_FaceLandmarkerResult, statu
 
 	unlocked := ipc.mutex.TryLock()
 	if !unlocked {
-		println("[MP +TOAST] output is busy. dropping message...")
+		fmt.Fprintln(os.Stderr, "[MP +TOAST] output is busy. dropping message...")
 		return
 	}
 
@@ -231,7 +236,7 @@ func mediapipe_call_facem_result(mp_result *C.struct_FaceLandmarkerResult, statu
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%v", err)
 		} else {
-			println(string(text))
+			fmt.Println(string(text))
 		}
 	}
 

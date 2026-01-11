@@ -14,7 +14,7 @@ struct NormalizedLandmark face_landmarker_landmark(struct FaceLandmarkerResult*,
 struct Matrix face_landmarker_matrix(struct FaceLandmarkerResult*, uint32_t);
 float face_landmarker_matrix_data(struct Matrix*, uint32_t);
 
-void* mediapipe_start(char*);
+void* mediapipe_start(char*, int);
 int mediapipe_detect(void*, void*, int, int, int, int64_t);
 int mediapipe_stop(void*);
 char* mediapipe_read_error();

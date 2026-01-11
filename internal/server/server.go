@@ -76,7 +76,7 @@ func (server *ServerData) Start(err_ch chan error) {
 		fmt.Println("[MARMALADE] MediaPipe connection started")
 		data := []byte{}
 
-		for {
+		for !server.exit {
 			reader := bufio.NewReader(conn)
 			line, isPrefix, err := reader.ReadLine()
 			data = append(data, line...)
@@ -136,7 +136,7 @@ func (server *ServerData) sendToClients(mp_string []byte, err_ch chan error) {
 
 	err := json.Unmarshal(mp_string, &mp_data_small)
 	if err != nil {
-		err_ch <- err
+		fmt.Fprintf(os.Stderr, "[MARMALADE] mp socket data: %v\n", err)
 		return
 	}
 

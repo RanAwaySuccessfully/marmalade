@@ -1,0 +1,4 @@
+[submodule "app/mediapipe/cc/mediapipe"]
+	path = app/mediapipe/cc/mediapipe
+	url = https://github.com/RanAwaySuccessfully/mediapipe.git
+	branch = dev
