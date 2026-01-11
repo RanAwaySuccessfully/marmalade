@@ -5,7 +5,7 @@ on:
 
 jobs:
 
-  marmalade-debian12:
+  marmalade:
     name: Build Marmalade
     runs-on: ubuntu-latest
     container: debian:bookworm
@@ -37,6 +37,18 @@ jobs:
         mv gotk4 ../
         go work init
         printf "\nreplace github.com/diamondburned/gotk4/pkg => ../gotk4/pkg\n\nuse ." >> go.work
+    
+    - name: Download libmediapipe
+      run: wget
+
+    - name: Build libtoast
+      run: |
+        cd ./app/mediapipe/cc/
+        g++ -g -I./mediapipe/ -L./ -lmediapipe -shared -fPIC libtoast.cc -o libtoast.so
+        cd ../../../
+
+    - name: Build MediaPipe libraries
+      run: go build -v -o mediapipe ./app/mediapipe
 
     - name: Build CMD version
       run: env CGO_ENABLED=0 go build -v -o marmalade ./app/cmd
@@ -50,77 +62,7 @@ jobs:
     - name: Create distributable folder
       run: |
         mkdir dist
-        mv -t dist config.json LICENSE marmalade marmalade-gtk3 marmalade-gtk4
-
-    - name: Export build
-      uses: actions/upload-artifact@v4
-      with:
-        name: marmalade-dist
-        path: dist
-        if-no-files-found: error
-        retention-days: 1
-        compression-level: 1
-        overwrite: true
-
-  mediapipe:
-    name: Build MediaPipe
-    runs-on: ubuntu-22.04
-    steps:
-    
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.12'
-        cache: 'pip'
-        pip-install: pex opencv-contrib-python mediapipe
-
-    - name: Build Python executable
-      run: |
-        cd python
-        pex -v -r requirements.txt --scie eager -o dist/mediapipe
-        cp LICENSE main.py compute_params.py dist/
-
-    - name: Export build
-      uses: actions/upload-artifact@v4
-      with:
-        name: mediapipe-dist
-        path: python/dist
-        if-no-files-found: error
-        retention-days: 1
-        compression-level: 1
-        overwrite: true
-
-  merge:
-    needs:
-    - marmalade-debian12
-    - mediapipe
-    name: Merge builds
-    runs-on: ubuntu-latest
-    steps:
-    
-    - name: Import Marmalade build
-      uses: actions/download-artifact@v4
-      with:
-        name: marmalade-dist
-        path: dist
-
-    - name: Import MediaPipe build
-      uses: actions/download-artifact@v4
-      with:
-        name: mediapipe-dist
-        path: dist/python
-
-    - name: Delete temporary builds
-      uses: geekyeggo/delete-artifact@v5
-      with:
-        name: |
-          marmalade-dist
-          mediapipe-dist
-
-    - name: Set executables as executable
-      run: chmod +x dist/marmalade dist/marmalade-gtk3 dist/marmalade-gtk4 dist/python/mediapipe
+        mv -t dist config.json LICENSE marmalade marmalade-gtk3 marmalade-gtk4 mediapipe
 
     - name: Export complete build
       uses: actions/upload-artifact@v4

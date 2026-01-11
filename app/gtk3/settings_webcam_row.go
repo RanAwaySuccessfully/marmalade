@@ -10,7 +10,7 @@ import (
 
 var camera_indices []uint8
 
-func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
+func create_webcam_setting(grid *gtk.Grid, err_ch chan error) {
 	webcam_label := gtk.NewLabel("Webcam:")
 	webcam_label.SetSizeRequest(125, 1)
 	webcam_label.SetHAlign(gtk.AlignStart)
@@ -45,7 +45,7 @@ func create_webcam_setting(grid *gtk.Grid, err_chan chan error) {
 	webcam_refresh.Connect("clicked", func() {
 		err := fill_camera_list(webcam_input, &is_refreshing)
 		if err != nil {
-			err_chan <- err
+			err_ch <- err
 		}
 	})
 

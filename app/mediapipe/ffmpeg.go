@@ -4,22 +4,7 @@ package main
 #cgo CFLAGS: -I/ffmpeg/include
 #cgo LDFLAGS: -L/ffmpeg/lib -lavcodec -lavutil -lswscale
 
-#include <libavcodec/avcodec.h>
-#include <libavutil/frame.h>
-#include <libswscale/swscale.h>
-
-int do_sws_scale(struct SwsContext* outputCtx, AVFrame* inputFrame, AVFrame* outputFrame) {
-	return sws_scale(
-		outputCtx,
-		(const uint8_t* const*)inputFrame->data, inputFrame->linesize,
-		0, inputFrame->height,
-		outputFrame->data, outputFrame->linesize
-	);
-}
-
-void* get_frame_data_ptr(AVFrame* frame, int y) {
-    return frame->data[0] + y * frame->linesize[0];
-}
+#include "ffmpeg.h"
 */
 import "C"
 import (
@@ -47,7 +32,10 @@ func (conv *ConverterFFMPEG) init(format string) error {
 		pix_fmt = C.AV_PIX_FMT_YUYV422
 	case "MJPG":
 		codec_id = C.AV_CODEC_ID_MJPEG
+	case "H264":
+		codec_id = C.AV_CODEC_ID_H264
 	default:
+		return errors.New("format " + format + " does not have an equivalent ffmpeg mapping, please ask the developer of Marmalade to add it.")
 	}
 
 	codec := C.avcodec_find_decoder(codec_id)
@@ -61,16 +49,6 @@ func (conv *ConverterFFMPEG) init(format string) error {
 	if ret < 0 {
 		return conv.get_error("opening decoder", ret)
 	}
-
-	/*
-		output_codec := C.avcodec_find_encoder(C.AV_CODEC_ID_RAWVIDEO)
-		conv.outputCodec = C.avcodec_alloc_context3(output_codec)
-		conv.outputCodec.pix_fmt = C.AV_PIX_FMT_RGB24
-		ret = C.avcodec_open2(conv.outputCodec, output_codec, nil)
-		if ret < 0 {
-			return conv.get_error("opening encoder", ret)
-		}
-	*/
 
 	conv.inputFrame = C.av_frame_alloc()
 	if conv.inputFrame == nil {
@@ -102,6 +80,10 @@ func (conv *ConverterFFMPEG) init_output_frame() error {
 		C.SWS_FAST_BILINEAR, nil, nil, nil,
 	)
 
+	if conv.outputCtx == nil {
+		return errors.New("unable to allocate the thing that will do the conversion")
+	}
+
 	return nil
 }
 
@@ -109,7 +91,7 @@ func (conv *ConverterFFMPEG) convert(input []byte) ([]byte, error) {
 	data_length := len(input)
 	data := C.CBytes(input)
 	data = C.av_realloc(data, C.size_t(data_length+C.AV_INPUT_BUFFER_PADDING_SIZE))
-	//defer C.av_free(data)
+	defer C.av_free(data)
 
 	ret := C.av_packet_from_data(conv.inputPacket, (*C.uchar)(data), (C.int)(data_length))
 	if ret < 0 {
@@ -123,7 +105,7 @@ func (conv *ConverterFFMPEG) convert(input []byte) ([]byte, error) {
 
 	output := bytes.Buffer{}
 
-	for length >= 0 {
+	for length >= 0 { // this loop is likely not necessary
 		length = C.avcodec_receive_frame(conv.inputCtx, conv.inputFrame) // codec -> frame
 
 		if length == -C.EAGAIN || length == C.AVERROR_EOF {
@@ -142,21 +124,15 @@ func (conv *ConverterFFMPEG) convert(input []byte) ([]byte, error) {
 				if err != nil {
 					return nil, err
 				}
-
-				if conv.outputCtx == nil {
-					return nil, errors.New("what???")
-				}
-			} else {
-				// sorry, nothing
 			}
 
-			C.do_sws_scale(conv.outputCtx, conv.inputFrame, conv.outputFrame)
+			C.ffmpeg_convert_frame(conv.outputCtx, conv.inputFrame, conv.outputFrame)
 
 			frame = conv.outputFrame
 		}
 
 		for y := C.int(0); y < frame.height; y++ {
-			start := C.get_frame_data_ptr(frame, y)
+			start := C.ffmpeg_get_frame_data_ptr(frame, y)
 			bytes := C.GoBytes(start, frame.width*3)
 			output.Write(bytes)
 		}
@@ -179,9 +155,11 @@ func (conv *ConverterFFMPEG) end() {
 		C.av_frame_free(&conv.inputFrame)
 	}
 
-	if conv.inputPacket != nil {
-		C.av_packet_free(&conv.inputPacket)
-	}
+	/*
+		if conv.inputPacket != nil {
+			C.av_packet_free(&conv.inputPacket)
+		}
+	*/
 
 	if conv.inputCtx != nil {
 		C.avcodec_free_context(&conv.inputCtx)

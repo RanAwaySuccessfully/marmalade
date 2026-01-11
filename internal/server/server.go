@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,33 +9,20 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"strings"
-	"sync"
-	"time"
+	"strconv"
 )
 
-type udpMessage struct {
-	created float64
-	source  string
-	fresh   bool
-	Type    string    `json:"messageType"`
-	Time    float64   `json:"time"`
-	SendFor float64   `json:"sendForSeconds"`
-	SentBy  string    `json:"sentBy"`
-	Ports   []float64 `json:"ports"`
-}
-
 type ServerData struct {
-	udpListener net.PacketConn
-	mutex       sync.Mutex
-	exit        bool
-	clients     map[string]*udpMessage
-	ErrPipe     *ServerErrPipe
+	ErrPipe    *ServerErrPipe
+	exit       bool
+	mpListener net.Listener
+	mpData     TrackingData
+	mpCmd      *exec.Cmd
+	vts_api    *VTSApi
 }
 
 var Server = ServerData{
-	clients: make(map[string]*udpMessage),
-	exit:    true,
+	exit: true,
 }
 
 func (server *ServerData) Started() bool {
@@ -44,183 +32,131 @@ func (server *ServerData) Started() bool {
 func (server *ServerData) Start(err_ch chan error) {
 	server.exit = false
 
-	if Config.Port == 0 {
-		Config.Port = 21412
-	}
-
-	port := ":" + int_to_string(int(Config.Port))
-
-	var err error
-	server.udpListener, err = net.ListenPacket("udp", port)
-	if err != nil {
-		err_ch <- err
-		return
-	}
-
 	fmt.Println("[MARMALADE] Listening...")
 
-	cmd, err := server.create_python_process()
+	var err error
+	server.mpCmd, err = server.createMediaPipeProcess()
 	if err != nil {
 		err_ch <- err
 		return
 	}
 
-	stdin, err := cmd.StdinPipe()
+	err = server.mpCmd.Start()
 	if err != nil {
 		err_ch <- err
 		return
 	}
 
-	err = cmd.Start()
+	err = os.Remove("marmalade.sock")
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			err_ch <- err
+			return
+		}
+	}
+
+	listener, err := net.Listen("unix", "marmalade.sock")
 	if err != nil {
 		err_ch <- err
 		return
 	}
 
-	go server.updateClients(stdin, err_ch)
-	go server.wait(cmd, err_ch)
+	server.vts_api = &VTSApi{}
+	go server.vts_api.listen(err_ch)
+
+	go server.waitMediaPipeProcess(server.mpCmd, err_ch)
 
 	for !server.exit {
-		buf := make([]byte, 1024)
-
-		n, addr, err := server.udpListener.ReadFrom(buf)
+		fmt.Println("[MARMALADE] Waiting for MediaPipe...")
+		conn, err := listener.Accept()
 		if err != nil {
-			if errors.Is(err, net.ErrClosed) {
+			err_ch <- err
+		}
+
+		fmt.Println("[MARMALADE] MediaPipe connection started")
+		data := []byte{}
+
+		for {
+			reader := bufio.NewReader(conn)
+			line, isPrefix, err := reader.ReadLine()
+			data = append(data, line...)
+
+			if isPrefix {
 				continue
 			}
 
-			err_ch <- err
-			continue
-		}
+			if err != nil {
+				if err != io.EOF {
+					err_ch <- err
+				}
 
-		if n >= 1024 {
-			continue
-		}
+				break
+			}
 
-		data := buf[:n]
-		err = server.handlePacket(data, addr)
-		if err != nil {
-			err_ch <- err
+			if len(data) == 0 {
+				continue
+			}
+
+			server.sendToClients(data, err_ch)
+			data = []byte{}
 		}
 	}
 
-	fmt.Println("[MARMALADE] Ending...")
-	fmt.Fprintln(stdin, "end")
+	listener.Close()
 	fmt.Println("[MARMALADE] Ended")
 }
 
-func (server *ServerData) wait(cmd *exec.Cmd, err_ch chan error) {
-	err := cmd.Wait()
+func (server *ServerData) Stop() {
+
+	if !server.exit {
+		fmt.Println("[MARMALADE] Ending...")
+
+		server.exit = true
+
+		if server.vts_api != nil {
+			server.vts_api.close()
+		}
+
+		if server.mpCmd.Process != nil {
+			err := server.mpCmd.Process.Signal(os.Interrupt)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "%v", err)
+			}
+		}
+
+	}
+}
+
+func (server *ServerData) sendToClients(mp_string []byte, err_ch chan error) {
+	var mp_data_small anyTracking // For checking tracking type ahead of time
+
+	if server.exit {
+		return
+	}
+
+	err := json.Unmarshal(mp_string, &mp_data_small)
 	if err != nil {
 		err_ch <- err
-	} else {
-		err_ch <- os.ErrProcessDone
-	}
-}
-
-func (server *ServerData) Stop() {
-	server.exit = true
-
-	if server.udpListener != nil {
-		server.udpListener.Close()
-	}
-}
-
-func (server *ServerData) handlePacket(buf []byte, addr net.Addr) error {
-	var msg udpMessage
-
-	err := json.Unmarshal(buf, &msg)
-	if err != nil {
-		return err
+		return
 	}
 
-	if msg.Type != "iOSTrackingDataRequest" {
-		return nil
-	}
-
-	if msg.Time == 0 {
-		msg.Time = msg.SendFor
-	}
-
-	if msg.Time < 0.5 {
-		msg.Time = 0.5
-	}
-
-	if msg.Time > 10 {
-		msg.Time = 10
-	}
-
-	msg.source = addr.String()
-	msg.Time *= 1000
-
-	server.mutex.Lock()
-	if server.clients[msg.SentBy] == nil {
-		msg.fresh = true
-	} else {
-		msg.fresh = server.clients[msg.SentBy].fresh
-	}
-
-	server.clients[msg.SentBy] = &msg
-	server.mutex.Unlock()
-
-	return nil
-}
-
-func (server *ServerData) updateClients(stdin io.WriteCloser, err_ch chan error) {
-
-	for !server.exit {
-		start := time.Now().UnixMilli()
-
-		min := int64(100)
-
-		server.mutex.Lock()
-
-		for clientId, client := range server.clients {
-
-			ip, _, _ := strings.Cut(client.source, ":")
-
-			if client.Time <= 0 {
-				delete(server.clients, clientId)
-				err := server.sendUpdate(stdin, "-", ip, client.Ports)
-				if err != nil {
-					err_ch <- err
-				}
-
-				continue
-			}
-
-			if client.fresh {
-				err := server.sendUpdate(stdin, "+", ip, client.Ports)
-				if err != nil {
-					err_ch <- err
-				}
-
-				client.fresh = false
-			}
-
-			client.Time -= float64(min)
-		}
-
-		server.mutex.Unlock()
-
-		end := time.Now().UnixMilli()
-		diff := end - start
-
-		if diff < min {
-			waitFor := time.Duration(min - diff)
-			time.Sleep(waitFor * time.Millisecond)
-		}
-	}
-}
-
-func (server *ServerData) sendUpdate(stdin io.WriteCloser, action string, ip string, ports []float64) error {
-	for _, port := range ports {
-		data := action + ip + ":" + int_to_string(int(port))
-		_, err := fmt.Fprintln(stdin, data)
+	switch mp_data_small.Type {
+	case uint8(FaceTrackingType):
+		var mp_data FaceTracking
+		err := json.Unmarshal(mp_string, &mp_data)
 		if err != nil {
-			return err
+			err_ch <- err
+			return
 		}
+
+		server.mpData.facem = mp_data
 	}
 
-	return nil
+	if server.vts_api != nil {
+		server.vts_api.send(&server.mpData.facem, err_ch)
+	}
+}
+
+func int_to_string(number int) string {
+	return strconv.Itoa(number)
 }

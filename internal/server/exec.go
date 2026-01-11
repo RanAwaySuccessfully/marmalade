@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"strconv"
+	"strings"
 )
 
 type ServerErrPipe struct {
@@ -20,55 +20,38 @@ func (err_pipe *ServerErrPipe) Write(data []byte) (n int, err error) {
 	// since i specified the variable names on the function definition line, i don't need to specify them on the return statement!
 }
 
-func (server *ServerData) create_python_process() (*exec.Cmd, error) {
-	args := make([]string, 0, 10)
-	args = append(args, "main.py")
+func (server *ServerData) createMediaPipeProcess() (*exec.Cmd, error) {
+	var cmd *exec.Cmd
 
-	if Config.Camera != 0 {
-		camera := "--camera=" + int_to_string(int(Config.Camera))
-		args = append(args, camera)
+	_, err := os.Stat("./mediapipe")
+	if errors.Is(err, os.ErrNotExist) { // local testing
+		build_cmd := exec.Command("go", "build")
+		build_cmd.Dir = "./app/mediapipe"
+
+		err := build_cmd.Run()
+		if err != nil {
+			return nil, err
+		}
+
+		cmd = exec.Command("./app/mediapipe/mediapipe", "--ipc")
+		env := cmd.Environ()
+
+		library_path := "LD_LIBRARY_PATH=./app/mediapipe/cc"
+
+		for i := 0; i < len(env); i++ {
+			env_var := env[i]
+			isLibraryPath := strings.HasPrefix(env_var, "LD_LIBRARY_PATH=")
+
+			if isLibraryPath {
+				library_path += ":" + env_var[16:]
+			}
+		}
+
+		cmd.Env = append(env, library_path)
+
+	} else {
+		cmd = exec.Command("./mediapipe", "--ipc")
 	}
-
-	if Config.Width != 0 {
-		width := "--width=" + int_to_string(int(Config.Width))
-		args = append(args, width)
-	}
-
-	if Config.Height != 0 {
-		height := "--height=" + int_to_string(int(Config.Height))
-		args = append(args, height)
-	}
-
-	if Config.FPS != 0 {
-		fps := "--fps=" + int_to_string(int(Config.FPS))
-		args = append(args, fps)
-	}
-
-	if Config.ModelFace != "" {
-		model := "--model=" + Config.ModelFace
-		args = append(args, model)
-	}
-
-	if Config.Format != "" {
-		cam_fmt := "--fmt=" + Config.Format
-		args = append(args, cam_fmt)
-	}
-
-	if Config.UseGpu {
-		args = append(args, "--use-gpu")
-	}
-
-	// python executable built by PEX
-	filepath := "./mediapipe"
-
-	_, err := os.Stat("python/mediapipe")
-	if errors.Is(err, os.ErrNotExist) {
-		// python interpreter (.venv)
-		filepath = "../.venv/bin/python3"
-	}
-
-	cmd := exec.Command(filepath, args...)
-	cmd.Dir = "python"
 
 	if Config.PrimeId != "" {
 		prime_env := "DRI_PRIME=" + Config.PrimeId
@@ -92,6 +75,11 @@ func (server *ServerData) create_python_process() (*exec.Cmd, error) {
 	return cmd, nil
 }
 
-func int_to_string(number int) string {
-	return strconv.Itoa(number)
+func (server *ServerData) waitMediaPipeProcess(cmd *exec.Cmd, err_ch chan error) {
+	err := cmd.Wait()
+	if err != nil {
+		err_ch <- err
+	} else {
+		err_ch <- os.ErrProcessDone
+	}
 }

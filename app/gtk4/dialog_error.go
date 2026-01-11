@@ -12,17 +12,32 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
+var error_window_count int // I managed to almost crash my computer from too many error messages opening at once...never again
+
 func create_error_window(err error) {
+	if error_window_count >= 5 {
+		return
+	}
+
+	error_window_count++
 	builder := NewBuilder(ui.DialogError)
 
 	label := builder.GetObject("error_dialog_label").(*gtk.Label)
 	label.SetText(err.Error())
 
+	window := builder.GetObject("error_dialog").(*gtk.Window)
+
 	button := builder.GetObject("error_dialog_close_button").(*gtk.Button)
 	button.ConnectClicked(func() {
-		window := builder.GetObject("error_dialog").(*gtk.Window)
 		window.Close()
 	})
+
+	window.ConnectCloseRequest(func() bool {
+		error_window_count--
+		return false
+	})
+
+	window.SetVisible(true)
 }
 
 func error_handler(button *gtk.Button, err_channel chan error) {
@@ -44,7 +59,7 @@ func error_handler(button *gtk.Button, err_channel chan error) {
 			exitError = err.(*exec.ExitError)
 			exitCode := exitError.ExitCode()
 
-			errTitle := "Unknown error while running python process."
+			errTitle := "Unknown error while running sub-process."
 
 			switch exitCode {
 			case 110:

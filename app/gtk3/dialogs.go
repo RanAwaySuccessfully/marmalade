@@ -92,7 +92,7 @@ func error_handler(button *gtk.Button, err_channel chan error) {
 			exitError = err.(*exec.ExitError)
 			exitCode := exitError.ExitCode()
 
-			errTitle := "Unknown error while running python process."
+			errTitle := "Unknown error while running sub-process."
 
 			switch exitCode {
 			case 110:

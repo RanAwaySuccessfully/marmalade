@@ -9,7 +9,8 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/app/cmd"
+            "program": "${workspaceFolder}/app/cmd",
+            "cwd": "${workspaceFolder}"
         },
         {
             "name": "Go: Debug MediaPipe",
@@ -17,6 +18,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/app/mediapipe",
+            "cwd": "${workspaceFolder}",
             "env": {
                 "LD_LIBRARY_PATH": "${workspaceFolder}/app/mediapipe/cc:${env:LD_LIBRARY_PATH}"
             }
@@ -36,17 +38,6 @@
             "mode": "exec",
             "program": "marmalade-gtk3",
             "preLaunchTask": "goWithGtk3"
-        },
-        {
-            "name": "Python: Debug Current File",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${file}",
-            "cwd": "${fileDirname}",
-            "console": "integratedTerminal",
-            "args": [
-                "-c", "2"
-            ]
         }
     ]
 }

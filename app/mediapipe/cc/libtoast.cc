@@ -6,26 +6,26 @@
 #include "./mediapipe/mediapipe/tasks/c/vision/core/image.h"
 #include "./mediapipe/mediapipe/tasks/c/vision/core/image_processing_options.h"
 #include "./mediapipe/mediapipe/tasks/c/vision/face_landmarker/face_landmarker.h"
-#include "./mediapipe/mediapipe/tasks/c/vision/face_landmarker/face_landmarker_result.h"
 
 void face_landmarker_callback(MpStatus status, const struct FaceLandmarkerResult* result, MpImagePtr image, int64_t timestamp_ms) {
-  mediapipe_call_facem_result((void *)result, timestamp_ms);
+  mediapipe_call_facem_result((struct FaceLandmarkerResult*)result, (int)status, timestamp_ms);
   MpFaceLandmarkerCloseResult((struct FaceLandmarkerResult*)result);
 }
 
-struct Category face_landmarker_blendshape(void* ctx_result, uint32_t index) {
-  const struct FaceLandmarkerResult* result = (const struct FaceLandmarkerResult*)ctx_result;
+struct Category face_landmarker_blendshape(struct FaceLandmarkerResult* result, uint32_t index) {
   return result->face_blendshapes[0].categories[index];
 }
 
-struct NormalizedLandmark face_landmarker_landmark(void* ctx_result, uint32_t index) {
-  const struct FaceLandmarkerResult* result = (const struct FaceLandmarkerResult*)ctx_result;
+struct NormalizedLandmark face_landmarker_landmark(struct FaceLandmarkerResult* result, uint32_t index) {
   return result->face_landmarks[0].landmarks[index];
 }
 
-struct Matrix face_landmarker_matrix(void* ctx_result, uint32_t index) {
-  const struct FaceLandmarkerResult* result = (const struct FaceLandmarkerResult*)ctx_result;
+struct Matrix face_landmarker_matrix(struct FaceLandmarkerResult* result, uint32_t index) {
   return result->facial_transformation_matrixes[index];
+}
+
+float face_landmarker_matrix_data(struct Matrix* matrix, uint32_t index) {
+  return matrix->data[index];
 }
 
 // ERROR HANDLING
@@ -62,6 +62,7 @@ void* mediapipe_start(char* face_model_path) {
   face_landmarker_options.running_mode = LIVE_STREAM;
   face_landmarker_options.output_face_blendshapes = true;
   face_landmarker_options.output_facial_transformation_matrixes = true;
+  face_landmarker_options.num_faces = 1;
   face_landmarker_options.result_callback = face_landmarker_callback;
 
   MpFaceLandmarkerPtr face_landmarker = NULL;
@@ -115,5 +116,5 @@ int mediapipe_stop(void* ctx) {
     return -1;
   }
 
-  return 0;
+  return (int)status;
 }

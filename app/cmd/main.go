@@ -48,7 +48,7 @@ func main() {
 	case err := <-err_channel:
 		fmt.Fprintf(os.Stderr, "[MARMALADE] %v\n", err)
 	case sig := <-sig_channel:
-		log.Printf("[MARMALADE] Terminating: %v", sig)
+		log.Printf("[MARMALADE] Terminating: %v\n", sig)
 	}
 
 	srv.Stop()

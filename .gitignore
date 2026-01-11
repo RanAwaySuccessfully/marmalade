@@ -1,12 +1,19 @@
+.venv
+app/mediapipe/cc/bazel-local
+AppDir
+misc
+tasks
+
+marmalade.sock
+*.so
+
+# Executables
 __debug*
 marmalade
 marmalade-gtk3
 marmalade-gtk4
-misc
-AppDir
-*.so
-
-.venv
+./mediapipe
+app/mediapipe/mediapipe
 
 # Go workspace file
 go.work

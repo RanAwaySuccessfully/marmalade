@@ -7,12 +7,12 @@
 extern "C" {
 #endif
 
-extern void mediapipe_call_facem_result(void*, signed long);
-extern void mediapipe_call_HELP(int);
+extern void mediapipe_call_facem_result(struct FaceLandmarkerResult*, int, signed long);
 
-struct Category face_landmarker_blendshape(void*, uint32_t);
-struct NormalizedLandmark face_landmarker_landmark(void*, uint32_t);
-struct Matrix face_landmarker_matrix(void*, uint32_t);
+struct Category face_landmarker_blendshape(struct FaceLandmarkerResult*, uint32_t);
+struct NormalizedLandmark face_landmarker_landmark(struct FaceLandmarkerResult*, uint32_t);
+struct Matrix face_landmarker_matrix(struct FaceLandmarkerResult*, uint32_t);
+float face_landmarker_matrix_data(struct Matrix*, uint32_t);
 
 void* mediapipe_start(char*);
 int mediapipe_detect(void*, void*, int, int, int, int64_t);

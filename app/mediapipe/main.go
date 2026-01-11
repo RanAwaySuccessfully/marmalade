@@ -1,142 +1,68 @@
 package main
 
-/*
-#cgo CFLAGS: -I./cc/ -I./cc/mediapipe/
-#cgo LDFLAGS: -L./cc/ -ltoast -lmediapipe
-
-#include <libtoast.h>
-#include <stdlib.h>
-*/
-import "C"
 import (
-	"context"
-	"errors"
 	"fmt"
-	"log"
+	"net"
 	"os"
-	"unsafe"
-
-	"github.com/vladimirvivien/go4vl/device"
-	"github.com/vladimirvivien/go4vl/v4l2"
+	"os/signal"
+	"sync"
 )
 
+// Inter-process communication
+type IPC struct {
+	mutex   sync.Mutex
+	socket  net.Conn
+	enabled bool
+}
+
+var ipc = IPC{}
+
 func main() {
-	facem_path := "face_landmarker.task"
-	c_facem_path := C.CString(facem_path)
+	println("[MP +TOAST] Starting...")
 
-	ctx := C.mediapipe_start(c_facem_path)
-	if ctx == nil {
-		error_str := C.GoString(C.mediapipe_read_error())
-		log.Fatal(error_str)
+	ipc.enabled = false
+	if (len(os.Args) > 1) && (os.Args[1] == "--ipc") {
+		ipc.enabled = true
 	}
 
-	format := v4l2.PixFormat{
-		Width:       1920,
-		Height:      1080,
-		PixelFormat: v4l2.PixelFmtMJPEG,
+	var err error
+	if ipc.enabled {
+		ipc.socket, err = net.Dial("unix", "marmalade.sock")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[MP +TOAST] %v\n", err)
+			return
+		}
 	}
 
-	dev, err := device.Open(
-		"/dev/video2",
-		device.WithBufferSize(1),
-		device.WithPixFormat(format),
-		device.WithVideoCaptureEnabled(),
-		device.WithFPS(30),
-	)
-
+	mp := MediaPipe{}
+	err = mp.start()
 	if err != nil {
-		log.Fatal(err)
-	}
-	defer dev.Close()
-
-	dev.GetFrames()
-	if err := dev.Start(context.Background()); err != nil {
-		log.Fatal(err)
-	}
-
-	converter := ConverterFFMPEG{}
-	err = converter.init("MJPG")
-	if err != nil {
-		log.Fatal(err)
+		mp.stop()
+		fmt.Fprintf(os.Stderr, "[MP +TOAST] %v\n", err)
+		return
 	}
 
 	err_channel := make(chan error, 1)
-	go read(dev, ctx, converter, err_channel)
+	go mp.detect(err_channel)
+
+	sig_channel := make(chan os.Signal, 1)
+	signal.Notify(sig_channel, os.Interrupt)
 
 	select {
-	case err := <-err_channel:
-		fmt.Fprintf(os.Stderr, "[MEDIAPIPE + LIBTOAST] %v\n", err)
+	case err = <-err_channel:
+		fmt.Fprintf(os.Stderr, "[MP +TOAST] %v\n", err)
+	case sig := <-sig_channel:
+		fmt.Printf("[MP +TOAST] Terminating: %v\n", sig)
 	}
 
-	println("it has ended")
+	go mp.stop()
 
-	converter.end()
-	ret := C.mediapipe_stop(ctx)
-	if ret < 0 {
-		error_str := C.GoString(C.mediapipe_read_error())
-		log.Fatal(error_str)
-	}
-
-	C.free(unsafe.Pointer(c_facem_path))
-}
-
-func read(dev *device.Device, ctx unsafe.Pointer, conv ConverterFFMPEG, err_channel chan error) {
-	for frame := range dev.GetFrames() {
-		srgb_frame, err := conv.convert(frame.Data)
+	/*
+		err = mp.stop()
 		if err != nil {
-			err_channel <- err
-			break
+			fmt.Fprintf(os.Stderr, "[MP +TOAST] %v\n", err)
 		}
+	*/
 
-		fmt, err := dev.GetPixFormat()
-		if err != nil {
-			err_channel <- err
-			break
-		}
-
-		data_size := len(srgb_frame)
-		data_ptr := C.CBytes(srgb_frame)
-		timestamp := frame.Timestamp.UnixMilli()
-		ret := C.mediapipe_detect(ctx, data_ptr, C.int(data_size), C.int(fmt.Width), C.int(fmt.Height), C.long(timestamp))
-		frame.Release()
-
-		if ret < 0 {
-			error_str := C.GoString(C.mediapipe_read_error())
-			err_channel <- errors.New(error_str)
-			C.mediapipe_free_error()
-			break
-		}
-	}
-
-	dev.Stop()
-	close(err_channel)
-}
-
-//export mediapipe_call_HELP
-func mediapipe_call_HELP(value C.int) {
-	log.Printf("%d", int(value))
-}
-
-//export mediapipe_call_facem_result
-func mediapipe_call_facem_result(facem_ptr unsafe.Pointer, timestamp C.long) {
-
-	facem_result := (*C.struct_FaceLandmarkerResult)(facem_ptr)
-	if facem_result.face_blendshapes != nil {
-		for i := 0; i < int(facem_result.face_blendshapes.categories_count); i++ {
-			blendshape := C.face_landmarker_blendshape(facem_ptr, C.uint(i))
-			println(C.GoString(blendshape.category_name))
-		}
-	}
-
-	if facem_result.face_landmarks != nil {
-		for i := 0; i < int(facem_result.face_landmarks.landmarks_count); i++ {
-			_ = C.face_landmarker_landmark(facem_ptr, C.uint(i))
-			//println(i)
-		}
-	}
-
-	for i := 0; i < int(facem_result.facial_transformation_matrixes_count); i++ {
-		matrix := C.face_landmarker_matrix(facem_ptr, C.uint(i))
-		println(matrix.rows)
-	}
+	println("[MP +TOAST] Stopping...")
 }
