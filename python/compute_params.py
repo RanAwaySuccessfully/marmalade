@@ -3,25 +3,22 @@ from scipy.spatial.transform import Rotation
 def get_eye_left_x(blendshapes):
     eye_left = blendshapes["eyeLookOutLeft"]
     eye_right = blendshapes["eyeLookInLeft"]
-    return eye_left - eye_right
-
+    return 0 - eye_left + eye_right
 
 def get_eye_left_y(blendshapes):
     eye_up = blendshapes["eyeLookUpLeft"]
     eye_down = blendshapes["eyeLookDownLeft"]
-    return eye_up - eye_down
-
+    return 0 - eye_up + eye_down
 
 def get_eye_right_x(blendshapes):
     eye_right = blendshapes["eyeLookOutRight"]
     eye_left = blendshapes["eyeLookInRight"]
-    return eye_left - eye_right
-
+    return 0 - eye_left + eye_right
 
 def get_eye_right_y(blendshapes):
     eye_up = blendshapes["eyeLookUpRight"]
     eye_down = blendshapes["eyeLookDownRight"]
-    return eye_up - eye_down
+    return 0 - eye_up + eye_down
 
 
 def create_blendshapes_dict(blendshape_list):
