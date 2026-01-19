@@ -1,3 +1,5 @@
+# Note: these are the commands I personally run when compiling MediaPipe using Bazel. Use these as an example, but don't be surprised if they don't work.
+
 #sudo apt install libopencv-core-dev libopencv-highgui-dev libopencv-calib3d-dev libopencv-features2d-dev libopencv-imgproc-dev libopencv-video-dev
 LOCALREPOS=$(realpath bazel-local)
 cd $(realpath mediapipe)

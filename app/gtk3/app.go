@@ -100,7 +100,7 @@ func activate(app *gtk.Application) {
 			button.SetLabel("Stopping MediaPipe...")
 			button.SetSensitive(false)
 		} else {
-			go srv.Start(err_channel)
+			go srv.Start(err_channel, func() {})
 			button.SetLabel("Stop MediaPipe")
 		}
 	})

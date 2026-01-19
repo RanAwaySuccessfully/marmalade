@@ -2,13 +2,11 @@ package main
 
 import "C"
 import (
-	"fmt"
 	"marmalade/app/gtk4/ui"
 	"marmalade/internal/server"
 	"strconv"
 
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
-	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
@@ -21,10 +19,27 @@ func ports_notify_expanded() {
 	_, row, _, _ := grid.QueryChild(misc_row)
 	row++
 
+	mimic_label := UI.GetObject("mimic_label").(*gtk.Label)
+	mimic_box := UI.GetObject("mimic_box").(*gtk.Box)
+	plugin_label := UI.GetObject("plugin_label").(*gtk.Label)
+	plugin_box := UI.GetObject("plugin_box").(*gtk.Box)
+	vmcap_label := UI.GetObject("vmcap_label").(*gtk.Label)
+	vmcap_box := UI.GetObject("vmcap_box").(*gtk.Box)
+
 	if expanded {
-		show_connection_widgets(grid, row)
+		mimic_label.SetVisible(true)
+		mimic_box.SetVisible(true)
+		plugin_label.SetVisible(true)
+		plugin_box.SetVisible(true)
+		vmcap_label.SetVisible(true)
+		vmcap_box.SetVisible(true)
 	} else {
-		hide_connection_widgets(grid, row)
+		mimic_label.SetVisible(false)
+		mimic_box.SetVisible(false)
+		plugin_label.SetVisible(false)
+		plugin_box.SetVisible(false)
+		vmcap_label.SetVisible(false)
+		vmcap_box.SetVisible(false)
 	}
 }
 
@@ -49,66 +64,56 @@ func ports_vmcap_popover_closed() {
 func init_ports_settings() {
 	UI.gtkBuilder.AddFromString(ui.SettingsPorts)
 
-	port := strconv.FormatFloat(server.Config.Port, 'f', 0, 64)
-	mimic_port := UI.GetObject("mimic_port").(*gtk.Entry)
-	mimic_port.SetText(port)
-	mimic_port.Connect("changed", func() {
-		update_numeric_config(mimic_port, &server.Config.Port)
-	})
-}
-
-func init_ports_actions(app *gtk.Application) {
-	init_ports_actions_generic(app, "plugin")
-	init_ports_actions_generic(app, "vmcap")
-}
-
-func init_ports_actions_generic(app *gtk.Application, conn_type string) {
-	facem_variant := glib.NewVariantBoolean(true)
-	facem_action := gio.NewSimpleActionStateful("ports_"+conn_type+"_facem", nil, facem_variant)
-	facem_action.ConnectActivate(func(parameter *glib.Variant) {
-		fmt.Println("ports_" + conn_type + "_facem")
-		return
+	vtsapi_switch := UI.GetObject("mimic_enable").(*gtk.Switch)
+	vtsapi_switch.SetActive(server.Config.VTSApiUse)
+	vtsapi_switch.ConnectStateSet(func(state bool) bool {
+		server.Config.VTSApiUse = state
+		update_unsaved_config(true)
+		return false
 	})
 
-	app.ActionMap.AddAction(facem_action)
+	vtsapi_port_value := ""
+	if server.Config.VTSApiPort != 0 {
+		vtsapi_port_value = strconv.FormatFloat(server.Config.VTSApiPort, 'f', 0, 64)
+	}
 
-	about_action := gio.NewSimpleAction("ports_"+conn_type+"_about", nil)
-	about_action.ConnectActivate(func(parameter *glib.Variant) {
-		settings := UI.GetObject(conn_type + "_settings").(*gtk.MenuButton)
-		settings.SetMenuModel(nil)
-
-		popover := UI.GetObject(conn_type + "_popover").(*gtk.Popover)
-		settings.SetPopover(popover)
-		settings.Popup()
+	vtsapi_port := UI.GetObject("mimic_port").(*gtk.Entry)
+	vtsapi_port.SetText(vtsapi_port_value)
+	vtsapi_port.ConnectChanged(func() {
+		update_numeric_config(vtsapi_port, &server.Config.VTSApiPort)
 	})
 
-	app.ActionMap.AddAction(facem_action)
-	app.ActionMap.AddAction(about_action)
-}
+	plugin_switch := UI.GetObject("plugin_enable").(*gtk.Switch)
+	plugin_switch.SetActive(server.Config.VTSPluginUse)
+	plugin_switch.ConnectStateSet(func(state bool) bool {
+		server.Config.VTSPluginUse = state
+		update_unsaved_config(true)
+		return false
+	})
 
-func show_connection_widgets(grid *gtk.Grid, row int) {
-	grid.InsertRow(row)
-	grid.InsertRow(row + 1)
-	grid.InsertRow(row + 2)
+	plugin_port_value := ""
+	if server.Config.VTSPluginPort != 0 {
+		plugin_port_value = strconv.FormatFloat(server.Config.VTSPluginPort, 'f', 0, 64)
+	}
+
+	plugin_port := UI.GetObject("plugin_port").(*gtk.Entry)
+	plugin_port.SetText(plugin_port_value)
+	plugin_port.ConnectChanged(func() {
+		update_numeric_config(plugin_port, &server.Config.VTSPluginPort)
+	})
 
 	mimic_label := UI.GetObject("mimic_label").(*gtk.Label)
 	mimic_box := UI.GetObject("mimic_box").(*gtk.Box)
-	grid.Attach(mimic_label, 0, row, 1, 1)
-	grid.Attach(mimic_box, 1, row, 1, 1)
-
 	plugin_label := UI.GetObject("plugin_label").(*gtk.Label)
 	plugin_box := UI.GetObject("plugin_box").(*gtk.Box)
-	grid.Attach(plugin_label, 0, row+1, 1, 1)
-	grid.Attach(plugin_box, 1, row+1, 1, 1)
-
 	vmcap_label := UI.GetObject("vmcap_label").(*gtk.Label)
 	vmcap_box := UI.GetObject("vmcap_box").(*gtk.Box)
-	grid.Attach(vmcap_label, 0, row+2, 1, 1)
-	grid.Attach(vmcap_box, 1, row+2, 1, 1)
-}
 
-func hide_connection_widgets(grid *gtk.Grid, row int) {
-	grid.RemoveRow(row + 2)
-	grid.RemoveRow(row + 1)
-	grid.RemoveRow(row)
+	grid := UI.GetObject("main_grid").(*gtk.Grid)
+	grid.Attach(mimic_label, 0, 31, 1, 1)
+	grid.Attach(mimic_box, 1, 31, 1, 1)
+	grid.Attach(plugin_label, 0, 32, 1, 1)
+	grid.Attach(plugin_box, 1, 32, 1, 1)
+	grid.Attach(vmcap_label, 0, 33, 1, 1)
+	grid.Attach(vmcap_box, 1, 33, 1, 1)
 }

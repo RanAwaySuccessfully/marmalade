@@ -2,11 +2,13 @@
 <interface>
 
   <object class="GtkLabel" id="resolution_label">
+    <property name="visible">false</property>
     <property name="label" translatable="yes">Width, Height:</property>
     <property name="halign">GTK_ALIGN_START</property>
   </object>
 
   <object class="GtkBox" id="resolution_box">
+    <property name="visible">false</property>
     <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
     <property name="spacing">3</property>
     <child>
@@ -22,24 +24,29 @@
   </object>
 
   <object class="GtkLabel" id="fps_label">
+    <property name="visible">false</property>
     <property name="label" translatable="yes">Frame rate (FPS):</property>
     <property name="halign">GTK_ALIGN_START</property>
   </object>
 
   <object class="GtkEntry" id="fps_input">
+    <property name="visible">false</property>
     <property name="placeholder-text">30</property>
   </object>
 
   <object class="GtkLabel" id="format_label">
+    <property name="visible">false</property>
     <property name="label" translatable="yes">Format:</property>
     <property name="halign">GTK_ALIGN_START</property>
   </object>
 
   <object class="GtkEntry" id="format_input">
+    <property name="visible">false</property>
     <property name="placeholder-text">YUYV</property>
   </object>
 
   <object class="GtkButton" id="camera_info">
+    <property name="visible">false</property>
     <property name="label">View supported settings</property>
   </object>
 

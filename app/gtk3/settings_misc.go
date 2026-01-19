@@ -55,12 +55,12 @@ func create_misc_widgets() miscWidgets {
 	port_label := gtk.NewLabel("UDP port:")
 	port_label.SetHAlign(gtk.AlignStart)
 	port_input := gtk.NewEntry()
-	port := strconv.FormatFloat(server.Config.Port, 'f', 0, 64)
+	port := strconv.FormatFloat(server.Config.VTSApiPort, 'f', 0, 64)
 	port_input.SetText(port)
 	port_input.SetPlaceholderText("21412")
 
 	port_input.Connect("changed", func() {
-		update_numeric_config(port_input, &server.Config.Port)
+		update_numeric_config(port_input, &server.Config.VTSApiPort)
 	})
 
 	gpu_label := gtk.NewLabel("Device:")

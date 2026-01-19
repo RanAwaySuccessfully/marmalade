@@ -9,6 +9,9 @@ import (
 //go:embed icons/marmalade_logo_256.png
 var EmbeddedIconLogo []byte
 
+//go:embed icons/marmalade_logo_128.jpg
+var EmbeddedIconLogoSmall []byte
+
 //go:embed version.txt
 var EmbeddedVersion string
 

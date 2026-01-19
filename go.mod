@@ -6,6 +6,7 @@ require github.com/diamondburned/gotk4/pkg v0.3.1
 
 require (
 	github.com/chewxy/math32 v1.11.1 // indirect
+	github.com/coder/websocket v1.8.14 // indirect
 	github.com/ungerik/go3d v0.0.0-20251020194721-1bde1320d420 // indirect
 )
 

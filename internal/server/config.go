@@ -2,27 +2,33 @@ package server
 
 import (
 	"encoding/json"
+	"io"
 	"os"
 )
 
 var Config ConfigSchema
 
 type ConfigSchema struct {
-	Port      float64 `json:"port"`
-	Camera    float64 `json:"camera"`
-	Width     float64 `json:"width"`
-	Height    float64 `json:"height"`
-	FPS       float64 `json:"fps"`
-	Format    string  `json:"format"`
-	ModelFace string  `json:"model_face"`
-	ModelHand string  `json:"model_hand"`
-	UseGpu    bool    `json:"use_gpu"`
-	PrimeId   string  `json:"prime_id"`
+	Camera         float64 `json:"camera"`
+	Width          float64 `json:"width"`
+	Height         float64 `json:"height"`
+	FPS            float64 `json:"fps"`
+	Format         string  `json:"format"`
+	ModelFace      string  `json:"model_face"`
+	ModelHand      string  `json:"model_hand"`
+	UseGpu         bool    `json:"use_gpu"`
+	PrimeId        string  `json:"prime_id"`
+	VTSApiUse      bool    `json:"vts_api_use"`
+	VTSApiPort     float64 `json:"vts_api_port"`
+	VTSPluginUse   bool    `json:"vts_plugin_use"`
+	VTSPluginPort  float64 `json:"vts_plugin_port"`
+	VTSPluginToken string  `json:"vts_plugin_token"`
 }
 
 // for compatibility with fields that have been changed / renamed
 type oldSchema struct {
-	Model string `json:"model"`
+	Port  float64 `json:"port"`
+	Model string  `json:"model"`
 }
 
 func (config *ConfigSchema) Read() error {
@@ -49,14 +55,20 @@ func (config *ConfigSchema) Read() error {
 		return err
 	}
 
-	var readConfig oldSchema
+	var oldConfig oldSchema
 
 	dec := json.NewDecoder(file)
-	dec.Decode(&config)
-	dec.Decode(&readConfig)
+	dec.Decode(&oldConfig)
 
-	if readConfig.Model != "" {
-		config.ModelFace = readConfig.Model
+	file.Seek(0, io.SeekStart)
+	dec.Decode(&config)
+
+	if oldConfig.Model != "" {
+		config.ModelFace = oldConfig.Model
+	}
+
+	if oldConfig.Port != 0 {
+		config.VTSApiPort = oldConfig.Port
 	}
 
 	file.Close()

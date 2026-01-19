@@ -15,5 +15,24 @@
         "header.h": "c",
         "face_landmarker.h": "c",
         "mediapipe.i": "swiglang",
+    },
+    "C_Cpp.files.exclude": {
+        "**/.vscode": true,
+        "**/.vs": true,
+        "**/app/mediapipe/cc/mediapipe/[!m]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/m[!e]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/me[!d]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/med[!i]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/medi[!a]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/media[!p]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/mediap[!i]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/mediapi[!p]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/mediapip[!e]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/mediapipe/[!t]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/mediapipe/t[!a]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/mediapipe/ta[!s]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/mediapipe/tas[!k]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/mediapipe/task[!s]*/**": true,
+        "**/app/mediapipe/cc/mediapipe/mediapipe/tasks/[!c]*/**": true
     }
 }

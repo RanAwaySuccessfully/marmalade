@@ -28,6 +28,8 @@ type MediaPipe struct {
 	converter  *ConverterFFMPEG
 	facem_lm   unsafe.Pointer
 	facem_path *C.char
+	handm_lm   unsafe.Pointer
+	handm_path *C.char
 }
 
 func (mp *MediaPipe) start() error {
@@ -73,18 +75,29 @@ func (mp *MediaPipe) start() error {
 		return err
 	}
 
-	mp.facem_path = C.CString(server.Config.ModelFace)
-
 	delegate := 0
 	if server.Config.UseGpu {
 		delegate = 1
 	}
 
-	mp.facem_lm = C.mediapipe_start(mp.facem_path, C.int(delegate))
-	if mp.facem_lm == nil {
-		error_str := C.GoString(C.mediapipe_read_error())
-		C.mediapipe_free_error()
-		return errors.New(error_str)
+	if server.Config.ModelFace != "" {
+		mp.facem_path = C.CString(server.Config.ModelFace)
+		mp.facem_lm = C.face_landmarker_start(mp.facem_path, C.int(delegate))
+		if mp.facem_lm == nil {
+			error_str := C.GoString(C.mediapipe_read_error())
+			C.mediapipe_free_error()
+			return errors.New(error_str)
+		}
+	}
+
+	if server.Config.ModelHand != "" {
+		mp.handm_path = C.CString(server.Config.ModelHand)
+		mp.handm_lm = C.hand_landmarker_start(mp.handm_path, C.int(delegate))
+		if mp.handm_lm == nil {
+			error_str := C.GoString(C.mediapipe_read_error())
+			C.mediapipe_free_error()
+			return errors.New(error_str)
+		}
 	}
 
 	return nil
@@ -109,7 +122,7 @@ func (mp *MediaPipe) detect(err_channel chan error) {
 		data_size := len(srgb_frame)
 		data_ptr := C.CBytes(srgb_frame)
 		timestamp := frame.Timestamp.UnixMilli()
-		ret := C.mediapipe_detect(mp.facem_lm, data_ptr, C.int(data_size), C.int(format.Width), C.int(format.Height), C.long(timestamp))
+		ret := C.mediapipe_detect(mp.facem_lm, mp.handm_lm, data_ptr, C.int(data_size), C.int(format.Width), C.int(format.Height), C.long(timestamp))
 		frame.Release()
 		C.free(data_ptr)
 
@@ -131,93 +144,33 @@ func (mp *MediaPipe) detect(err_channel chan error) {
 }
 
 func (mp *MediaPipe) stop() error {
-	mp.webcam.Close()
-	mp.converter.end()
+	if mp.webcam != nil {
+		mp.webcam.Close()
+	}
 
-	ret := C.mediapipe_stop(mp.facem_lm)
+	if mp.converter != nil {
+		mp.converter.end()
+	}
+
+	ret := C.mediapipe_stop(mp.facem_lm, mp.handm_lm)
 	if ret < 0 {
 		error_str := C.GoString(C.mediapipe_read_error())
 		C.mediapipe_free_error()
 		return errors.New(error_str)
 	}
 
-	C.free(unsafe.Pointer(mp.facem_path))
+	if mp.facem_path != nil {
+		C.free(unsafe.Pointer(mp.facem_path))
+	}
+
+	if mp.handm_path != nil {
+		C.free(unsafe.Pointer(mp.handm_path))
+	}
 
 	return nil
 }
 
-//export mediapipe_call_facem_result
-func mediapipe_call_facem_result(mp_result *C.struct_FaceLandmarkerResult, status C.int, timestamp C.long) {
-	result := server.FaceTracking{}
-
-	// Convert between C data types and structs to Go
-
-	if mp_result.face_blendshapes_count != 0 {
-		result.Blendshapes = make([]server.Blendshape, 0, int(mp_result.face_blendshapes.categories_count))
-
-		for i := 0; i < int(mp_result.face_blendshapes.categories_count); i++ {
-			mp_blendshape := C.face_landmarker_blendshape(mp_result, C.uint(i))
-
-			blendshape := server.Blendshape{
-				Index:        int(mp_blendshape.index),
-				Score:        float32(mp_blendshape.score),
-				CategoryName: C.GoString(mp_blendshape.category_name),
-				DisplayName:  C.GoString(mp_blendshape.display_name),
-			}
-
-			result.Blendshapes = append(result.Blendshapes, blendshape)
-		}
-	}
-
-	if mp_result.face_landmarks_count != 0 {
-		result.Landmarks = make([]server.Landmark, 0, int(mp_result.face_landmarks.landmarks_count))
-
-		for i := 0; i < int(mp_result.face_landmarks.landmarks_count); i++ {
-			mp_landmark := C.face_landmarker_landmark(mp_result, C.uint(i))
-
-			landmark := server.Landmark{
-				X:             float32(mp_landmark.x),
-				Y:             float32(mp_landmark.y),
-				Z:             float32(mp_landmark.z),
-				HasVisibility: bool(mp_landmark.has_visibility),
-				Visibility:    float32(mp_landmark.visibility),
-				HasPresence:   bool(mp_landmark.has_presence),
-				Presence:      float32(mp_landmark.presence),
-				Name:          C.GoString(mp_landmark.name),
-			}
-
-			result.Landmarks = append(result.Landmarks, landmark)
-		}
-	}
-
-	result.Matrixes = make([]server.Matrix, 0, int(mp_result.facial_transformation_matrixes_count))
-
-	for i := 0; i < int(mp_result.facial_transformation_matrixes_count); i++ {
-		mp_matrix := C.face_landmarker_matrix(mp_result, C.uint(i))
-
-		matrix := server.Matrix{
-			Rows: uint32(mp_matrix.rows),
-			Cols: uint32(mp_matrix.cols),
-		}
-
-		length := matrix.Rows * matrix.Cols
-		matrix.Data = make([]float32, 0, length)
-
-		for j := uint32(0); j < length; j++ {
-			value := C.face_landmarker_matrix_data(&mp_matrix, C.uint(j))
-			matrix.Data = append(matrix.Data, float32(value))
-		}
-
-		result.Matrixes = append(result.Matrixes, matrix)
-	}
-
-	result.Status = int(status)
-	result.Timestamp = int(timestamp)
-
-	// Send that sucker
-
-	result.Type = uint8(server.FaceTrackingType)
-
+func mediapipe_send_result(result any) {
 	unlocked := ipc.mutex.TryLock()
 	if !unlocked {
 		fmt.Fprintln(os.Stderr, "[MP +TOAST] output is busy. dropping message...")

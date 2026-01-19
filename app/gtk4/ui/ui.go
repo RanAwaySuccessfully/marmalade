@@ -25,5 +25,8 @@ var DialogAbout string
 //go:embed dialog_camerainfo.ui
 var DialogCameraInfo string
 
+//go:embed dialog_clients.ui
+var DialogClients string
+
 //go:embed dialog_error.ui
 var DialogError string

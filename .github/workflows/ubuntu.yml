@@ -44,7 +44,7 @@ jobs:
     - name: Build libtoast
       run: |
         cd ./app/mediapipe/cc/
-        g++ -g -I./mediapipe/ -L./ -lmediapipe -shared -fPIC libtoast.cc -o libtoast.so
+        g++ -I./mediapipe/ -L./ -lmediapipe -shared -fPIC libtoast.cc -o libtoast.so
         cd ../../../
 
     - name: Build MediaPipe libraries

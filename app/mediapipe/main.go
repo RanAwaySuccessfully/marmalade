@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"syscall"
 )
 
 // Inter-process communication
@@ -46,7 +47,7 @@ func main() {
 	go mp.detect(err_channel)
 
 	sig_channel := make(chan os.Signal, 1)
-	signal.Notify(sig_channel, os.Interrupt)
+	signal.Notify(sig_channel, os.Interrupt, syscall.SIGTERM)
 
 	select {
 	case err = <-err_channel:

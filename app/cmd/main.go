@@ -3,6 +3,7 @@ package main
 import (
 	"marmalade/internal/resources"
 	"marmalade/internal/server"
+	"syscall"
 
 	"fmt"
 	"log"
@@ -39,10 +40,12 @@ func main() {
 
 	srv := &server.Server
 	err_channel := make(chan error, 1)
-	go srv.Start(err_channel)
+	go srv.Start(err_channel, func() {
+		log.Printf("[MARMALADE] Started")
+	})
 
 	sig_channel := make(chan os.Signal, 1)
-	signal.Notify(sig_channel, os.Interrupt)
+	signal.Notify(sig_channel, os.Interrupt, syscall.SIGTERM)
 
 	select {
 	case err := <-err_channel:

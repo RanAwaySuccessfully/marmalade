@@ -4,17 +4,18 @@
   <!-- VTS iPhone API -->
 
   <object class="GtkLabel" id="mimic_label">
+    <property name="visible">false</property>
     <property name="label" translatable="yes">VTS 3rd Party API:</property>
     <property name="halign">GTK_ALIGN_START</property>
   </object>
 
   <object class="GtkBox" id="mimic_box">
+    <property name="visible">false</property>
     <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
     <property name="spacing">3</property>
 
     <child>
       <object class="GtkSwitch" id="mimic_enable">
-        <property name="sensitive">false</property>
         <property name="active">true</property>
       </object>
     </child>
@@ -58,17 +59,18 @@
   <!-- VTS Plugin -->
 
   <object class="GtkLabel" id="plugin_label">
+    <property name="visible">false</property>
     <property name="label" translatable="yes">VTS Plugin:</property>
     <property name="halign">GTK_ALIGN_START</property>
   </object>
 
   <object class="GtkBox" id="plugin_box">
+    <property name="visible">false</property>
     <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
     <property name="spacing">3</property>
 
     <child>
       <object class="GtkSwitch" id="plugin_enable">
-        <property name="sensitive">false</property>
         <property name="active">false</property>
       </object>
     </child>
@@ -83,7 +85,6 @@
 
     <child>
       <object class="GtkEntry" id="plugin_port">
-        <property name="sensitive">false</property>
         <property name="placeholder-text">8001</property>
       </object>
     </child>
@@ -105,7 +106,7 @@
       <object class="GtkLabel">
         <property name="max-width-chars">50</property>
         <property name="wrap">true</property>
-        <property name="label" translatable="yes">Marmalade can connect directly to VTube Studio as a plugin.</property>
+        <property name="label" translatable="yes">Marmalade can connect directly to VTube Studio as a plugin. Make sure VTube Studio's Plugin API is enabled and that you have authorized Marmalade to connect.</property>
       </object>
     </child>
   </object>
@@ -130,11 +131,13 @@
   <!-- VMC Protocol -->
 
   <object class="GtkLabel" id="vmcap_label">
+    <property name="visible">false</property>
     <property name="label" translatable="yes">VMC Protocol:</property>
     <property name="halign">GTK_ALIGN_START</property>
   </object>
 
   <object class="GtkBox" id="vmcap_box">
+    <property name="visible">false</property>
     <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
     <property name="spacing">3</property>
 
@@ -162,6 +165,7 @@
 
     <child>
       <object class="GtkMenuButton" id="vmcap_settings">
+        <property name="sensitive">false</property>
         <property name="menu-model">vmcap_menu</property>
         <style>
           <class name="smallIcon" />

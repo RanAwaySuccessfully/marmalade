@@ -18,32 +18,64 @@ func camera_notify_expanded() {
 	_, row, _, _ := grid.QueryChild(camera_row)
 	row++
 
+	resolution_label := UI.GetObject("resolution_label").(*gtk.Label)
+	resolution_box := UI.GetObject("resolution_box").(*gtk.Box)
+	fps_label := UI.GetObject("fps_label").(*gtk.Label)
+	fps_input := UI.GetObject("fps_input").(*gtk.Entry)
+	format_label := UI.GetObject("format_label").(*gtk.Label)
+	format_input := UI.GetObject("format_input").(*gtk.Entry)
+	camera_info := UI.GetObject("camera_info").(*gtk.Button)
+
 	if expanded {
-		show_camera_widgets(grid, row)
+		resolution_label.SetVisible(true)
+		resolution_box.SetVisible(true)
+		fps_label.SetVisible(true)
+		fps_input.SetVisible(true)
+		format_label.SetVisible(true)
+		format_input.SetVisible(true)
+		camera_info.SetVisible(true)
 	} else {
-		hide_camera_widgets(grid, row)
+		resolution_label.SetVisible(false)
+		resolution_box.SetVisible(false)
+		fps_label.SetVisible(false)
+		fps_input.SetVisible(false)
+		format_label.SetVisible(false)
+		format_input.SetVisible(false)
+		camera_info.SetVisible(false)
 	}
 }
 
 func init_camera_widgets() {
 	UI.gtkBuilder.AddFromString(ui.SettingsCamera)
 
+	width := ""
+	if server.Config.Width != 0 {
+		width = strconv.FormatFloat(server.Config.Width, 'f', 0, 64)
+	}
+
 	width_input := UI.GetObject("width_input").(*gtk.Entry)
-	width := strconv.FormatFloat(server.Config.Width, 'f', 0, 64)
 	width_input.SetText(width)
 	width_input.ConnectChanged(func() {
 		update_numeric_config(width_input, &server.Config.Width)
 	})
 
+	height := ""
+	if server.Config.Height != 0 {
+		height = strconv.FormatFloat(server.Config.Height, 'f', 0, 64)
+	}
+
 	height_input := UI.GetObject("height_input").(*gtk.Entry)
-	height := strconv.FormatFloat(server.Config.Height, 'f', 0, 64)
 	height_input.SetText(height)
 	height_input.ConnectChanged(func() {
 		update_numeric_config(height_input, &server.Config.Height)
 	})
 
+	fps := ""
+	if server.Config.FPS != 0 {
+		fps = strconv.FormatFloat(server.Config.FPS, 'f', 0, 64)
+	}
+
 	fps_input := UI.GetObject("fps_input").(*gtk.Entry)
-	fps := strconv.FormatFloat(server.Config.FPS, 'f', 0, 64)
 	fps_input.SetText(fps)
 	fps_input.ConnectChanged(func() {
 		update_numeric_config(fps_input, &server.Config.FPS)
@@ -63,37 +95,19 @@ func init_camera_widgets() {
 		create_camera_info_window(camera_id)
 	})
 
-	return
-}
-
-func show_camera_widgets(grid *gtk.Grid, row int) {
-	grid.InsertRow(row)
-	grid.InsertRow(row + 1)
-	grid.InsertRow(row + 2)
-	grid.InsertRow(row + 3)
-
 	resolution_label := UI.GetObject("resolution_label").(*gtk.Label)
 	resolution_box := UI.GetObject("resolution_box").(*gtk.Box)
-	grid.Attach(resolution_label, 0, row, 1, 1)
-	grid.Attach(resolution_box, 1, row, 1, 1)
-
 	fps_label := UI.GetObject("fps_label").(*gtk.Label)
-	fps_input := UI.GetObject("fps_input").(*gtk.Entry)
-	grid.Attach(fps_label, 0, row+1, 1, 1)
-	grid.Attach(fps_input, 1, row+1, 1, 1)
-
 	format_label := UI.GetObject("format_label").(*gtk.Label)
-	format_input := UI.GetObject("format_input").(*gtk.Entry)
-	grid.Attach(format_label, 0, row+2, 1, 1)
-	grid.Attach(format_input, 1, row+2, 1, 1)
 
-	camera_info := UI.GetObject("camera_info").(*gtk.Button)
-	grid.Attach(camera_info, 1, row+3, 1, 1)
-}
+	grid := UI.GetObject("main_grid").(*gtk.Grid)
+	grid.Attach(resolution_label, 0, 11, 1, 1)
+	grid.Attach(resolution_box, 1, 11, 1, 1)
+	grid.Attach(fps_label, 0, 12, 1, 1)
+	grid.Attach(fps_input, 1, 12, 1, 1)
+	grid.Attach(format_label, 0, 13, 1, 1)
+	grid.Attach(format_input, 1, 13, 1, 1)
+	grid.Attach(camera_info, 1, 14, 1, 1)
 
-func hide_camera_widgets(grid *gtk.Grid, row int) {
-	grid.RemoveRow(row + 3)
-	grid.RemoveRow(row + 2)
-	grid.RemoveRow(row + 1)
-	grid.RemoveRow(row)
+	return
 }

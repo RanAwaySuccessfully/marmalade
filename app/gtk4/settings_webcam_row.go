@@ -27,8 +27,8 @@ func webcam_notify_selected() {
 	}
 }
 
-//export webcam_refresh_clicked
-func webcam_refresh_clicked() {
+//export signal_webcam_refresh_clicked
+func signal_webcam_refresh_clicked() {
 	webcam_dropdown := UI.GetObject("webcam_dropdown").(*gtk.DropDown)
 	err := fill_camera_list(webcam_dropdown)
 	if err != nil {
@@ -39,10 +39,10 @@ func webcam_refresh_clicked() {
 func init_webcam_setting() {
 	webcam_dropdown := UI.GetObject("webcam_dropdown").(*gtk.DropDown)
 
-	webcam_factory := create_custom_factory()
+	webcam_factory := dropdown_all_factory_create()
 	webcam_dropdown.SetFactory(&webcam_factory.ListItemFactory)
 
-	webcam_list_factory := create_custom_list_factory(webcam_dropdown)
+	webcam_list_factory := dropdown_list_factory_create(webcam_dropdown)
 	webcam_dropdown.SetListFactory(&webcam_list_factory.ListItemFactory)
 
 	is_webcam_refreshing = false

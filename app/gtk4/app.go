@@ -51,7 +51,8 @@ func main() {
 		init_mediapipe_widgets()
 		init_ports_settings()
 
-		init_ports_actions(app)
+		init_ports_actions_vmcap(app)
+		init_ports_actions_plugin(app)
 
 		/* ERROR HANDLING */
 		button := UI.GetObject("main_button").(*gtk.Button)
@@ -60,13 +61,15 @@ func main() {
 		window.SetVisible(true)
 	})
 
+	defer server.Server.Stop()
+
 	if code := app.Run(os.Args); code > 0 {
 		os.Exit(code)
 	}
 }
 
-//export about_button_clicked
-func about_button_clicked() {
+//export signal_about_button_clicked
+func signal_about_button_clicked() {
 	version := "v" + resources.EmbeddedVersion
 
 	builder := NewBuilder(ui.DialogAbout)
@@ -79,24 +82,40 @@ func about_button_clicked() {
 	dialog.SetVersion(version)
 }
 
-//export main_button_clicked
-func main_button_clicked() {
+//export signal_main_button_clicked
+func signal_main_button_clicked() {
 	button := UI.GetObject("main_button").(*gtk.Button)
 	srv := &server.Server
 	started := srv.Started()
+
+	listclients_button := UI.GetObject("list_clients_button").(*gtk.Button)
 
 	if started {
 		srv.Stop()
 		button.SetLabel("Stopping MediaPipe...")
 		button.SetSensitive(false)
+
+		listclients_button.SetVisible(false)
 	} else {
-		go srv.Start(UI.errChannel)
-		button.SetLabel("Stop MediaPipe")
+		go srv.Start(UI.errChannel, func() {
+			button.SetLabel("Stop MediaPipe")
+			button.SetSensitive(true)
+		})
+
+		button.SetLabel("Starting MediaPipe...")
+		button.SetSensitive(false)
+
+		listclients_button.SetVisible(true)
 	}
 }
 
-//export save_button_clicked
-func save_button_clicked() {
+//export signal_save_button_clicked
+func signal_save_button_clicked() {
 	server.Config.Save()
 	update_unsaved_config(false)
+}
+
+//export signal_listclients_button_clicked
+func signal_listclients_button_clicked() {
+	listclients_show_dialog()
 }

@@ -18,17 +18,17 @@ import (
 type VTSApi struct {
 	mutex       sync.Mutex
 	udpListener net.PacketConn
-	clients     map[string]*Client
+	clients     map[string]*VTSClient
 	closed      bool
 }
 
-type Client struct {
+type VTSClient struct {
 	source    string
 	udpSender net.Conn
-	message   apiMessage
+	message   vtsApiMessage
 }
 
-type apiMessage struct {
+type vtsApiMessage struct {
 	Type    string    `json:"messageType"`
 	Time    float64   `json:"time"`
 	SendFor float64   `json:"sendForSeconds"`
@@ -37,12 +37,12 @@ type apiMessage struct {
 }
 
 func (api *VTSApi) listen(err_ch chan error) {
-	api.clients = make(map[string]*Client)
+	api.clients = make(map[string]*VTSClient)
 	api.closed = false
 
 	port := ":21412"
-	if Config.Port != 0 {
-		port = ":" + int_to_string(int(Config.Port))
+	if Config.VTSApiPort != 0 {
+		port = ":" + int_to_string(int(Config.VTSApiPort))
 	}
 
 	var err error
@@ -80,7 +80,7 @@ func (api *VTSApi) listen(err_ch chan error) {
 }
 
 func (api *VTSApi) handleMessage(buf []byte, addr net.Addr) error {
-	var msg apiMessage
+	var msg vtsApiMessage
 
 	err := json.Unmarshal(buf, &msg)
 	if err != nil {
@@ -109,7 +109,7 @@ func (api *VTSApi) handleMessage(buf []byte, addr net.Addr) error {
 
 	api.mutex.Lock()
 
-	client := &Client{}
+	client := &VTSClient{}
 	client.source = addr.String()
 	client.udpSender, err = net.Dial("udp", ":"+port)
 	client.message = msg

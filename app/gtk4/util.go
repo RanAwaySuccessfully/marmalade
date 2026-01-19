@@ -15,8 +15,23 @@ type Builder struct {
 
 func NewBuilder(xml string) Builder {
 	b := Builder{}
-	b.gtkBuilder = gtk.NewBuilderFromString(xml)
+
+	if xml != "" {
+		b.gtkBuilder = gtk.NewBuilderFromString(xml)
+	}
+
 	return b
+}
+
+func (b *Builder) Add(xml string) {
+	if b.gtkBuilder == nil {
+		b.gtkBuilder = gtk.NewBuilderFromString(xml)
+	} else {
+		err := b.gtkBuilder.AddFromString(xml)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func (b *Builder) GetObject(id string) glib.Objector {

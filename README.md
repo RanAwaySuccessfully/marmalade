@@ -2,7 +2,7 @@
 
 [![build status](https://github.com/ranawaysuccessfully/marmalade/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/ranawaysuccessfully/marmalade/actions) [![latest release](https://img.shields.io/github/v/release/ranawaysuccessfully/marmalade)](https://github.com/RanAwaySuccessfully/marmalade/releases/latest)
 
-Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Tracking data. You can connect it to programs such as VBridger.
+Allows VTuber applications running on Linux, such as VBridger and VSeeFace, to use MediaPipe externally.
 
 | Command-line | GTK 4 (GUI) |
 | ---- | ---- |
@@ -13,8 +13,9 @@ Also available under GTK 3 (GUI).
 ## Installing
 
 1. Download the [latest release](https://github.com/RanAwaySuccessfully/marmalade/releases/latest) of Marmalade.
-2. Download the latest [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) file from Google's MediaPipe page and place it inside the `python` folder.
-3. If using any of the GUI versions, you'll also need to have the following installed, although they probably already are installed by default:
+2. Download the latest [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) file from Google's MediaPipe page and place it anywhere in the main folder, or create a folder for it if you wish.
+3. Install `ffmpeg`¹ (>=4.3) or its individual components². It's likely already installed.
+4. If using any of the GUI versions, you'll also need to have the following installed, although they are probably already installed by default:
     - `libgtk-3`¹ or `gtk3`¹ (>=3.24, only if using GTK 3)
     - `libgtk-4`¹ or `gtk4`¹ (>=4.8, only if using GTK 4)
     - `libv4l`¹
@@ -22,6 +23,8 @@ Also available under GTK 3 (GUI).
     - `pciutils`
 
 <sub>¹ May be suffixed by another version number, for example: `libgtk-3-0t64`, `libgtk-4-1`, `libv4l-0`.</sub>
+
+<sub>² Technically speaking you only need `libavcodec`, `libavutil` and `libswscale`.</sub>
 
 And you're done. You can just run the program at any time, and it should take care of the rest for you.
 
@@ -37,49 +40,19 @@ If you're running Marmalade on the same PC as the program you want to connect to
 
 If you're running it on another machine over LAN, you'll need to figure out its IP address and to make sure it is reachable via UDP port that Marmalade is configured to use (see "Config file" section below).
 
-### Support matrix
+If you need more specific instructions, see [this document](/docs/connecting.md).
 
-| Program | VTS iPhone Mimic | VMC Protocol | VTS Plugin |
-| ---- | ---- | ---- | ---- |
-| VBridger | ✅ | ✅ | - |
-| VNyan | ✅ | ✅ | - |
-| VSeeFace | ✅ | ✅ | - |
-| Warudo | - | ✅ | - |
-| VTube Studio¹ | - | - | ✅ |
+### Supported connections
 
-¹ Direct usage, without any other programs in-between.
+You can choose to connect apps to Marmalade in a few different ways, as long as the app supports the same protocols as Marmalade.
 
-### VBridger
+**VBridger**, **VNyan** and **VSeeFace** all support both **VTS 3rd Party API** and **VMC Protocol**.
 
-Do not select the "MediaPipe" option, instead, select "VTube Studio" and type in the relevant IP address. Even though it says "Connect to iPhone", clicking on that button will connect to Marmalade instead.
+**Warudo** only supports **VMC Protocol**.
 
-### VNyan¹
+Connecting directly to **VTube Studio** without using any of the apps above requires using the **VTS Plugin** option.
 
-During the first time setup, select Skip when it asks you which options will be used for tracking.
-
-Go to "Settings", then on the "Tracking" tab, select "Phone / ARKit". Choose "VTube Studio" and type in the relevant IP address.
-
-### VSeeFace¹
-
-Select any option during the first time setup (this will be overriden later).
-
-Go to "General Settings" then scroll down to "iFacialMocap/FaceMocap3D/VTube Studio" and set the tracking app to "VTube Studio", then type in the relevant IP address.
-
-### Warudo
-
-Marmalade does not support VMC (Virtual Motion Capture Protocol). You may try to connect Warudo to another program such as VSeeFace, and have said program connect to Marmalade.
-
-### VTube Studio
-
-I couldn't find a way to connect Marmalade to VTube Studio directly. You may need an intermediary program such as VBridger.
-
-You might also want to consider OpenSeeFace instead, for this scenario. Check out [VTS's Linux Guide](https://github.com/DenchiSoft/VTubeStudio/wiki/Running-VTS-on-Linux) or use [Facetracker](https://codeberg.org/ZRayEntertainment/Facetracker). Note that even if using Facetracker, you need to check the linked guide in order to setup the `ip.txt` file.
-
-### Notes
-
-I haven't tested with other programs yet, but in case it doesn't work or works weirdly, feel free to open an issue and/or feature request.
-
-¹ During testing, these programs worked best when running using Proton 10. You should also install the font arial.ttf by copying it from a Windows installation to the folder `[wine prefix]/drive_c/windows/Fonts/`. Your wine prefix folder will vary (the default one is at `~/.wine`).
+Hand tracking is not available when using **VTS 3rd Party API**, but is available using the other protocols.
 
 ## Config file
 
@@ -105,33 +78,44 @@ The fields `model` and `prime_id` are string values, and as such they're surroun
 
 **You do not need to do any of this to install Marmalade. See the "Installing" section above instead.**
 
-If you want to develop or tinker with this program, you'll need to install the [Go programming language](https://go.dev/). You'll also need to setup the Python dependencies (see section below).
+If you want to develop or tinker with this program, you'll need to install the [Go programming language](https://go.dev/).
 
-For building, run: `go build -v -o marmalade ./app/cmd`
+Marmalade is divided between the following apps:
+- `cmd`
+- `gtk3`
+- `gtk4`
+- `mediapipe`
 
-For running it without building it, run: `go run -v ./app/cmd`
+For running one of these directly, run: `go run -v ./app/cmd`
 
-For building or running the GTK 3 or GTK 4 version, just replace `./app/cmd` with `./app/gtk3` or `./app/gtk4`. Do note that for GTK 4, you'll also need to install the `libgtk-4-dev` and `libv4l-dev` packages, and for GTK 3 you'll need `libgtk-3-dev` instead. In either case, you *may* also need `gobject-introspection`.
+For building an executable, run: `go build -v ./app/cmd`
+
+If building the MediaPipe sub-process, see the section "MediaPipe" below.
+
+Note that this will generate an executable in the folder typed out above, which you should copy the main folder of the repository (the top-most folder). You can tell it to build an executable with a different name, but you can also rename it by adding `-o custom_name_here` to the command. Note that Marmalade expects the `mediapipe` executable to have that exact name.
+
+Depending on which executable you're building, you'll also need some extra development files installed:
+- gtk3: `libv4l-dev gobject-introspection libgtk-3-dev`
+- gtk4: `libv4l-dev gobject-introspection libgtk-4-dev`
+- mediapipe: `libv4l-dev libavcodec-dev libavutil-dev libswscale-dev`
 
 If you want to debug it, it comes with some Visual Studio Code configuration depending on what you want to debug:
 
-- If you want to debug the Go code, specifically the command-line version, run `Go: Launch Package`.
-- If you want to debug the Python code, run `Python Debugger: Current File` while having the `main.py` file open and selected. Once it's running, type in `+127.0.0.1:21499` for example, to start sending data to a specific IP address and port.
-- If you want to debug the GTK 4 version, run `Go: Debug GTK 4 Build`. Note that this one will pre-build a `marmalade-gtk4` executable (so you can see each step of the build process). The same applies for the GTK 3 version.
+- If you want to debug the command-line version, run `Go: Debug CMD`.
+- If you want to debug the GTK 3 or GTK 4 version, run `Go: Debug GTK 3 Build` or `Go: Debug GTK 4 Build`. Note that this one will pre-build a `marmalade-gtk3` or `marmalade-gtk4` executable (so you can see each step of the build process).
+- If you want to debug the MediaPipe sub-process, run `Go: Debug MediaPipe`.
 
-### Python dependencies
+### MediaPipe
 
-Since v0.4, Marmalade comes bundled with Python 3.12, OpenCV and MediaPipe. PEX is used to make a portable and compressed executable.
+Before building the mediapipe sub-process, you'll need to build or download a copy of `libmediapipe.so` and `libtoast.so`.
 
-In order to test Marmalade locally, you'll need to set up a virtual environment (`.venv`) folder that contains MediaPipe, which will use around 850MB of disk space. You can run `scripts/mediapipe-install.sh` while making sure your working directory (current folder) is `scripts`. This will require you to install `python3`, `python3-venv` and `python3-pip`.
+While the most recent stable release of MediaPipe is `v0.10.26`, if you clone the MediaPipe GitHub repository at specific commits you can grab in-development versions such as `v0.10.32`. These recent versions contain a C library that programs like Marmalade can use directly via **libmediapipe**. Unfortunately, the C API still has some trace amounts of C++ in it, which makes it impossible for Go to connect to it directly, so I created a wrapper called **libtoast** written in C but compiled as C++. In the future, I assume the C API will stabilize and **libtoast** will be removed, but for now this is a necessary component of Marmalade.
 
-If you want to install run PEX manually, you'll also need to make sure you have PEX installed (such as by running `pip3 install pex`). Change your current directory to be the `python` folder, and run the following command:
+For compiling **libmediapipe**, a Git submodule is available at `app/mediapipe/cc/mediapipe` containing a fork of the MediaPipe version currently used by Marmalade, alongside a few extra patches I made for compatibility. If it's not already downloaded, you can download it by running `git submodule update --init --recursive`. Once you have downloaded the repo, please take a look at the [MediaPipe docs](https://ai.google.dev/edge/mediapipe/framework/getting_started/install) as well as the [Bazel command-line arguments](https://bazel.build/reference/command-line-reference) for more information on how to build MediaPipe. The only target you need to build is `//mediapipe/tasks/c:libmediapipe.so`.
 
-```sh
-pex -v -r requirements.txt --scie eager -o dist/mediapipe
-```
+I have provided [bazel-build.sh](/app/mediapipe/cc/bazel-build.sh) as an example but I provide no guarantees that it will work for you. Once you have compiled MediaPipe, the file `libmediapipe.so` will have been created inside MediaPipe submodule in the folder `bazel-bin/mediapipe/tasks/c/`. Copy that file to Marmalade's `cc` folder (the same folder that contains the file `libtoast.cc`).
 
-MediaPipe will not install if your version of Python is 3.13 or more recent.
+You can compile **libtoast** by running [build.sh](/app/mediapipe/cc/build.sh) on while your working directory (current folder) is the `cc` folder. This will generate `libtoast.so`. This will fail if `libmediapipe.so` is not found. This requires GCC (specifically, the `g++` command) to be installed on your system.
 
 ### Build times
 
@@ -141,9 +125,11 @@ Go has a caching mechanism that makes it so you don't have to go through this ev
 
 ## License and Credits
 
-Licensed under the [MIT License](LICENSE). The code under the `python` folder is edited based on code written by lilacGalaxy on this [GitHub Repo](https://github.com/lilac-galaxy/lilacs-mediapipe-forward-vts-plugin), and as such it uses the same license, but has separate copyright, check [its license file](python/LICENSE) for more info.
+Licensed under the [MIT License](LICENSE).
 
-This project uses [gotk4](https://github.com/diamondburned/gotk4), which are [GTK4](https://docs.gtk.org/gtk4/) language bindings for Go. This project does **not** use libadwaita, although I'm wondering if I should add [libadapta](https://github.com/xapp-project/libadapta) support.
+This project uses [gotk4](https://github.com/diamondburned/gotk4), which provides [GTK4](https://docs.gtk.org/gtk4/) and [GTK3](https://docs.gtk.org/gtk3/) language bindings for Go. This project does **not** use libadwaita.
+
+This project used to have Python code that was modified from [lilacGalaxy's VTS Plugin](https://github.com/lilac-galaxy/lilacs-mediapipe-forward-vts-plugin).
 
 Somewhat inspired by [Facetracker](https://codeberg.org/ZRayEntertainment/Facetracker) which uses OpenSeeFace instead.
 

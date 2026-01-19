@@ -6,7 +6,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/pango"
 )
 
-func create_custom_factory() *gtk.SignalListItemFactory {
+func dropdown_all_factory_create() *gtk.SignalListItemFactory {
 	factory := gtk.NewSignalListItemFactory()
 
 	factory.ConnectSetup(func(object *glib.Object) {
@@ -36,7 +36,7 @@ func create_custom_factory() *gtk.SignalListItemFactory {
 	return factory
 }
 
-func create_custom_list_factory(input *gtk.DropDown) *gtk.SignalListItemFactory {
+func dropdown_list_factory_create(input *gtk.DropDown) *gtk.SignalListItemFactory {
 	factory := gtk.NewSignalListItemFactory()
 	signals := make(map[uint]glib.SignalHandle)
 

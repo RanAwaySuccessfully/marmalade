@@ -10,15 +10,20 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"syscall"
+
+	"github.com/diamondburned/gotk4/pkg/core/glib"
 )
 
 type ServerData struct {
 	ErrPipe    *ServerErrPipe
+	started    bool
 	exit       bool
 	mpListener net.Listener
 	mpData     TrackingData
 	mpCmd      *exec.Cmd
-	vts_api    *VTSApi
+	VTSApi     *VTSApi
+	VTSPlugin  *VTSPlugin
 }
 
 var Server = ServerData{
@@ -29,7 +34,8 @@ func (server *ServerData) Started() bool {
 	return !server.exit
 }
 
-func (server *ServerData) Start(err_ch chan error) {
+func (server *ServerData) Start(err_ch chan error, callback func()) {
+	server.started = false
 	server.exit = false
 
 	fmt.Println("[MARMALADE] Listening...")
@@ -61,8 +67,15 @@ func (server *ServerData) Start(err_ch chan error) {
 		return
 	}
 
-	server.vts_api = &VTSApi{}
-	go server.vts_api.listen(err_ch)
+	if Config.VTSApiUse {
+		server.VTSApi = &VTSApi{}
+		go server.VTSApi.listen(err_ch)
+	}
+
+	if Config.VTSPluginUse {
+		server.VTSPlugin = &VTSPlugin{}
+		go server.VTSPlugin.listen(err_ch)
+	}
 
 	go server.waitMediaPipeProcess(server.mpCmd, err_ch)
 
@@ -83,6 +96,11 @@ func (server *ServerData) Start(err_ch chan error) {
 
 			if isPrefix {
 				continue
+			}
+
+			if !server.started {
+				server.started = true
+				glib.IdleAdd(callback)
 			}
 
 			if err != nil {
@@ -113,12 +131,16 @@ func (server *ServerData) Stop() {
 
 		server.exit = true
 
-		if server.vts_api != nil {
-			server.vts_api.close()
+		if server.VTSApi != nil {
+			server.VTSApi.close()
+		}
+
+		if server.VTSPlugin != nil {
+			server.VTSPlugin.close()
 		}
 
 		if server.mpCmd.Process != nil {
-			err := server.mpCmd.Process.Signal(os.Interrupt)
+			err := server.mpCmd.Process.Signal(syscall.SIGTERM)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "%v", err)
 			}
@@ -150,10 +172,23 @@ func (server *ServerData) sendToClients(mp_string []byte, err_ch chan error) {
 		}
 
 		server.mpData.facem = mp_data
+	case uint8(HandTrackingType):
+		var mp_data HandTracking
+		err := json.Unmarshal(mp_string, &mp_data)
+		if err != nil {
+			err_ch <- err
+			return
+		}
+
+		server.mpData.handm = mp_data
 	}
 
-	if server.vts_api != nil {
-		server.vts_api.send(&server.mpData.facem, err_ch)
+	if server.VTSApi != nil {
+		server.VTSApi.send(&server.mpData.facem, err_ch)
+	}
+
+	if server.VTSPlugin != nil {
+		server.VTSPlugin.send(&server.mpData, err_ch)
 	}
 }
 

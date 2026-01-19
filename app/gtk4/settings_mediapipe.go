@@ -21,10 +21,27 @@ func mediapipe_notify_expanded() {
 	_, row, _, _ := grid.QueryChild(misc_row)
 	row++
 
+	facem_label := UI.GetObject("facem_label").(*gtk.Label)
+	facem_input := UI.GetObject("facem_input").(*gtk.Entry)
+	handm_label := UI.GetObject("handm_label").(*gtk.Label)
+	handm_input := UI.GetObject("handm_input").(*gtk.Entry)
+	device_label := UI.GetObject("device_label").(*gtk.Label)
+	device_input := UI.GetObject("device_input").(*gtk.DropDown)
+
 	if expanded {
-		show_mediapipe_widgets(grid, row)
+		facem_label.SetVisible(true)
+		facem_input.SetVisible(true)
+		handm_label.SetVisible(true)
+		handm_input.SetVisible(true)
+		device_label.SetVisible(true)
+		device_input.SetVisible(true)
 	} else {
-		hide_mediapipe_widgets(grid, row)
+		facem_label.SetVisible(false)
+		facem_input.SetVisible(false)
+		handm_label.SetVisible(false)
+		handm_input.SetVisible(false)
+		device_label.SetVisible(false)
+		device_input.SetVisible(false)
 	}
 }
 
@@ -48,42 +65,28 @@ func init_mediapipe_widgets() {
 	})
 
 	init_gpu_widget()
-}
-
-func show_mediapipe_widgets(grid *gtk.Grid, row int) {
-	grid.InsertRow(row)
-	grid.InsertRow(row + 1)
-	grid.InsertRow(row + 2)
 
 	facem_label := UI.GetObject("facem_label").(*gtk.Label)
-	facem_input := UI.GetObject("facem_input").(*gtk.Entry)
-	grid.Attach(facem_label, 0, row, 1, 1)
-	grid.Attach(facem_input, 1, row, 1, 1)
-
 	handm_label := UI.GetObject("handm_label").(*gtk.Label)
-	handm_input := UI.GetObject("handm_input").(*gtk.Entry)
-	grid.Attach(handm_label, 0, row+1, 1, 1)
-	grid.Attach(handm_input, 1, row+1, 1, 1)
-
 	device_label := UI.GetObject("device_label").(*gtk.Label)
 	device_input := UI.GetObject("device_input").(*gtk.DropDown)
-	grid.Attach(device_label, 0, row+2, 1, 1)
-	grid.Attach(device_input, 1, row+2, 1, 1)
-}
 
-func hide_mediapipe_widgets(grid *gtk.Grid, row int) {
-	grid.RemoveRow(row + 2)
-	grid.RemoveRow(row + 1)
-	grid.RemoveRow(row)
+	grid := UI.GetObject("main_grid").(*gtk.Grid)
+	grid.Attach(facem_label, 0, 21, 1, 1)
+	grid.Attach(facem_input, 1, 21, 1, 1)
+	grid.Attach(handm_label, 0, 22, 1, 1)
+	grid.Attach(handm_input, 1, 22, 1, 1)
+	grid.Attach(device_label, 0, 23, 1, 1)
+	grid.Attach(device_input, 1, 23, 1, 1)
 }
 
 func init_gpu_widget() {
 	gpu_input := UI.GetObject("device_input").(*gtk.DropDown)
 
-	gpu_factory := create_custom_factory()
+	gpu_factory := dropdown_all_factory_create()
 	gpu_input.SetFactory(&gpu_factory.ListItemFactory)
 
-	gpu_list_factory := create_custom_list_factory(gpu_input)
+	gpu_list_factory := dropdown_list_factory_create(gpu_input)
 	gpu_input.SetListFactory(&gpu_list_factory.ListItemFactory)
 
 	fill_gpu_list(gpu_input)
