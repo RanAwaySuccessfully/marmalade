@@ -34,13 +34,13 @@ def compute_params_from_blendshapes(blendshape_list):
 
     return {
         "EyeLeft": {
-            "x": get_eye_right_x(blendshapes),
-            "y": get_eye_right_y(blendshapes),
+            "x": get_eye_right_y(blendshapes) * 20,
+            "y": get_eye_right_x(blendshapes) * 20,
             "z": 0,
         },
         "EyeRight": {
-            "x": get_eye_left_x(blendshapes),
-            "y": get_eye_left_y(blendshapes),
+            "x": get_eye_left_y(blendshapes) * 20,
+            "y": get_eye_left_x(blendshapes) * 20,
             "z": 0,
         }
     }
