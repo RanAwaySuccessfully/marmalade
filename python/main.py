@@ -16,6 +16,7 @@ from compute_params import (
 )
 
 from threading import Lock
+import os
 import socket
 import time
 import json
@@ -143,6 +144,8 @@ def get_args():
 ended = False
 
 def main(args):
+    initial_parent_pid = os.getppid()
+
     camera_id = int(args.camera)
     width = float(args.width)
     height = float(args.height)
@@ -214,6 +217,9 @@ def main(args):
 
     try:
         while not ended:
+            if os.getppid() != initial_parent_pid:
+                break
+
             if len(clients) == 0:
                 change = input()
                 t1 = threading.Thread(target=client_update, args=(change,))
@@ -285,6 +291,7 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGHUP, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
 if __name__ == "__main__":
     args = get_args()

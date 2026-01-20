@@ -124,6 +124,12 @@ func (server *ServerData) Stop() {
 	if server.udpListener != nil {
 		server.udpListener.Close()
 	}
+
+	server.mutex.Lock()
+	for clientId := range server.clients {
+		delete(server.clients, clientId)
+	}
+	server.mutex.Unlock()
 }
 
 func (server *ServerData) handlePacket(buf []byte, addr net.Addr) error {
