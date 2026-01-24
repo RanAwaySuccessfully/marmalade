@@ -41,8 +41,8 @@ func (api *VTSApi) listen(err_ch chan error) {
 	api.closed = false
 
 	port := ":21412"
-	if Config.VTSApiPort != 0 {
-		port = ":" + int_to_string(int(Config.VTSApiPort))
+	if Config.VTSApi.Port != 0 {
+		port = ":" + int_to_string(int(Config.VTSApi.Port))
 	}
 
 	var err error
@@ -121,8 +121,8 @@ func (api *VTSApi) handleMessage(buf []byte, addr net.Addr) error {
 	return err
 }
 
-func (api *VTSApi) send(mp_data *FaceTracking, err_ch chan error) {
-	api_data, err := format_vts_api_data(mp_data)
+func (api *VTSApi) send(mp_data *TrackingData, err_ch chan error) {
+	api_data, err := format_vts_api_data(&mp_data.FaceData, mp_data.Timestamp)
 	if err != nil {
 		err_ch <- err
 		return
@@ -191,7 +191,7 @@ func (api *VTSApi) updateClients(err_ch chan error) {
 	api.mutex.Unlock()
 }
 
-func format_vts_api_data(mp_data *FaceTracking) ([]byte, error) {
+func format_vts_api_data(mp_data *FaceTracking, timestamp int) ([]byte, error) {
 	blendshape_count := len(mp_data.Blendshapes)
 
 	var eyeLookOutLeft float32
@@ -250,6 +250,7 @@ func format_vts_api_data(mp_data *FaceTracking) ([]byte, error) {
 		blendshapes = append(blendshapes, blendshape)
 	}
 
+	// VTube Studio considers X=vertical and Y=horizontal
 	rotation := make(map[string]any)
 	position := make(map[string]any)
 
@@ -263,29 +264,29 @@ func format_vts_api_data(mp_data *FaceTracking) ([]byte, error) {
 			vec4.T{matrix[3], matrix[7], matrix[11], matrix[15]},
 		}
 
-		x, y, z := rotationMatrix.ExtractEulerAngles()
+		y, x, z := rotationMatrix.ExtractEulerAngles()
 
-		rotation["x"] = x * (180 / math.Pi)
-		rotation["y"] = -y * (180 / math.Pi)
+		rotation["x"] = y * (180 / math.Pi)
+		rotation["y"] = -x * (180 / math.Pi)
 		rotation["z"] = z * (180 / math.Pi)
 
 		position["x"] = matrix[12]
 		position["y"] = matrix[13]
-		position["z"] = matrix[14] // is this working?
+		position["z"] = -matrix[14]
 	}
 
 	eye_left := make(map[string]any)
-	eye_left["x"] = 0 - eyeLookOutLeft + eyeLookInLeft
-	eye_left["y"] = 0 - eyeLookUpLeft + eyeLookDownLeft
+	eye_left["x"] = (eyeLookDownLeft - eyeLookUpLeft) * 20
+	eye_left["y"] = (eyeLookOutLeft - eyeLookInLeft) * 20
 	eye_left["z"] = 0
 
 	eye_right := make(map[string]any)
-	eye_right["x"] = 0 - eyeLookOutRight + eyeLookInRight
-	eye_right["y"] = 0 - eyeLookUpRight + eyeLookDownRight
+	eye_right["x"] = (eyeLookDownRight - eyeLookUpRight) * 20
+	eye_right["y"] = (eyeLookInRight - eyeLookOutRight) * 20
 	eye_right["z"] = 0
 
 	payload := make(map[string]any)
-	payload["Timestamp"] = mp_data.Timestamp
+	payload["Timestamp"] = timestamp
 	payload["Hotkey"] = -1
 	payload["FaceFound"] = blendshape_count != 0
 	payload["BlendShapes"] = blendshapes

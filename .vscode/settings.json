@@ -14,7 +14,6 @@
         "videodev2.h": "c",
         "header.h": "c",
         "face_landmarker.h": "c",
-        "mediapipe.i": "swiglang",
     },
     "C_Cpp.files.exclude": {
         "**/.vscode": true,

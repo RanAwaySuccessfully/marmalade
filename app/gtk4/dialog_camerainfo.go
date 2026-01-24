@@ -70,6 +70,10 @@ func create_resolution_list(format *devices.VideoFormat, grid *gtk.Grid) {
 
 	var header_text string
 
+	if len(format.Resolutions) == 0 {
+		return
+	}
+
 	frameSizeType := format.Resolutions[0].Data.Type
 
 	switch frameSizeType {

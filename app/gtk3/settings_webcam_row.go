@@ -34,7 +34,7 @@ func create_webcam_setting(grid *gtk.Grid, err_ch chan error) {
 		selected := webcam_input.Active()
 		if selected != -1 {
 			index := camera_indices[selected]
-			server.Config.Camera = float64(index)
+			server.Config.Camera = int(index)
 			update_unsaved_config(true)
 		}
 	})

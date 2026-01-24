@@ -22,7 +22,7 @@ func webcam_notify_selected() {
 	selected := webcam_dropdown.Selected()
 	if selected != gtk.InvalidListPosition {
 		index := camera_indices[selected]
-		server.Config.Camera = float64(index)
+		server.Config.Camera = int(index)
 		update_unsaved_config(true)
 	}
 }

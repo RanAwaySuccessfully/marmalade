@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"net"
 	"os"
@@ -11,9 +13,12 @@ import (
 
 // Inter-process communication
 type IPC struct {
-	mutex   sync.Mutex
-	socket  net.Conn
-	enabled bool
+	mutex      sync.Mutex
+	mutex_type uint8
+	socket     net.Conn
+	enabled    bool
+	encoder    *gob.Encoder
+	sender     func(uint8, any)
 }
 
 var ipc = IPC{}
@@ -33,6 +38,11 @@ func main() {
 			fmt.Fprintf(os.Stderr, "[MP +TOAST] %v\n", err)
 			return
 		}
+
+		ipc.encoder = gob.NewEncoder(ipc.socket)
+		ipc.sender = send_result_socket
+	} else {
+		ipc.sender = send_result_stdout
 	}
 
 	mp := MediaPipe{}
@@ -57,13 +67,36 @@ func main() {
 	}
 
 	go mp.stop()
-
-	/*
-		err = mp.stop()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "[MP +TOAST] %v\n", err)
-		}
-	*/
-
 	fmt.Println("[MP +TOAST] Stopping...")
+}
+
+func send_result_socket(msg_type uint8, result any) {
+	/*
+		if msg_type == ipc.mutex_type {
+			// if CPU usage is high, we want to discard some results instead of queueing them
+			locked := ipc.mutex.TryLock()
+			if !locked {
+				return
+			}
+		} else {
+	*/
+	ipc.mutex.Lock()
+	//ipc.mutex_type = msg_type
+	//}
+
+	err := ipc.encoder.Encode(result)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[MP +TOAST] %v\n", err)
+	}
+
+	ipc.mutex.Unlock()
+}
+
+func send_result_stdout(msg_type uint8, result any) {
+	text, err := json.Marshal(result)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v", err)
+	} else {
+		fmt.Println(string(text))
+	}
 }

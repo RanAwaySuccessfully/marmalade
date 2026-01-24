@@ -15,3 +15,8 @@
 .smallIcon image {
     -gtk-icon-transform: scale(0.75);
 }
+
+.columnWithBorder button {
+    border-top-width: 1px;
+    border-top-style: solid;
+}

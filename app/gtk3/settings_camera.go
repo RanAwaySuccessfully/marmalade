@@ -47,7 +47,7 @@ func create_camera_widgets() cameraWidgets {
 	width_label.SetHAlign(gtk.AlignStart)
 
 	width_input := gtk.NewEntry()
-	width := strconv.FormatFloat(server.Config.Width, 'f', 0, 64)
+	width := strconv.Itoa(server.Config.Width) // convert int to string
 	width_input.SetText(width)
 	width_input.SetPlaceholderText("1280")
 
@@ -59,7 +59,7 @@ func create_camera_widgets() cameraWidgets {
 	height_label.SetHAlign(gtk.AlignStart)
 
 	height_input := gtk.NewEntry()
-	height := strconv.FormatFloat(server.Config.Height, 'f', 0, 64)
+	height := strconv.Itoa(server.Config.Height) // convert int to string
 	height_input.SetText(height)
 	height_input.SetPlaceholderText("720")
 
@@ -71,7 +71,7 @@ func create_camera_widgets() cameraWidgets {
 	fps_label.SetHAlign(gtk.AlignStart)
 
 	fps_input := gtk.NewEntry()
-	fps := strconv.FormatFloat(server.Config.FPS, 'f', 0, 64)
+	fps := strconv.Itoa(server.Config.FPS) // convert int to string
 	fps_input.SetText(fps)
 	fps_input.SetPlaceholderText("30")
 

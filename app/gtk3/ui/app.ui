@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <object class="GtkApplicationWindow" id="main_app">
-    <property name="title" translatable="yes">Marmalade</property>
     <property name="default-width">450</property>
     <property name="default-height">150</property>
     <property name="resizable">false</property>
 
     <child type="titlebar">
       <object class="GtkHeaderBar">
+        <property name="title" translatable="yes">Marmalade</property>
+        <property name="show-close-button">true</property>
 
         <child>
-          <object class="GtkToolButton">
-            <property name="icon-name">help-about-symbolic</property>
-            <signal name="clicked" handler="about_button_clicked" />
+          <object class="GtkButton">
+            <child>
+              <object class="GtkImage">
+                <property name="icon-name">help-about-symbolic</property>
+                <property name="icon-size">4</property>
+              </object>
+            </child>
+            <signal name="clicked" handler="about_dialog_open" />
           </object>
           <packing>
             <property name="pack_type">start</property>
@@ -40,7 +46,7 @@
             <!-- HEADER / ALWAYS VISIBLE -->
 
             <child>
-              <object class="GtkToolButton" id="main_button">
+              <object class="GtkButton" id="main_button">
                 <property name="label" translatable="yes">Start MediaPipe</property>
                 <property name="hexpand">true</property>
                 <signal name="clicked" handler="main_button_clicked" />
@@ -79,8 +85,13 @@
                 </child>
 
                 <child>
-                  <object class="GtkToolButton" id="webcam_refresh">
-                    <property name="icon-name">view-refresh-symbolic</property>
+                  <object class="GtkButton" id="webcam_refresh">
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">view-refresh-symbolic</property>
+                        <property name="icon-size">4</property>
+                      </object>
+                    </child>
                     <signal name="clicked" handler="webcam_refresh_clicked" />
                   </object>
                 </child>

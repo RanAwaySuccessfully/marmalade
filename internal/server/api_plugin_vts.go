@@ -37,8 +37,8 @@ func (plugin *VTSPlugin) listen(err_ch chan error) {
 	plugin.closed = false
 
 	port := "8001"
-	if Config.VTSPluginPort != 0 {
-		port = strconv.FormatFloat(Config.VTSPluginPort, 'f', 0, 64)
+	if Config.VTSPlugin.Port != 0 {
+		port = strconv.Itoa(Config.VTSPlugin.Port) // convert int to string
 	}
 
 	var err error
@@ -166,13 +166,13 @@ func (plugin *VTSPlugin) doAuth(forceFetchToken bool) {
 
 	var callback vtsPluginCallback // function
 
-	if Config.VTSPluginToken == "" || forceFetchToken {
+	if Config.VTSPlugin.Token == "" || forceFetchToken {
 		payload_data["pluginIcon"] = resources.EmbeddedIconLogoSmall
 		payload["messageType"] = "AuthenticationTokenRequest"
 
 		callback = vtsPluginCallback(plugin.handleAuthToken)
 	} else {
-		payload_data["authenticationToken"] = Config.VTSPluginToken
+		payload_data["authenticationToken"] = Config.VTSPlugin.Token
 		payload["messageType"] = "AuthenticationRequest"
 
 		callback = vtsPluginCallback(plugin.handleAuth)
@@ -192,7 +192,7 @@ func (plugin *VTSPlugin) handleAuthToken(msg_map map[string]any, err_ch chan err
 
 	if msg.Data.ErrorID != 0 {
 		if msg.Data.ErrorID == 50 {
-			Config.VTSPluginToken = ""
+			Config.VTSPlugin.Token = ""
 			Config.Save()
 		}
 
@@ -200,7 +200,7 @@ func (plugin *VTSPlugin) handleAuthToken(msg_map map[string]any, err_ch chan err
 		return
 	}
 
-	Config.VTSPluginToken = msg.Data.Token
+	Config.VTSPlugin.Token = msg.Data.Token
 	Config.Save()
 
 	plugin.doAuth(false)
@@ -253,7 +253,7 @@ func (plugin *VTSPlugin) send(mp_data *TrackingData, err_ch chan error) {
 
 	payload_data := make(map[string]any)
 	payload_data["parameterValues"] = payload_parameters
-	payload_data["faceFound"] = len(mp_data.facem.Blendshapes) != 0
+	payload_data["faceFound"] = len(mp_data.FaceData.Blendshapes) != 0
 	payload_data["mode"] = "set" // add?
 
 	payload["data"] = payload_data

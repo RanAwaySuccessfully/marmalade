@@ -9,26 +9,38 @@ import (
 var Config ConfigSchema
 
 type ConfigSchema struct {
-	Camera         float64 `json:"camera"`
-	Width          float64 `json:"width"`
-	Height         float64 `json:"height"`
-	FPS            float64 `json:"fps"`
-	Format         string  `json:"format"`
-	ModelFace      string  `json:"model_face"`
-	ModelHand      string  `json:"model_hand"`
-	UseGpu         bool    `json:"use_gpu"`
-	PrimeId        string  `json:"prime_id"`
-	VTSApiUse      bool    `json:"vts_api_use"`
-	VTSApiPort     float64 `json:"vts_api_port"`
-	VTSPluginUse   bool    `json:"vts_plugin_use"`
-	VTSPluginPort  float64 `json:"vts_plugin_port"`
-	VTSPluginToken string  `json:"vts_plugin_token"`
+	Camera    int    `json:"camera"`
+	Width     int    `json:"width"`
+	Height    int    `json:"height"`
+	FPS       int    `json:"fps"`
+	Format    string `json:"format"`
+	ModelFace string `json:"model_face"`
+	ModelHand string `json:"model_hand"`
+	UseGpu    bool   `json:"use_gpu"`
+	PrimeId   string `json:"prime_id"`
+	VTSApi    struct {
+		Enabled bool `json:"enabled"`
+		Port    int  `json:"port"`
+	} `json:"vts_api"`
+	VTSPlugin struct {
+		Enabled bool   `json:"enabled"`
+		UseFace bool   `json:"use_face"`
+		UseHand bool   `json:"use_hand"`
+		Port    int    `json:"port"`
+		Token   string `json:"token"`
+	} `json:"vts_plugin"`
+	VMCApi struct {
+		Enabled bool `json:"enabled"`
+		UseFace bool `json:"use_face"`
+		UseHand bool `json:"use_hand"`
+		Port    int  `json:"port"`
+	} `json:"vmc_api"`
 }
 
 // for compatibility with fields that have been changed / renamed
 type oldSchema struct {
-	Port  float64 `json:"port"`
-	Model string  `json:"model"`
+	Port  int    `json:"port"`
+	Model string `json:"model"`
 }
 
 func (config *ConfigSchema) Read() error {
@@ -68,7 +80,7 @@ func (config *ConfigSchema) Read() error {
 	}
 
 	if oldConfig.Port != 0 {
-		config.VTSApiPort = oldConfig.Port
+		config.VTSApi.Port = oldConfig.Port
 	}
 
 	file.Close()

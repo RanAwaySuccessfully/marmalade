@@ -1,0 +1,77 @@
+[
+  {
+    "FourCC": "MJPG",
+    "CodecID": 7,
+    "PixFmt": -1
+  },
+  {
+    "FourCC": "HEVC",
+    "CodecID": 173,
+    "PixFmt": -1
+  },
+  {
+    "FourCC": "H264",
+    "CodecID": 27,
+    "PixFmt": -1
+  },
+  {
+    "FourCC": "H263",
+    "CodecID": 4,
+    "PixFmt": -1
+  },
+  {
+    "FourCC": "VP9",
+    "CodecID": 167,
+    "PixFmt": -1
+  },
+  {
+    "FourCC": "VP8",
+    "CodecID": 139,
+    "PixFmt": -1
+  },
+  {
+    "FourCC": "MPEG4",
+    "CodecID": 12,
+    "PixFmt": -1
+  },
+  {
+    "FourCC": "MPEG2",
+    "CodecID": 2,
+    "PixFmt": -1
+  },
+  {
+    "FourCC": "MPEG1",
+    "CodecID": 1,
+    "PixFmt": -1
+  },
+  {
+    "FourCC": "YUYV",
+    "CodecID": 13,
+    "PixFmt": 1
+  },
+  {
+    "FourCC": "RGB3",
+    "CodecID": 13,
+    "PixFmt": 2
+  },
+  {
+    "FourCC": "BGR3",
+    "CodecID": 13,
+    "PixFmt": 3
+  },
+  {
+    "FourCC": "NV12",
+    "CodecID": 13,
+    "PixFmt": 23
+  },
+  {
+    "FourCC": "YU12",
+    "CodecID": 13,
+    "PixFmt": 0
+  },
+  {
+    "FourCC": "YV12",
+    "CodecID": 13,
+    "PixFmt": 0
+  }
+]

@@ -64,56 +64,86 @@ func ports_vmcap_popover_closed() {
 func init_ports_settings() {
 	UI.gtkBuilder.AddFromString(ui.SettingsPorts)
 
+	grid := UI.GetObject("main_grid").(*gtk.Grid)
+	init_ports_settings_vtsapi(grid)
+	init_ports_settings_vtsplugin(grid)
+	init_ports_settings_vmcap(grid)
+}
+
+func init_ports_settings_vtsapi(grid *gtk.Grid) {
 	vtsapi_switch := UI.GetObject("mimic_enable").(*gtk.Switch)
-	vtsapi_switch.SetActive(server.Config.VTSApiUse)
+	vtsapi_switch.SetActive(server.Config.VTSApi.Enabled)
 	vtsapi_switch.ConnectStateSet(func(state bool) bool {
-		server.Config.VTSApiUse = state
+		server.Config.VTSApi.Enabled = state
 		update_unsaved_config(true)
 		return false
 	})
 
 	vtsapi_port_value := ""
-	if server.Config.VTSApiPort != 0 {
-		vtsapi_port_value = strconv.FormatFloat(server.Config.VTSApiPort, 'f', 0, 64)
+	if server.Config.VTSApi.Port != 0 {
+		vtsapi_port_value = strconv.Itoa(server.Config.VTSApi.Port) // convert int to string
 	}
 
 	vtsapi_port := UI.GetObject("mimic_port").(*gtk.Entry)
 	vtsapi_port.SetText(vtsapi_port_value)
 	vtsapi_port.ConnectChanged(func() {
-		update_numeric_config(vtsapi_port, &server.Config.VTSApiPort)
+		update_numeric_config(vtsapi_port, &server.Config.VTSApi.Port)
 	})
 
+	mimic_label := UI.GetObject("mimic_label").(*gtk.Label)
+	mimic_box := UI.GetObject("mimic_box").(*gtk.Box)
+	grid.Attach(mimic_label, 0, 31, 1, 1)
+	grid.Attach(mimic_box, 1, 31, 1, 1)
+}
+
+func init_ports_settings_vtsplugin(grid *gtk.Grid) {
 	plugin_switch := UI.GetObject("plugin_enable").(*gtk.Switch)
-	plugin_switch.SetActive(server.Config.VTSPluginUse)
+	plugin_switch.SetActive(server.Config.VTSPlugin.Enabled)
 	plugin_switch.ConnectStateSet(func(state bool) bool {
-		server.Config.VTSPluginUse = state
+		server.Config.VTSPlugin.Enabled = state
 		update_unsaved_config(true)
 		return false
 	})
 
 	plugin_port_value := ""
-	if server.Config.VTSPluginPort != 0 {
-		plugin_port_value = strconv.FormatFloat(server.Config.VTSPluginPort, 'f', 0, 64)
+	if server.Config.VTSPlugin.Port != 0 {
+		plugin_port_value = strconv.Itoa(server.Config.VTSPlugin.Port) // convert int to string
 	}
 
 	plugin_port := UI.GetObject("plugin_port").(*gtk.Entry)
 	plugin_port.SetText(plugin_port_value)
 	plugin_port.ConnectChanged(func() {
-		update_numeric_config(plugin_port, &server.Config.VTSPluginPort)
+		update_numeric_config(plugin_port, &server.Config.VTSPlugin.Port)
 	})
 
-	mimic_label := UI.GetObject("mimic_label").(*gtk.Label)
-	mimic_box := UI.GetObject("mimic_box").(*gtk.Box)
 	plugin_label := UI.GetObject("plugin_label").(*gtk.Label)
 	plugin_box := UI.GetObject("plugin_box").(*gtk.Box)
-	vmcap_label := UI.GetObject("vmcap_label").(*gtk.Label)
-	vmcap_box := UI.GetObject("vmcap_box").(*gtk.Box)
-
-	grid := UI.GetObject("main_grid").(*gtk.Grid)
-	grid.Attach(mimic_label, 0, 31, 1, 1)
-	grid.Attach(mimic_box, 1, 31, 1, 1)
 	grid.Attach(plugin_label, 0, 32, 1, 1)
 	grid.Attach(plugin_box, 1, 32, 1, 1)
+}
+
+func init_ports_settings_vmcap(grid *gtk.Grid) {
+	vmcap_switch := UI.GetObject("vmcap_enable").(*gtk.Switch)
+	vmcap_switch.SetActive(server.Config.VMCApi.Enabled)
+	vmcap_switch.ConnectStateSet(func(state bool) bool {
+		server.Config.VMCApi.Enabled = state
+		update_unsaved_config(true)
+		return false
+	})
+
+	vmcap_port_value := ""
+	if server.Config.VMCApi.Port != 0 {
+		vmcap_port_value = strconv.Itoa(server.Config.VMCApi.Port) // convert int to string
+	}
+
+	vmcap_port := UI.GetObject("vmcap_port").(*gtk.Entry)
+	vmcap_port.SetText(vmcap_port_value)
+	vmcap_port.ConnectChanged(func() {
+		update_numeric_config(vmcap_port, &server.Config.VMCApi.Port)
+	})
+
+	vmcap_label := UI.GetObject("vmcap_label").(*gtk.Label)
+	vmcap_box := UI.GetObject("vmcap_box").(*gtk.Box)
 	grid.Attach(vmcap_label, 0, 33, 1, 1)
 	grid.Attach(vmcap_box, 1, 33, 1, 1)
 }

@@ -33,7 +33,7 @@ func main() {
 
 	app := gtk.NewApplication("xyz.randev.marmalade.gtk3", gio.ApplicationDefaultFlags)
 	app.ConnectActivate(func() {
-		activate(app)
+		activate3(app)
 		gtk.Main()
 	})
 
@@ -42,12 +42,13 @@ func main() {
 	}
 }
 
-func activate2(app *gtk.Application) {
+func activate3(app *gtk.Application) {
 	builder := gtk.NewBuilderFromString(ui.App)
 
 	window := get_object(builder, "main_app").(*gtk.ApplicationWindow)
 	app.AddWindow(&window.Window)
 	window.SetVisible(true)
+	window.ShowAll()
 }
 
 func get_object(builder *gtk.Builder, id string) glib.Objector {
@@ -144,7 +145,7 @@ func create_footer() {
 	action_bar.PackEnd(save_button)
 }
 
-func update_numeric_config(input *gtk.Entry, target *float64) error {
+func update_numeric_config(input *gtk.Entry, target *int) error {
 	value := input.Text()
 	if value == "" {
 		update_unsaved_config(true)
@@ -166,7 +167,7 @@ func update_numeric_config(input *gtk.Entry, target *float64) error {
 		return nil
 	}
 
-	number, err := strconv.ParseFloat(value, 64)
+	number, err := strconv.Atoi(value) // convert string to int
 	if err != nil {
 		return err
 	}

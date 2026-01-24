@@ -1,20 +1,17 @@
 package server
 
-type TrackingType uint8
-
 const (
-	NullTrackingType TrackingType = iota
+	NullTrackingType = iota
 	FaceTrackingType
 	HandTrackingType
 )
 
 type TrackingData struct {
-	facem FaceTracking
-	handm HandTracking
-}
-
-type anyTracking struct {
-	Type uint8 `json:"type"`
+	Type      uint8 `json:"type"`
+	Status    int   `json:"status"`
+	Timestamp int   `json:"timestamp"`
+	FaceData  FaceTracking
+	HandData  HandTracking
 }
 
 type Category struct {
@@ -38,9 +35,6 @@ type Landmark struct {
 // FACE TRACKING
 
 type FaceTracking struct {
-	Type        uint8      `json:"type"`
-	Status      int        `json:"status"`
-	Timestamp   int        `json:"timestamp"`
 	Blendshapes []Category `json:"blendshapes"`
 	Landmarks   []Landmark `json:"landmarks"`
 	Matrixes    []Matrix   `json:"matrixes"`
@@ -55,10 +49,7 @@ type Matrix struct {
 // HAND TRACKING
 
 type HandTracking struct {
-	Type      uint8  `json:"type"`
-	Status    int    `json:"status"`
-	Timestamp int    `json:"timestamp"`
-	Hand      []Hand `json:"hands"`
+	Hand []Hand `json:"hands"`
 }
 
 type Hand struct {

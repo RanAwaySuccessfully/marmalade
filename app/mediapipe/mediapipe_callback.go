@@ -91,11 +91,12 @@ func face_landmarker_callback_external(mp_result *C.struct_FaceLandmarkerResult,
 		result.Matrixes = append(result.Matrixes, matrix)
 	}
 
-	result.Status = int(status)
-	result.Timestamp = int(timestamp)
-	result.Type = uint8(server.FaceTrackingType)
+	payload := server.TrackingData{FaceData: result}
+	payload.Status = int(status)
+	payload.Timestamp = int(timestamp)
+	payload.Type = server.FaceTrackingType
 
-	mediapipe_send_result(result)
+	ipc.sender(server.FaceTrackingType, payload)
 }
 
 //export hand_landmarker_callback_external
@@ -111,13 +112,14 @@ func hand_landmarker_callback_external(mp_result *C.struct_HandLandmarkerResult,
 			count := C.hand_landmarker_handedness_count(mp_result, C.uint(i))
 
 			handedess_slice := make([]server.Category, 0, int(count))
-			result.Hand[i].Handedness = handedess_slice
 
 			for j := 0; j < int(count); j++ {
 				mp_handedness := C.hand_landmarker_handedness(mp_result, C.uint(i), C.uint(j))
 				handedness := ConvertCategory(&mp_handedness)
 				handedess_slice = append(handedess_slice, handedness)
 			}
+
+			result.Hand[i].Handedness = handedess_slice
 		}
 	}
 
@@ -127,13 +129,14 @@ func hand_landmarker_callback_external(mp_result *C.struct_HandLandmarkerResult,
 			count := C.hand_landmarker_landmark_count(mp_result, C.uint(i))
 
 			landmark_slice := make([]server.Landmark, 0, int(count))
-			result.Hand[i].Landmarks = landmark_slice
 
 			for j := 0; j < int(count); j++ {
 				mp_landmark := C.hand_landmarker_landmark(mp_result, C.uint(i), C.uint(j))
 				landmark := ConvertNormalizedLandmark(&mp_landmark)
 				landmark_slice = append(landmark_slice, landmark)
 			}
+
+			result.Hand[i].Landmarks = landmark_slice
 		}
 	}
 
@@ -143,19 +146,21 @@ func hand_landmarker_callback_external(mp_result *C.struct_HandLandmarkerResult,
 			count := C.hand_landmarker_world_landmark_count(mp_result, C.uint(i))
 
 			landmark_slice := make([]server.Landmark, 0, int(count))
-			result.Hand[i].WorldLandmarks = landmark_slice
 
 			for j := 0; j < int(count); j++ {
 				mp_landmark := C.hand_landmarker_world_landmark(mp_result, C.uint(i), C.uint(j))
 				landmark := ConvertLandmark(&mp_landmark)
 				landmark_slice = append(landmark_slice, landmark)
 			}
+
+			result.Hand[i].WorldLandmarks = landmark_slice
 		}
 	}
 
-	result.Status = int(status)
-	result.Timestamp = int(timestamp)
-	result.Type = uint8(server.HandTrackingType)
+	payload := server.TrackingData{HandData: result}
+	payload.Status = int(status)
+	payload.Timestamp = int(timestamp)
+	payload.Type = server.HandTrackingType
 
-	mediapipe_send_result(result)
+	ipc.sender(server.HandTrackingType, payload)
 }

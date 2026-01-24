@@ -12,11 +12,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"marmalade/internal/server"
-	"os"
 	"unsafe"
 
 	"github.com/vladimirvivien/go4vl/device"
@@ -44,7 +42,7 @@ func (mp *MediaPipe) start() error {
 		return err
 	}
 
-	format := v4l2.PixFormat{
+	pix_format := v4l2.PixFormat{
 		Width:       uint32(server.Config.Width),
 		Height:      uint32(server.Config.Height),
 		PixelFormat: uint32(fourcc),
@@ -55,7 +53,7 @@ func (mp *MediaPipe) start() error {
 	mp.webcam, err = device.Open(
 		device_path,
 		device.WithBufferSize(1),
-		device.WithPixFormat(format),
+		device.WithPixFormat(pix_format),
 		device.WithFPS(uint32(server.Config.FPS)),
 	)
 
@@ -63,16 +61,21 @@ func (mp *MediaPipe) start() error {
 		return err
 	}
 
+	//mp.check_supported_settings()
+
 	mp.webcam.GetFrames()
 	err = mp.webcam.Start(context.Background())
 	if err != nil {
 		return err
 	}
 
-	mp.converter = &ConverterFFMPEG{}
-	err = mp.converter.init(server.Config.Format)
-	if err != nil {
-		return err
+	format := server.Config.Format
+	if format != "RGB3" {
+		mp.converter = &ConverterFFMPEG{}
+		err = mp.converter.init(format)
+		if err != nil {
+			return err
+		}
 	}
 
 	delegate := 0
@@ -80,7 +83,14 @@ func (mp *MediaPipe) start() error {
 		delegate = 1
 	}
 
-	if server.Config.ModelFace != "" {
+	anyFaceApi := server.Config.VTSApi.Enabled ||
+		(server.Config.VTSPlugin.Enabled && server.Config.VTSPlugin.UseFace) ||
+		(server.Config.VMCApi.Enabled && server.Config.VMCApi.UseFace)
+
+	anyHandApi := (server.Config.VMCApi.Enabled && server.Config.VMCApi.UseHand) ||
+		(server.Config.VTSPlugin.Enabled && server.Config.VTSPlugin.UseHand)
+
+	if (server.Config.ModelFace != "") && anyFaceApi {
 		mp.facem_path = C.CString(server.Config.ModelFace)
 		mp.facem_lm = C.face_landmarker_start(mp.facem_path, C.int(delegate))
 		if mp.facem_lm == nil {
@@ -90,7 +100,7 @@ func (mp *MediaPipe) start() error {
 		}
 	}
 
-	if server.Config.ModelHand != "" {
+	if (server.Config.ModelHand != "") && anyHandApi {
 		mp.handm_path = C.CString(server.Config.ModelHand)
 		mp.handm_lm = C.hand_landmarker_start(mp.handm_path, C.int(delegate))
 		if mp.handm_lm == nil {
@@ -107,10 +117,17 @@ func (mp *MediaPipe) detect(err_channel chan error) {
 	for frame := range mp.webcam.GetFrames() {
 		//start := time.Now().UnixMilli()
 
-		srgb_frame, err := mp.converter.convert(frame.Data)
-		if err != nil {
-			err_channel <- err
-			break
+		var srgb_frame []byte
+		var err error
+
+		if mp.converter == nil {
+			srgb_frame = frame.Data
+		} else {
+			srgb_frame, err = mp.converter.convert(frame.Data) // uses about 1% CPU and 40MB of RAM...pretty good!
+			if err != nil {
+				err_channel <- err
+				break
+			}
 		}
 
 		format, err := mp.webcam.GetPixFormat()
@@ -170,28 +187,22 @@ func (mp *MediaPipe) stop() error {
 	return nil
 }
 
-func mediapipe_send_result(result any) {
-	unlocked := ipc.mutex.TryLock()
-	if !unlocked {
-		fmt.Fprintln(os.Stderr, "[MP +TOAST] output is busy. dropping message...")
-		return
+func (mp *MediaPipe) check_supported_settings() error {
+	fmt_real, err := mp.webcam.GetPixFormat()
+	if err != nil {
+		return err
 	}
 
-	if ipc.enabled {
-		encoder := json.NewEncoder(ipc.socket)
-		encoder.Encode(&result)
-
-		newline := []byte("\n")
-		ipc.socket.Write(newline)
-
-	} else {
-		text, err := json.Marshal(result)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%v", err)
-		} else {
-			fmt.Println(string(text))
-		}
+	fps_real, err := mp.webcam.GetFrameRate()
+	if err != nil {
+		return err
 	}
 
-	ipc.mutex.Unlock()
+	var pixelformat string
+	for i := range 4 {
+		pixelformat += string(byte(fmt_real.PixelFormat >> (i * 8)))
+	}
+
+	fmt.Printf("[%s] %dx%d@%d\n", pixelformat, fmt_real.Width, fmt_real.Height, fps_real)
+	return nil
 }

@@ -69,6 +69,7 @@ void save_last_error(char* error_msg) {
   mediapipe_last_error = (char*)realloc(mediapipe_last_error, (length + 1) * sizeof(char));
   if (mediapipe_last_error != NULL) {
     strncpy(mediapipe_last_error, error_msg, length);
+    mediapipe_last_error[length] = '\0';
   }
 
   MpErrorFree(error_msg);

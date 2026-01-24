@@ -7,12 +7,16 @@
     <property name="hide-on-close">true</property>
     <property name="resizable">false</property>
 
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+      </object>
+    </child>
+
     <child>
       <object class="GtkBox">
         <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
         <property name="spacing">10</property>
-        <property name="margin-top">5</property>
-        <property name="margin-bottom">7</property>
+        <property name="margin-top">10</property>
 
         <child>
           <object class="GtkLabel">
@@ -30,6 +34,9 @@
           <object class="GtkColumnView" id="listclient_columns">
             <property name="hexpand">true</property>
             <property name="vexpand">true</property>
+            <style>
+              <class name="columnWithBorder" />
+            </style>
 
             <child>
               <object class="GtkColumnViewColumn" id="listclient_column_name">
@@ -64,10 +71,14 @@
         </child>
 
         <child>
-          <object class="GtkButton" id="listclient_close_button">
-            <property name="label" translatable="yes">Close</property>
-            <property name="margin-start">10</property>
-            <property name="margin-end">10</property>
+          <object class="GtkActionBar">
+
+            <child type="center">
+              <object class="GtkButton" id="listclient_close_button">
+                <property name="label" translatable="yes">Close</property>
+              </object>
+            </child>
+
           </object>
         </child>
 

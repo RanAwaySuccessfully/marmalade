@@ -9,8 +9,10 @@ package main
 import "C"
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 )
 
 type ConverterFFMPEG struct {
@@ -22,26 +24,44 @@ type ConverterFFMPEG struct {
 	outputFrame *C.struct_AVFrame
 }
 
+type Mapping struct {
+	FourCC  string
+	CodecID int
+	PixFmt  int
+}
+
 func (conv *ConverterFFMPEG) init(format string) error {
 	var codec_id uint32
 	var pix_fmt int32
 
-	switch format {
-	case "YUYV":
-		codec_id = C.AV_CODEC_ID_RAWVIDEO
-		pix_fmt = C.AV_PIX_FMT_YUYV422
-	case "MJPG":
-		codec_id = C.AV_CODEC_ID_MJPEG
-	case "H264":
-		codec_id = C.AV_CODEC_ID_H264
-	default:
-		return errors.New("format " + format + " does not have an equivalent ffmpeg mapping, please ask the developer of Marmalade to add it.")
+	file, err := os.Open("fourcc.json")
+	if err != nil {
+		return err
+	}
+
+	var mapping []Mapping
+
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&mapping)
+	if err != nil {
+		return err
+	}
+
+	for _, mapItem := range mapping {
+		if mapItem.FourCC == format {
+			codec_id = uint32(mapItem.CodecID)
+			pix_fmt = int32(mapItem.PixFmt)
+		}
+	}
+
+	if codec_id == 0 {
+		return errors.New("format " + format + " is not mapped on file fourcc.json. You may manually add the mapping, or ask the developer to do so.")
 	}
 
 	codec := C.avcodec_find_decoder(codec_id)
 	conv.inputCtx = C.avcodec_alloc_context3(codec)
 
-	if codec_id == C.AV_CODEC_ID_RAWVIDEO {
+	if pix_fmt != -1 {
 		conv.inputCtx.pix_fmt = pix_fmt
 	}
 

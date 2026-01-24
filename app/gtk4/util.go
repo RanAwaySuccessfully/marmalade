@@ -8,6 +8,8 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
+// BUILDER
+
 type Builder struct {
 	gtkBuilder *gtk.Builder
 	errChannel chan error
@@ -38,7 +40,26 @@ func (b *Builder) GetObject(id string) glib.Objector {
 	return b.gtkBuilder.GetObject(id).Cast()
 }
 
-func update_numeric_config(input *gtk.Entry, target *float64) error {
+// SIGNAL MAP
+
+type SignalMap map[uint]glib.SignalHandle
+
+func (signalPtr *SignalMap) Add(index uint, signal glib.SignalHandle) {
+	signals := *signalPtr
+	signals[index] = signal
+}
+
+func (signalPtr *SignalMap) Remove(index uint) glib.SignalHandle {
+	signals := *signalPtr
+	signalId := signals[index]
+	delete(signals, index)
+
+	return signalId
+}
+
+// MISCELLANEOUS
+
+func update_numeric_config(input *gtk.Entry, target *int) error {
 	value := input.Text()
 	if value == "" {
 		update_unsaved_config(true)
@@ -60,14 +81,14 @@ func update_numeric_config(input *gtk.Entry, target *float64) error {
 		return nil
 	}
 
-	number, err := strconv.ParseFloat(value, 64)
+	number, err := strconv.Atoi(value) // convert string to int
 	if err != nil {
 		return err
 	}
 
 	update_unsaved_config(true)
 
-	*target = number
+	*target = int(number)
 	return nil
 }
 

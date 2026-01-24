@@ -88,6 +88,7 @@ func GetVideoCaptureDetails(camera_id uint8) (*VideoCapture, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer v4l2.CloseDevice(device)
 
 	capabilities, err := v4l2.GetCapability(device)
 	if err != nil {
@@ -103,13 +104,6 @@ func GetVideoCaptureDetails(camera_id uint8) (*VideoCapture, error) {
 
 	err = get_formats(device, &result)
 	if err != nil {
-		v4l2.CloseDevice(device)
-		return nil, err
-	}
-
-	err = v4l2.CloseDevice(device)
-	if err != nil {
-		v4l2.CloseDevice(device)
 		return nil, err
 	}
 

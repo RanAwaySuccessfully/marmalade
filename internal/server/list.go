@@ -13,25 +13,44 @@ type Client struct {
 }
 
 func (server *ServerData) GetClientList() []Client {
-
 	length := 0
-	length += len(server.VTSApi.clients)
+
+	if server.VTSApi != nil {
+		length += len(server.VTSApi.clients)
+	}
+
+	if server.VTSPlugin != nil && server.VTSPlugin.authenticated {
+		length++
+	}
+
 	list := make([]Client, 0, length)
 
-	for clientId, client := range server.VTSApi.clients {
+	if server.VTSApi != nil {
+		for clientId, client := range server.VTSApi.clients {
+			list_item := Client{
+				Name:   clientId,
+				Type:   "VTS 3rd Party API",
+				Source: client.source,
+			}
+
+			ports := make([]string, 0, len(client.message.Ports))
+
+			for _, port := range client.message.Ports {
+				ports = append(ports, strconv.FormatFloat(port, 'f', 0, 64))
+			}
+
+			list_item.Target = strings.Join(ports, ", ")
+
+			list = append(list, list_item)
+		}
+	}
+
+	if server.VTSPlugin != nil && server.VTSPlugin.authenticated {
 		list_item := Client{
-			Name:   clientId,
-			Type:   "VTS 3rd Party API",
-			Source: client.source,
+			Name:   "VTube Studio",
+			Type:   "VTS Plugin",
+			Target: strconv.Itoa(Config.VTSPlugin.Port), // convert int to string
 		}
-
-		ports := make([]string, 0, len(client.message.Ports))
-
-		for _, port := range client.message.Ports {
-			ports = append(ports, strconv.FormatFloat(port, 'f', 0, 64))
-		}
-
-		list_item.Target = strings.Join(ports, ", ")
 
 		list = append(list, list_item)
 	}

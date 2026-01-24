@@ -1,8 +1,7 @@
 package server
 
 import (
-	"bufio"
-	"encoding/json"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"io"
@@ -16,14 +15,13 @@ import (
 )
 
 type ServerData struct {
-	ErrPipe    *ServerErrPipe
-	started    bool
-	exit       bool
-	mpListener net.Listener
-	mpData     TrackingData
-	mpCmd      *exec.Cmd
-	VTSApi     *VTSApi
-	VTSPlugin  *VTSPlugin
+	ErrPipe   *ServerErrPipe
+	started   bool
+	exit      bool
+	mpData    TrackingData
+	mpCmd     *exec.Cmd
+	VTSApi    *VTSApi
+	VTSPlugin *VTSPlugin
 }
 
 var Server = ServerData{
@@ -61,66 +59,55 @@ func (server *ServerData) Start(err_ch chan error, callback func()) {
 		}
 	}
 
-	listener, err := net.Listen("unix", "marmalade.sock")
+	socket, err := net.Listen("unix", "marmalade.sock")
 	if err != nil {
 		err_ch <- err
 		return
 	}
+	defer os.Remove("marmalade.sock")
 
-	if Config.VTSApiUse {
+	if Config.VTSApi.Enabled {
 		server.VTSApi = &VTSApi{}
 		go server.VTSApi.listen(err_ch)
 	}
 
-	if Config.VTSPluginUse {
+	if Config.VTSPlugin.Enabled {
 		server.VTSPlugin = &VTSPlugin{}
 		go server.VTSPlugin.listen(err_ch)
 	}
 
 	go server.waitMediaPipeProcess(server.mpCmd, err_ch)
 
-	for !server.exit {
-		fmt.Println("[MARMALADE] Waiting for MediaPipe...")
-		conn, err := listener.Accept()
-		if err != nil {
-			err_ch <- err
-		}
-
-		fmt.Println("[MARMALADE] MediaPipe connection started")
-		data := []byte{}
-
-		for !server.exit {
-			reader := bufio.NewReader(conn)
-			line, isPrefix, err := reader.ReadLine()
-			data = append(data, line...)
-
-			if isPrefix {
-				continue
-			}
-
-			if !server.started {
-				server.started = true
-				glib.IdleAdd(callback)
-			}
-
-			if err != nil {
-				if err != io.EOF {
-					err_ch <- err
-				}
-
-				break
-			}
-
-			if len(data) == 0 {
-				continue
-			}
-
-			server.sendToClients(data, err_ch)
-			data = []byte{}
-		}
+	conn, err := socket.Accept()
+	if err != nil {
+		err_ch <- err
+		return
 	}
 
-	listener.Close()
+	fmt.Println("[MARMALADE] MediaPipe connection started")
+	decoder := gob.NewDecoder(conn)
+
+	for !server.exit {
+		var mp_data TrackingData
+
+		err := decoder.Decode(&mp_data)
+		if err != nil {
+			if err != io.EOF {
+				err_ch <- err
+			}
+
+			break
+		}
+
+		if !server.started {
+			server.started = true
+			glib.IdleAdd(callback)
+		}
+
+		server.sendToClients(mp_data, err_ch)
+	}
+
+	socket.Close()
 	fmt.Println("[MARMALADE] Ended")
 }
 
@@ -149,42 +136,25 @@ func (server *ServerData) Stop() {
 	}
 }
 
-func (server *ServerData) sendToClients(mp_string []byte, err_ch chan error) {
-	var mp_data_small anyTracking // For checking tracking type ahead of time
-
+func (server *ServerData) sendToClients(mp_data TrackingData, err_ch chan error) {
 	if server.exit {
 		return
 	}
 
-	err := json.Unmarshal(mp_string, &mp_data_small)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[MARMALADE] mp socket data: %v\n", err)
+	switch mp_data.Type {
+	case NullTrackingType:
 		return
+	case FaceTrackingType:
+		server.mpData.FaceData = mp_data.FaceData
+	case HandTrackingType:
+		server.mpData.HandData = mp_data.HandData
 	}
 
-	switch mp_data_small.Type {
-	case uint8(FaceTrackingType):
-		var mp_data FaceTracking
-		err := json.Unmarshal(mp_string, &mp_data)
-		if err != nil {
-			err_ch <- err
-			return
-		}
-
-		server.mpData.facem = mp_data
-	case uint8(HandTrackingType):
-		var mp_data HandTracking
-		err := json.Unmarshal(mp_string, &mp_data)
-		if err != nil {
-			err_ch <- err
-			return
-		}
-
-		server.mpData.handm = mp_data
-	}
+	server.mpData.Status = mp_data.Status
+	server.mpData.Timestamp = mp_data.Timestamp
 
 	if server.VTSApi != nil {
-		server.VTSApi.send(&server.mpData.facem, err_ch)
+		server.VTSApi.send(&server.mpData, err_ch)
 	}
 
 	if server.VTSPlugin != nil {
@@ -193,5 +163,5 @@ func (server *ServerData) sendToClients(mp_string []byte, err_ch chan error) {
 }
 
 func int_to_string(number int) string {
-	return strconv.Itoa(number)
+	return strconv.Itoa(number) // convert int to string
 }

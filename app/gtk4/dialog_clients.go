@@ -23,6 +23,7 @@ func listclients_show_dialog() {
 	var selection *gtk.NoSelection
 
 	model := clientUtil.New()
+	update := true
 
 	if window_ptr == nil {
 		// initialize dialog
@@ -42,31 +43,32 @@ func listclients_show_dialog() {
 			window.Close()
 		})
 
+		window.ConnectCloseRequest(func() bool {
+			update = false
+			return false
+		})
+
 	} else {
 		window = window_ptr.(*gtk.Window)
 		column_view := UI.GetObject("listclient_columns").(*gtk.ColumnView)
 
 		selection_model := column_view.Model()
 		selection = selection_model.ListModel.Cast().(*gtk.NoSelection)
+		selection.SetModel(model)
 	}
 
 	window.SetVisible(true)
 
-	go listclients_update_model(window, model)
+	go listclients_update_model(window, model, &update)
 }
 
-func listclients_update_model(window *gtk.Window, model *ClientList) {
-	for {
-		if !window.Visible() {
-			break
-		}
+func listclients_update_model(window *gtk.Window, model *ClientList, update *bool) {
 
-		time.Sleep(1 * time.Second)
-
+	for *update {
 		glib.IdleAdd(func() {
 			// Remove all
-			for i := 0; i < model.Len(); i++ {
-				model.Remove(i)
+			for i := model.Len(); i > 0; i-- {
+				model.Remove(i - 1)
 			}
 
 			clients := server.Server.GetClientList()
@@ -75,6 +77,8 @@ func listclients_update_model(window *gtk.Window, model *ClientList) {
 				model.Append(client)
 			}
 		})
+
+		time.Sleep(1 * time.Second)
 	}
 }
 
@@ -113,19 +117,26 @@ func columnview_factory_create(fieldName string) *gtk.SignalListItemFactory {
 
 	factory.ConnectBind(func(object *glib.Object) {
 		listItem := object.Cast().(*gtk.ListItem)
-		clientObj := clientUtil.ObjectValue(listItem.Item())
 
-		reflectedObj := reflect.ValueOf(clientObj)
-		field := reflect.Indirect(reflectedObj).FieldByName(fieldName)
+		clientObj := clientUtil.ObjectValue(listItem.Item())
+		field := get_field_of_obj(clientObj, fieldName)
+		fieldValue := field.String()
 
 		label := listItem.Child().(*gtk.Label)
-		label.SetText(field.String())
+		label.SetText(fieldValue)
 	})
 
 	factory.ConnectTeardown(func(object *glib.Object) {
 		listItem := object.Cast().(*gtk.ListItem)
+
 		listItem.SetChild(nil)
 	})
 
 	return factory
+}
+
+func get_field_of_obj(obj any, fieldName string) reflect.Value {
+	reflected := reflect.ValueOf(obj)
+	field := reflect.Indirect(reflected).FieldByName(fieldName)
+	return field
 }

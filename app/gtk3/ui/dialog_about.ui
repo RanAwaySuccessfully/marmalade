@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkAboutDialog" id="about_dialog">
+    <property name="program-name">Marmalade (GTK 3)</property>
+    <property name="comments">API server for MediaPipe, primarily for VTubing</property>
+    <property name="website">https://github.com/RanAwaySuccessfully/marmalade</property>
+    <property name="website-label">GitHub</property>
+    <property name="license-type">GTK_LICENSE_MIT_X11</property>
+    <property name="copyright">© 2025 RanAwaySuccessfully</property>
+    <property name="authors">RanAwaySuccessfully</property>
+    <property name="logo-icon-name">xyz.randev.marmalade</property>
+    <property name="visible">true</property>
+  </object>
+</interface>

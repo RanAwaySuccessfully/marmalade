@@ -115,7 +115,11 @@ For compiling **libmediapipe**, a Git submodule is available at `app/mediapipe/c
 
 I have provided [bazel-build.sh](/app/mediapipe/cc/bazel-build.sh) as an example but I provide no guarantees that it will work for you. Once you have compiled MediaPipe, the file `libmediapipe.so` will have been created inside MediaPipe submodule in the folder `bazel-bin/mediapipe/tasks/c/`. Copy that file to Marmalade's `cc` folder (the same folder that contains the file `libtoast.cc`).
 
-You can compile **libtoast** by running [build.sh](/app/mediapipe/cc/build.sh) on while your working directory (current folder) is the `cc` folder. This will generate `libtoast.so`. This will fail if `libmediapipe.so` is not found. This requires GCC (specifically, the `g++` command) to be installed on your system.
+You can compile **libtoast** by running [build.sh](/app/mediapipe/cc/build.sh) while your working directory (current folder) is the `cc` folder. This will generate `libtoast.so`. This will fail if `libmediapipe.so` is not found. This requires GCC (specifically, the `g++` command) to be installed on your system.
+
+### FourCC
+
+The file `fourcc.json` contains a mapping file in order to bridge V4L2's encoding types with FFMPEG's. You can generate this file by running `go run -v ./app/fourcc`.
 
 ### Build times
 

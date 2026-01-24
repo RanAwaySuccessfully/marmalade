@@ -50,7 +50,7 @@ func init_camera_widgets() {
 
 	width := ""
 	if server.Config.Width != 0 {
-		width = strconv.FormatFloat(server.Config.Width, 'f', 0, 64)
+		width = strconv.Itoa(server.Config.Width) // convert int to string
 	}
 
 	width_input := UI.GetObject("width_input").(*gtk.Entry)
@@ -61,7 +61,7 @@ func init_camera_widgets() {
 
 	height := ""
 	if server.Config.Height != 0 {
-		height = strconv.FormatFloat(server.Config.Height, 'f', 0, 64)
+		height = strconv.Itoa(server.Config.Height) // convert int to string
 	}
 
 	height_input := UI.GetObject("height_input").(*gtk.Entry)
@@ -72,7 +72,7 @@ func init_camera_widgets() {
 
 	fps := ""
 	if server.Config.FPS != 0 {
-		fps = strconv.FormatFloat(server.Config.FPS, 'f', 0, 64)
+		fps = strconv.Itoa(server.Config.FPS) // convert int to string
 	}
 
 	fps_input := UI.GetObject("fps_input").(*gtk.Entry)
@@ -92,7 +92,10 @@ func init_camera_widgets() {
 	camera_info := UI.GetObject("camera_info").(*gtk.Button)
 	camera_info.Connect("clicked", func() {
 		camera_id := uint8(server.Config.Camera)
-		create_camera_info_window(camera_id)
+		err := create_camera_info_window(camera_id)
+		if err != nil {
+			UI.errChannel <- err
+		}
 	})
 
 	resolution_label := UI.GetObject("resolution_label").(*gtk.Label)
