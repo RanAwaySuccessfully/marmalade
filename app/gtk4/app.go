@@ -68,8 +68,8 @@ func main() {
 	}
 }
 
-//export signal_about_button_clicked
-func signal_about_button_clicked() {
+//export about_button_clicked
+func about_button_clicked() {
 	version := "v" + resources.EmbeddedVersion
 
 	builder := NewBuilder(ui.DialogAbout)
@@ -82,8 +82,8 @@ func signal_about_button_clicked() {
 	dialog.SetVersion(version)
 }
 
-//export signal_main_button_clicked
-func signal_main_button_clicked() {
+//export main_button_clicked
+func main_button_clicked() {
 	button := UI.GetObject("main_button").(*gtk.Button)
 	srv := &server.Server
 	started := srv.Started()
@@ -109,13 +109,13 @@ func signal_main_button_clicked() {
 	}
 }
 
-//export signal_save_button_clicked
-func signal_save_button_clicked() {
+//export save_button_clicked
+func save_button_clicked() {
 	server.Config.Save()
 	update_unsaved_config(false)
 }
 
-//export signal_listclients_button_clicked
-func signal_listclients_button_clicked() {
+//export listclients_button_clicked
+func listclients_button_clicked() {
 	listclients_show_dialog()
 }

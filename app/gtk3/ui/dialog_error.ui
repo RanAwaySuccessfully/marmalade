@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="error_dialog">
+    <property name="title" translatable="yes">Marmalade - Error</property>
+    <property name="default-width">300</property>
+    <property name="default-height">100</property>
+    <property name="resizable">false</property>
+
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+        <property name="spacing">5</property>
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <property name="margin-top">5</property>
+        <property name="margin-bottom">7</property>
+
+        <child>
+          <object class="GtkLabel" id="error_dialog_label">
+            <property name="wrap">true</property>
+            <property name="vexpand">true</property>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkButton" id="error_dialog_close_button">
+            <property name="label" translatable="yes">Close</property>
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+  </object>
+</interface>

@@ -1,5 +1,6 @@
 package main
 
+import "C"
 import (
 	"fmt"
 	"marmalade/internal/devices"
@@ -9,51 +10,39 @@ import (
 )
 
 var camera_indices []uint8
+var is_webcam_refreshing bool
 
-func create_webcam_setting(grid *gtk.Grid, err_ch chan error) {
-	webcam_label := gtk.NewLabel("Webcam:")
-	webcam_label.SetSizeRequest(125, 1)
-	webcam_label.SetHAlign(gtk.AlignStart)
-	webcam_label.SetXAlign(0)
+//export webcam_notify_selected
+func webcam_notify_selected() {
+	if is_webcam_refreshing {
+		return
+	}
 
-	webcam_box := gtk.NewBox(gtk.OrientationHorizontal, 3)
-
-	webcam_input := gtk.NewComboBoxText()
-	webcam_input.SetHExpand(true)
-	webcam_box.Add(webcam_input)
-
-	is_refreshing := false
-
-	fill_camera_list(webcam_input, &is_refreshing)
-
-	webcam_input.Connect("changed", func() {
-		if is_refreshing {
-			return
-		}
-
-		selected := webcam_input.Active()
-		if selected != -1 {
-			index := camera_indices[selected]
-			server.Config.Camera = int(index)
-			update_unsaved_config(true)
-		}
-	})
-
-	webcam_refresh := gtk.NewButtonFromIconName("view-refresh-symbolic", 4)
-	webcam_box.Add(webcam_refresh)
-
-	webcam_refresh.Connect("clicked", func() {
-		err := fill_camera_list(webcam_input, &is_refreshing)
-		if err != nil {
-			err_ch <- err
-		}
-	})
-
-	grid.Attach(webcam_label, 0, 1, 1, 1)
-	grid.Attach(webcam_box, 1, 1, 1, 1)
+	webcam_dropdown := UI.GetObject("webcam_dropdown").(*gtk.ComboBoxText)
+	selected := webcam_dropdown.Active()
+	if selected != -1 {
+		index := camera_indices[selected]
+		server.Config.Camera = int(index)
+		update_unsaved_config(true)
+	}
 }
 
-func fill_camera_list(input *gtk.ComboBoxText, is_refreshing *bool) error {
+//export webcam_refresh_clicked
+func webcam_refresh_clicked() {
+	webcam_dropdown := UI.GetObject("webcam_dropdown").(*gtk.ComboBoxText)
+	err := fill_camera_list(webcam_dropdown)
+	if err != nil {
+		UI.errChannel <- err
+	}
+}
+
+func init_webcam_setting() {
+	webcam_dropdown := UI.GetObject("webcam_dropdown").(*gtk.ComboBoxText)
+	is_webcam_refreshing = false
+	fill_camera_list(webcam_dropdown)
+}
+
+func fill_camera_list(input *gtk.ComboBoxText) error {
 	cameras, err := devices.ListVideoCaptures()
 	if err != nil {
 		return err
@@ -79,13 +68,13 @@ func fill_camera_list(input *gtk.ComboBoxText, is_refreshing *bool) error {
 		}
 	}
 
-	*is_refreshing = true
+	is_webcam_refreshing = true
 
 	if selected_index >= 0 {
 		input.SetActive(selected_index)
-		*is_refreshing = false
+		is_webcam_refreshing = false
 	} else {
-		*is_refreshing = false
+		is_webcam_refreshing = false
 		input.SetActive(-1)
 	}
 

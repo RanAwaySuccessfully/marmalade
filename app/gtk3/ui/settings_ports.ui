@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+
+  <!-- VTS iPhone API -->
+
+  <object class="GtkLabel" id="mimic_label">
+    <property name="visible">false</property>
+    <property name="label" translatable="yes">VTS 3rd Party API:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkBox" id="mimic_box">
+    <property name="visible">false</property>
+    <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+    <property name="spacing">3</property>
+
+    <child>
+      <object class="GtkSwitch" id="mimic_enable">
+        <property name="hexpand">true</property>
+        <property name="halign">GTK_ALIGN_START</property>
+        <property name="active">true</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkButton" id="mimic_settings">
+        <property name="label">Configure</property>
+        <signal name="clicked" handler="create_dialog_vtsapi" />
+        <!--<child>
+          <object class="GtkImage">
+            <property name="icon-name">emblem-system-symbolic</property>
+            <property name="icon-size">4</property>
+            <style>
+              <class name="smallIcon" />
+            </style>
+          </object>
+        </child>-->
+      </object>
+    </child>
+
+  </object>
+
+  <!-- VTS Plugin -->
+
+  <object class="GtkLabel" id="plugin_label">
+    <property name="visible">false</property>
+    <property name="label" translatable="yes">VTS Plugin:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkBox" id="plugin_box">
+    <property name="visible">false</property>
+    <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+    <property name="spacing">3</property>
+
+    <child>
+      <object class="GtkSwitch" id="plugin_enable">
+        <property name="hexpand">true</property>
+        <property name="halign">GTK_ALIGN_START</property>
+        <property name="active">false</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkButton" id="plugin_settings">
+        <property name="label">Configure</property>
+        <signal name="clicked" handler="create_dialog_vtsplugin" />
+      </object>
+    </child>
+
+  </object>
+
+  <!-- VMC Protocol -->
+
+  <object class="GtkLabel" id="vmcap_label">
+    <property name="visible">false</property>
+    <property name="label" translatable="yes">VMC Protocol:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkBox" id="vmcap_box">
+    <property name="visible">false</property>
+    <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+    <property name="spacing">3</property>
+
+    <child>
+      <object class="GtkSwitch" id="vmcap_enable">
+        <property name="hexpand">true</property>
+        <property name="halign">GTK_ALIGN_START</property>
+        <property name="active">false</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkButton" id="vmcap_settings">
+        <property name="label">Configure</property>
+        <signal name="clicked" handler="create_dialog_vmcapi" />
+      </object>
+    </child>
+
+  </object>
+
+</interface>

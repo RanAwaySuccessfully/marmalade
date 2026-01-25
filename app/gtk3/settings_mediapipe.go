@@ -2,12 +2,12 @@ package main
 
 import "C"
 import (
-	"marmalade/app/gtk4/ui"
+	"marmalade/app/gtk3/ui"
 	"marmalade/internal/devices"
 	"marmalade/internal/server"
 	"strings"
 
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
 var gpu_ids []string
@@ -22,7 +22,7 @@ func mediapipe_notify_expanded() {
 	handm_label := UI.GetObject("handm_label").(*gtk.Label)
 	handm_input := UI.GetObject("handm_input").(*gtk.Entry)
 	device_label := UI.GetObject("device_label").(*gtk.Label)
-	device_input := UI.GetObject("device_input").(*gtk.DropDown)
+	device_input := UI.GetObject("device_input").(*gtk.ComboBoxText)
 
 	if expanded {
 		facem_label.SetVisible(true)
@@ -39,6 +39,8 @@ func mediapipe_notify_expanded() {
 		device_label.SetVisible(false)
 		device_input.SetVisible(false)
 	}
+
+	set_window_size()
 }
 
 func init_mediapipe_widgets() {
@@ -65,7 +67,7 @@ func init_mediapipe_widgets() {
 	facem_label := UI.GetObject("facem_label").(*gtk.Label)
 	handm_label := UI.GetObject("handm_label").(*gtk.Label)
 	device_label := UI.GetObject("device_label").(*gtk.Label)
-	device_input := UI.GetObject("device_input").(*gtk.DropDown)
+	device_input := UI.GetObject("device_input").(*gtk.ComboBoxText)
 
 	grid := UI.GetObject("main_grid").(*gtk.Grid)
 	grid.Attach(facem_label, 0, 21, 1, 1)
@@ -77,20 +79,20 @@ func init_mediapipe_widgets() {
 }
 
 func init_gpu_widget() {
-	gpu_input := UI.GetObject("device_input").(*gtk.DropDown)
-
-	gpu_factory := dropdown_all_factory_create()
-	gpu_input.SetFactory(&gpu_factory.ListItemFactory)
-
-	gpu_list_factory := dropdown_list_factory_create(gpu_input)
-	gpu_input.SetListFactory(&gpu_list_factory.ListItemFactory)
+	gpu_input := UI.GetObject("device_input").(*gtk.ComboBoxText)
 
 	fill_gpu_list(gpu_input)
 
-	gpu_input.Connect("notify::selected", func() {
-		selected := gpu_input.Selected()
+	cells := gpu_input.Cells()
+	for _, cell := range cells {
+		cell.SetObjectProperty("width", 50)
+		cell.SetObjectProperty("height", 24)
+	}
 
-		if selected == gtk.InvalidListPosition {
+	gpu_input.Connect("notify::selected", func() {
+		selected := gpu_input.Active()
+
+		if selected == -1 {
 			return
 		}
 
@@ -110,20 +112,20 @@ func init_gpu_widget() {
 	})
 }
 
-func fill_gpu_list(input *gtk.DropDown) error {
+func fill_gpu_list(input *gtk.ComboBoxText) error {
 	gpus, err := devices.ListDisplayControllers()
 
 	gpu_ids = make([]string, 0, len(gpus))
-	device_list := make([]string, 2, len(gpus)+2)
-	device_list[0] = "CPU"
-	device_list[1] = "GPU (Auto)"
+	input.RemoveAll()
+	input.AppendText("CPU")
+	input.AppendText("GPU (Auto)")
 
 	selected_index := -1
 
 	if len(gpus) > 0 {
 		for i, device := range gpus {
 			camera_string := "GPU: " + device.Device
-			device_list = append(device_list, camera_string)
+			input.AppendText(camera_string)
 
 			replacer := strings.NewReplacer(":", "_", ".", "_")
 			gpu_id := "pci-" + replacer.Replace(device.Slot)
@@ -135,21 +137,18 @@ func fill_gpu_list(input *gtk.DropDown) error {
 		}
 	}
 
-	model := gtk.NewStringList(device_list)
-	input.SetModel(model)
-
 	if selected_index >= 0 {
-		input.SetSelected(uint(selected_index + 2))
+		input.SetActive(selected_index + 2)
 	} else if server.Config.UseGpu {
 
 		if server.Config.PrimeId == "" {
-			input.SetSelected(1)
+			input.SetActive(1)
 		} else {
-			input.SetSelected(gtk.InvalidListPosition)
+			input.SetActive(-1)
 		}
 
 	} else {
-		input.SetSelected(0)
+		input.SetActive(0)
 	}
 
 	return err

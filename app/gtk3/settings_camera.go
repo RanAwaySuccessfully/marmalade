@@ -1,145 +1,122 @@
 package main
 
+import "C"
 import (
+	"marmalade/app/gtk3/ui"
 	"marmalade/internal/server"
 	"strconv"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
-type cameraWidgets struct {
-	width_label  *gtk.Label
-	width_input  *gtk.Entry
-	height_label *gtk.Label
-	height_input *gtk.Entry
-	fps_label    *gtk.Label
-	fps_input    *gtk.Entry
-	format_label *gtk.Label
-	format_input *gtk.Entry
-	camera_info  *gtk.Button
+//export camera_notify_expanded
+func camera_notify_expanded() {
+	camera_row := UI.GetObject("camera_expander").(*gtk.Expander)
+	expanded := camera_row.Expanded()
+
+	width_label := UI.GetObject("width_label").(*gtk.Label)
+	width_input := UI.GetObject("width_input").(*gtk.Entry)
+	height_label := UI.GetObject("height_label").(*gtk.Label)
+	height_input := UI.GetObject("height_input").(*gtk.Entry)
+	fps_label := UI.GetObject("fps_label").(*gtk.Label)
+	fps_input := UI.GetObject("fps_input").(*gtk.Entry)
+	format_label := UI.GetObject("format_label").(*gtk.Label)
+	format_input := UI.GetObject("format_input").(*gtk.Entry)
+	camera_info := UI.GetObject("camera_info").(*gtk.Button)
+
+	if expanded {
+		width_label.SetVisible(true)
+		width_input.SetVisible(true)
+		height_label.SetVisible(true)
+		height_input.SetVisible(true)
+		fps_label.SetVisible(true)
+		fps_input.SetVisible(true)
+		format_label.SetVisible(true)
+		format_input.SetVisible(true)
+		camera_info.SetVisible(true)
+	} else {
+		width_label.SetVisible(false)
+		width_input.SetVisible(false)
+		height_label.SetVisible(false)
+		height_input.SetVisible(false)
+		fps_label.SetVisible(false)
+		fps_input.SetVisible(false)
+		format_label.SetVisible(false)
+		format_input.SetVisible(false)
+		camera_info.SetVisible(false)
+	}
+
+	set_window_size()
 }
 
-func create_camera_settings(grid *gtk.Grid, window *gtk.ApplicationWindow) {
-	camera_row := gtk.NewExpander("Camera settings")
-	camera_row.StyleContext().AddClass("boldText")
-	camera_row.SetMarginTop(5)
-	camera_row.SetMarginBottom(5)
+func init_camera_widgets() {
+	UI.gtkBuilder.AddFromString(ui.SettingsCamera)
 
-	camera_widgets := create_camera_widgets()
-	grid.Attach(camera_row, 0, 2, 2, 1)
+	width := ""
+	if server.Config.Width != 0 {
+		width = strconv.Itoa(server.Config.Width) // convert int to string
+	}
 
-	camera_row.Connect("notify::expanded", func() {
-		expanded := camera_row.Expanded()
-		row := query_child_row(grid, camera_row)
-		row++
-
-		if expanded {
-			show_camera_widgets(grid, &camera_widgets, row)
-		} else {
-			hide_camera_widgets(grid, row)
-			set_window_size(window)
-		}
-	})
-}
-
-func create_camera_widgets() cameraWidgets {
-	width_label := gtk.NewLabel("Width:")
-	width_label.SetHAlign(gtk.AlignStart)
-
-	width_input := gtk.NewEntry()
-	width := strconv.Itoa(server.Config.Width) // convert int to string
+	width_input := UI.GetObject("width_input").(*gtk.Entry)
 	width_input.SetText(width)
-	width_input.SetPlaceholderText("1280")
-
 	width_input.ConnectChanged(func() {
 		update_numeric_config(width_input, &server.Config.Width)
 	})
 
-	height_label := gtk.NewLabel("Height:")
-	height_label.SetHAlign(gtk.AlignStart)
+	height := ""
+	if server.Config.Height != 0 {
+		height = strconv.Itoa(server.Config.Height) // convert int to string
+	}
 
-	height_input := gtk.NewEntry()
-	height := strconv.Itoa(server.Config.Height) // convert int to string
+	height_input := UI.GetObject("height_input").(*gtk.Entry)
 	height_input.SetText(height)
-	height_input.SetPlaceholderText("720")
-
-	height_input.Connect("changed", func() {
+	height_input.ConnectChanged(func() {
 		update_numeric_config(height_input, &server.Config.Height)
 	})
 
-	fps_label := gtk.NewLabel("Frame rate (FPS):")
-	fps_label.SetHAlign(gtk.AlignStart)
+	fps := ""
+	if server.Config.FPS != 0 {
+		fps = strconv.Itoa(server.Config.FPS) // convert int to string
+	}
 
-	fps_input := gtk.NewEntry()
-	fps := strconv.Itoa(server.Config.FPS) // convert int to string
+	fps_input := UI.GetObject("fps_input").(*gtk.Entry)
 	fps_input.SetText(fps)
-	fps_input.SetPlaceholderText("30")
-
-	fps_input.Connect("changed", func() {
+	fps_input.ConnectChanged(func() {
 		update_numeric_config(fps_input, &server.Config.FPS)
 	})
 
-	format_label := gtk.NewLabel("Format:")
-	format_label.SetHAlign(gtk.AlignStart)
-	format_input := gtk.NewEntry()
+	format_input := UI.GetObject("format_input").(*gtk.Entry)
 	format_input.SetText(server.Config.Format)
-	format_input.SetPlaceholderText("YUYV")
-
-	format_input.Connect("changed", func() {
+	format_input.ConnectChanged(func() {
 		value := format_input.Text()
 		server.Config.Format = value
 		update_unsaved_config(true)
 	})
 
-	camera_info := gtk.NewButtonWithLabel("View supported settings")
+	camera_info := UI.GetObject("camera_info").(*gtk.Button)
 	camera_info.Connect("clicked", func() {
 		camera_id := uint8(server.Config.Camera)
-		create_camera_info_window(camera_id)
+		err := create_camera_info_window(camera_id)
+		if err != nil {
+			UI.errChannel <- err
+		}
 	})
 
-	widgets := cameraWidgets{
-		width_label,
-		width_input,
-		height_label,
-		height_input,
-		fps_label,
-		fps_input,
-		format_label,
-		format_input,
-		camera_info,
-	}
+	width_label := UI.GetObject("width_label").(*gtk.Label)
+	height_label := UI.GetObject("height_label").(*gtk.Label)
+	fps_label := UI.GetObject("fps_label").(*gtk.Label)
+	format_label := UI.GetObject("format_label").(*gtk.Label)
 
-	return widgets
-}
+	grid := UI.GetObject("main_grid").(*gtk.Grid)
+	grid.Attach(width_label, 0, 11, 1, 1)
+	grid.Attach(width_input, 1, 11, 1, 1)
+	grid.Attach(height_label, 0, 12, 1, 1)
+	grid.Attach(height_input, 1, 12, 1, 1)
+	grid.Attach(fps_label, 0, 13, 1, 1)
+	grid.Attach(fps_input, 1, 13, 1, 1)
+	grid.Attach(format_label, 0, 14, 1, 1)
+	grid.Attach(format_input, 1, 14, 1, 1)
+	grid.Attach(camera_info, 1, 15, 1, 1)
 
-func show_camera_widgets(grid *gtk.Grid, widgets *cameraWidgets, row int) {
-	grid.InsertRow(row)
-	grid.InsertRow(row + 1)
-	grid.InsertRow(row + 2)
-	grid.InsertRow(row + 3)
-	grid.InsertRow(row + 4)
-
-	grid.Attach(widgets.width_label, 0, row, 1, 1)
-	grid.Attach(widgets.width_input, 1, row, 1, 1)
-
-	grid.Attach(widgets.height_label, 0, row+1, 1, 1)
-	grid.Attach(widgets.height_input, 1, row+1, 1, 1)
-
-	grid.Attach(widgets.fps_label, 0, row+2, 1, 1)
-	grid.Attach(widgets.fps_input, 1, row+2, 1, 1)
-
-	grid.Attach(widgets.format_label, 0, row+3, 1, 1)
-	grid.Attach(widgets.format_input, 1, row+3, 1, 1)
-
-	grid.Attach(widgets.camera_info, 1, row+4, 1, 1)
-
-	grid.ShowAll()
-}
-
-func hide_camera_widgets(grid *gtk.Grid, row int) {
-	grid.RemoveRow(row + 4)
-	grid.RemoveRow(row + 3)
-	grid.RemoveRow(row + 2)
-	grid.RemoveRow(row + 1)
-	grid.RemoveRow(row)
+	return
 }

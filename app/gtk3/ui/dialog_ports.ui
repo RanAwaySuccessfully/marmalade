@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="ports_dialog">
+    <property name="default-width">300</property>
+    <property name="default-height">50</property>
+    <property name="resizable">false</property>
+
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+        <property name="spacing">5</property>
+        <property name="margin-start">20</property>
+        <property name="margin-end">20</property>
+
+        <child>
+          <object class="GtkLabel" id="ports_label">
+            <property name="halign">GTK_ALIGN_CENTER</property>
+            <property name="hexpand">true</property>
+            <property name="wrap">true</property>
+            <property name="max-width-chars">40</property>
+        <property name="margin-top">12</property>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkListBox">
+            <property name="margin-top">10</property>
+            <property name="margin-bottom">10</property>
+
+            <child>
+              <object class="GtkListBoxRow">
+                <property name="activatable">false</property>
+                <property name="selectable">false</property>
+
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Port:</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="hexpand">true</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="ports_input">
+                        <property name="halign">GTK_ALIGN_END</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkListBoxRow" id="ports_facem_row">
+                <property name="activatable">false</property>
+                <property name="selectable">false</property>
+
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Face tracking:</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="hexpand">true</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="ports_facem">
+                        <property name="halign">GTK_ALIGN_END</property>
+                        <property name="active">false</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkListBoxRow" id="ports_handm_row">
+                <property name="activatable">false</property>
+                <property name="selectable">false</property>
+
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Hand tracking:</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="hexpand">true</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="ports_handm">
+                        <property name="halign">GTK_ALIGN_END</property>
+                        <property name="active">false</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkButton" id="ports_dialog_close_button">
+            <property name="label" translatable="yes">Close</property>
+            <property name="margin-bottom">10</property>
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+  </object>
+</interface>

@@ -9,6 +9,5 @@
     <property name="copyright">© 2025 RanAwaySuccessfully</property>
     <property name="authors">RanAwaySuccessfully</property>
     <property name="logo-icon-name">xyz.randev.marmalade</property>
-    <property name="visible">true</property>
   </object>
 </interface>

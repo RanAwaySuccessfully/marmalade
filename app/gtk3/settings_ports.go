@@ -2,12 +2,11 @@ package main
 
 import "C"
 import (
-	"marmalade/app/gtk4/ui"
+	"marmalade/app/gtk3/ui"
 	"marmalade/internal/server"
-	"strconv"
 
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
 //export ports_notify_expanded
@@ -37,6 +36,8 @@ func ports_notify_expanded() {
 		vmcap_label.SetVisible(false)
 		vmcap_box.SetVisible(false)
 	}
+
+	set_window_size()
 }
 
 //export ports_plugin_popover_closed
@@ -45,7 +46,7 @@ func ports_plugin_popover_closed() {
 	menu_model := UI.GetObject("plugin_menu").(*gio.Menu)
 
 	plugin_settings.SetMenuModel(menu_model)
-	plugin_settings.Popdown()
+	//plugin_settings.Popdown()
 }
 
 //export ports_vmcap_popover_closed
@@ -54,7 +55,7 @@ func ports_vmcap_popover_closed() {
 	menu_model := UI.GetObject("vmcap_menu").(*gio.Menu)
 
 	vmcap_settings.SetMenuModel(menu_model)
-	vmcap_settings.Popdown()
+	//vmcap_settings.Popdown()
 }
 
 func init_ports_settings() {
@@ -75,17 +76,6 @@ func init_ports_settings_vtsapi(grid *gtk.Grid) {
 		return false
 	})
 
-	vtsapi_port_value := ""
-	if server.Config.VTSApi.Port != 0 {
-		vtsapi_port_value = strconv.Itoa(server.Config.VTSApi.Port) // convert int to string
-	}
-
-	vtsapi_port := UI.GetObject("mimic_port").(*gtk.Entry)
-	vtsapi_port.SetText(vtsapi_port_value)
-	vtsapi_port.ConnectChanged(func() {
-		update_numeric_config(vtsapi_port, &server.Config.VTSApi.Port)
-	})
-
 	mimic_label := UI.GetObject("mimic_label").(*gtk.Label)
 	mimic_box := UI.GetObject("mimic_box").(*gtk.Box)
 	grid.Attach(mimic_label, 0, 31, 1, 1)
@@ -101,17 +91,6 @@ func init_ports_settings_vtsplugin(grid *gtk.Grid) {
 		return false
 	})
 
-	plugin_port_value := ""
-	if server.Config.VTSPlugin.Port != 0 {
-		plugin_port_value = strconv.Itoa(server.Config.VTSPlugin.Port) // convert int to string
-	}
-
-	plugin_port := UI.GetObject("plugin_port").(*gtk.Entry)
-	plugin_port.SetText(plugin_port_value)
-	plugin_port.ConnectChanged(func() {
-		update_numeric_config(plugin_port, &server.Config.VTSPlugin.Port)
-	})
-
 	plugin_label := UI.GetObject("plugin_label").(*gtk.Label)
 	plugin_box := UI.GetObject("plugin_box").(*gtk.Box)
 	grid.Attach(plugin_label, 0, 32, 1, 1)
@@ -125,17 +104,6 @@ func init_ports_settings_vmcap(grid *gtk.Grid) {
 		server.Config.VMCApi.Enabled = state
 		update_unsaved_config(true)
 		return false
-	})
-
-	vmcap_port_value := ""
-	if server.Config.VMCApi.Port != 0 {
-		vmcap_port_value = strconv.Itoa(server.Config.VMCApi.Port) // convert int to string
-	}
-
-	vmcap_port := UI.GetObject("vmcap_port").(*gtk.Entry)
-	vmcap_port.SetText(vmcap_port_value)
-	vmcap_port.ConnectChanged(func() {
-		update_numeric_config(vmcap_port, &server.Config.VMCApi.Port)
 	})
 
 	vmcap_label := UI.GetObject("vmcap_label").(*gtk.Label)

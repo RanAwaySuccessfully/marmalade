@@ -27,8 +27,8 @@ func webcam_notify_selected() {
 	}
 }
 
-//export signal_webcam_refresh_clicked
-func signal_webcam_refresh_clicked() {
+//export webcam_refresh_clicked
+func webcam_refresh_clicked() {
 	webcam_dropdown := UI.GetObject("webcam_dropdown").(*gtk.DropDown)
 	err := fill_camera_list(webcam_dropdown)
 	if err != nil {

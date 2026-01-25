@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="camerainfo_dialog">
+    <property name="default-width">400</property>
+    <property name="default-height">550</property>
+    <property name="resizable">false</property>
+
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="show-close-button">true</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+        <property name="spacing">0</property>
+
+        <child>
+          <object class="GtkBox">
+          <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+          <property name="spacing">10</property>
+
+          <child>
+            <object class="GtkStackSidebar" id="camerainfo_dialog_sidebar">
+            </object>
+          </child>
+
+          <child>
+            <object class="GtkStack" id="camerainfo_dialog_stack">
+              <property name="vexpand">true</property>
+            </object>
+          </child>
+
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkActionBar">
+
+            <child type="center">
+              <object class="GtkButton" id="camerainfo_dialog_close">
+                <property name="label" translatable="yes">Close</property>
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+  </object>
+
+  <object class="GtkScrolledWindow" id="camerainfo_dialog_detail">
+    <child>
+      <object class="GtkViewport">
+        <child>
+          <object class="GtkGrid" id="camerainfo_dialog_grid">
+            <property name="row-spacing">7</property>
+            <property name="column-spacing">10</property>
+            <property name="margin-start">2</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">10</property>
+            <property name="margin-bottom">12</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
+</interface>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+
+  <object class="GtkLabel" id="width_label">
+    <property name="visible">false</property>
+    <property name="label" translatable="yes">Width:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkEntry" id="width_input">
+    <property name="visible">false</property>
+    <property name="placeholder-text">1280</property>
+  </object>
+
+  <object class="GtkLabel" id="height_label">
+    <property name="visible">false</property>
+    <property name="label" translatable="yes">Height:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkEntry" id="height_input">
+    <property name="visible">false</property>
+    <property name="placeholder-text">720</property>
+  </object>
+
+  <object class="GtkLabel" id="fps_label">
+    <property name="visible">false</property>
+    <property name="label" translatable="yes">Frame rate (FPS):</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkEntry" id="fps_input">
+    <property name="visible">false</property>
+    <property name="placeholder-text">30</property>
+  </object>
+
+  <object class="GtkLabel" id="format_label">
+    <property name="visible">false</property>
+    <property name="label" translatable="yes">Format:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkEntry" id="format_input">
+    <property name="visible">false</property>
+    <property name="placeholder-text">YUYV</property>
+  </object>
+
+  <object class="GtkButton" id="camera_info">
+    <property name="visible">false</property>
+    <property name="label">View supported settings</property>
+  </object>
+
+</interface>

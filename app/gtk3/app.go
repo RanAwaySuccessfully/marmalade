@@ -1,20 +1,18 @@
 package main
 
+import "C"
 import (
 	"fmt"
 	"marmalade/app/gtk3/ui"
 	"marmalade/internal/resources"
 	"marmalade/internal/server"
 	"os"
-	"regexp"
-	"strconv"
 
-	"github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
-var savedConfigRevealer *gtk.Revealer
+var UI Builder
 
 func main() {
 	isIncompatible := gtk.CheckVersion(3, 24, 0)
@@ -33,161 +31,103 @@ func main() {
 
 	app := gtk.NewApplication("xyz.randev.marmalade.gtk3", gio.ApplicationDefaultFlags)
 	app.ConnectActivate(func() {
-		activate3(app)
-		gtk.Main()
+		// GTK3 app is ready to go, start building UI from here
+
+		server.Config.Read()
+
+		UI = NewBuilder(ui.App)
+		UI.errChannel = make(chan error, 1)
+
+		window := UI.GetObject("main_app").(*gtk.ApplicationWindow)
+		app.AddWindow(&window.Window)
+
+		init_webcam_setting()
+		init_camera_widgets()
+		init_mediapipe_widgets()
+		init_ports_settings()
+
+		/* ERROR HANDLING */
+		button := UI.GetObject("main_button").(*gtk.Button)
+		go error_handler(button, UI.errChannel)
+
+		window.SetVisible(true)
+		window.ShowAll()
+
+		listclients_button := UI.GetObject("list_clients_button").(*gtk.Button)
+		listclients_button.SetVisible(false)
+
+		camera_notify_expanded()
+		mediapipe_notify_expanded()
+		ports_notify_expanded()
+
+		UI.gtkBuilder.ConnectSignals(nil)
+
+		go gtk.Main()
 	})
+
+	defer server.Server.Stop()
 
 	if code := app.Run(os.Args); code > 0 {
 		os.Exit(code)
 	}
 }
 
-func activate3(app *gtk.Application) {
-	builder := gtk.NewBuilderFromString(ui.App)
+//export about_button_clicked
+func about_button_clicked() {
+	version := "v" + resources.EmbeddedVersion
 
-	window := get_object(builder, "main_app").(*gtk.ApplicationWindow)
-	app.AddWindow(&window.Window)
-	window.SetVisible(true)
-	window.ShowAll()
-}
+	builder := NewBuilder(ui.DialogAbout)
+	dialog := builder.GetObject("about_dialog").(*gtk.AboutDialog)
 
-func get_object(builder *gtk.Builder, id string) glib.Objector {
-	return builder.GetObject(id).Cast()
-}
+	artists := make([]string, 0, 1)
+	artists = append(artists, "vexamour")
 
-func activate(app *gtk.Application) {
-	server.Config.Read()
+	dialog.AddCreditSection("Logo by", artists)
+	dialog.SetVersion(version)
 
-	window := gtk.NewApplicationWindow(app)
-	window.ConnectDestroy(gtk.MainQuit)
-	titlebar := gtk.NewHeaderBar()
-	titlebar.SetShowCloseButton(true)
+	dialog.SetVisible(true)
 
-	window.SetTitlebar(titlebar)
-	window.SetTitle("Marmalade")
-	window.SetResizable(false)
-	set_window_size(window)
-
-	about_button := gtk.NewButtonFromIconName("help-about-symbolic", 4)
-	titlebar.PackStart(about_button)
-	about_button.Connect("clicked", create_about_dialog)
-
-	/* MAIN CONTENT */
-
-	main_box := gtk.NewBox(gtk.OrientationVertical, 0)
-	window.Add(main_box)
-
-	grid := gtk.NewGrid()
-	grid.SetRowSpacing(7)
-	grid.SetColumnSpacing(0)
-	grid.SetMarginStart(30)
-	grid.SetMarginEnd(30)
-	grid.SetMarginTop(15)
-	grid.SetMarginBottom(20)
-	main_box.PackStart(grid, true, true, 0)
-
-	button := gtk.NewButtonWithLabel("Start MediaPipe")
-	button.SetHExpand(true)
-	grid.Attach(button, 0, 0, 2, 1)
-
-	err_channel := make(chan error, 1)
-
-	button.Connect("clicked", func() {
-		srv := &server.Server
-		started := srv.Started()
-
-		if started {
-			srv.Stop()
-			button.SetLabel("Stopping MediaPipe...")
-			button.SetSensitive(false)
-		} else {
-			go srv.Start(err_channel, func() {})
-			button.SetLabel("Stop MediaPipe")
+	dialog.ConnectResponse(func(response int) {
+		if response == int(gtk.ResponseDeleteEvent) {
+			dialog.Close()
 		}
 	})
-
-	create_webcam_setting(grid, err_channel)
-	create_camera_settings(grid, window)
-	create_misc_settings(grid, window)
-
-	savedConfigRevealer = gtk.NewRevealer()
-	main_box.Add(savedConfigRevealer)
-	create_footer()
-
-	/* ERROR HANDLING */
-
-	go error_handler(button, err_channel)
-
-	window.SetVisible(true)
-	window.ShowAll()
 }
 
-func set_window_size(window *gtk.ApplicationWindow) {
-	window.SetSizeRequest(450, 150)
-}
+//export main_button_clicked
+func main_button_clicked() {
+	button := UI.GetObject("main_button").(*gtk.Button)
+	srv := &server.Server
+	started := srv.Started()
 
-func create_footer() {
-	footer_box := gtk.NewBox(gtk.OrientationVertical, 5)
-	savedConfigRevealer.Add(footer_box)
+	listclients_button := UI.GetObject("list_clients_button").(*gtk.Button)
 
-	action_bar := gtk.NewActionBar()
-	footer_box.Add(action_bar)
+	if started {
+		srv.Stop()
+		button.SetLabel("Stopping MediaPipe...")
+		button.SetSensitive(false)
 
-	footer_warning := gtk.NewLabel("You have unsaved changes.")
-	action_bar.SetCenterWidget(footer_warning)
+		listclients_button.SetVisible(false)
+	} else {
+		go srv.Start(UI.errChannel, func() {
+			button.SetLabel("Stop MediaPipe")
+			button.SetSensitive(true)
+		})
 
-	save_button := gtk.NewButtonWithLabel("Save")
-	save_button.Connect("clicked", func() {
-		server.Config.Save()
-		update_unsaved_config(false)
-	})
+		button.SetLabel("Starting MediaPipe...")
+		button.SetSensitive(false)
 
-	action_bar.PackEnd(save_button)
-}
-
-func update_numeric_config(input *gtk.Entry, target *int) error {
-	value := input.Text()
-	if value == "" {
-		update_unsaved_config(true)
-		*target = 0
-		return nil
-	}
-
-	validator, err := regexp.Compile(`\D`)
-	if err != nil {
-		return err
-	}
-
-	not_numeric := validator.MatchString(value)
-	if not_numeric {
-		value = validator.ReplaceAllString(value, "")
-		pos := input.Position()
-		input.SetText(value)
-		input.SetPosition(pos - 1)
-		return nil
-	}
-
-	number, err := strconv.Atoi(value) // convert string to int
-	if err != nil {
-		return err
-	}
-
-	update_unsaved_config(true)
-
-	*target = number
-	return nil
-}
-
-func update_unsaved_config(value bool) {
-	if savedConfigRevealer != nil {
-		savedConfigRevealer.SetRevealChild(value)
+		listclients_button.SetVisible(true)
 	}
 }
 
-func query_child_row(grid *gtk.Grid, child gtk.Widgetter) int {
-	var row64 int64
-	value := glib.NewValue(row64)
-	grid.ChildGetProperty(child, "top-attach", value)
-	row64 = value.GoValueAsType(glib.TypeInt64).(int64)
-	return int(row64)
+//export save_button_clicked
+func save_button_clicked() {
+	server.Config.Save()
+	update_unsaved_config(false)
+}
+
+//export listclients_button_clicked
+func listclients_button_clicked() {
+	listclients_show_dialog()
 }

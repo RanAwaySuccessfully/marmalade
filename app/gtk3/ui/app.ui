@@ -18,7 +18,7 @@
                 <property name="icon-size">4</property>
               </object>
             </child>
-            <signal name="clicked" handler="about_dialog_open" />
+            <signal name="clicked" handler="about_button_clicked" />
           </object>
           <packing>
             <property name="pack_type">start</property>
@@ -46,10 +46,29 @@
             <!-- HEADER / ALWAYS VISIBLE -->
 
             <child>
-              <object class="GtkButton" id="main_button">
-                <property name="label" translatable="yes">Start MediaPipe</property>
-                <property name="hexpand">true</property>
-                <signal name="clicked" handler="main_button_clicked" />
+              <object class="GtkBox">
+                <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+                <property name="spacing">3</property>
+                <child>
+                  <object class="GtkButton" id="main_button">
+                    <property name="label" translatable="yes">Start MediaPipe</property>
+                    <property name="hexpand">true</property>
+                    <signal name="clicked" handler="main_button_clicked" />
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkButton" id="list_clients_button">
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">view-list-symbolic</property>
+                        <property name="icon-size">4</property>
+                      </object>
+                    </child>
+                    <signal name="clicked" handler="listclients_button_clicked" />
+                  </object>
+                </child>
+
               </object>
               <packing>
                   <property name="top-attach">0</property>
@@ -116,7 +135,7 @@
                 </style>
               </object>
               <packing>
-                <property name="top-attach">2</property>
+                <property name="top-attach">10</property>
                 <property name="left-attach">0</property>
                 <property name="width">2</property>
               </packing>
@@ -133,7 +152,7 @@
                 </style>
               </object>
               <packing>
-                <property name="top-attach">3</property>
+                <property name="top-attach">20</property>
                 <property name="left-attach">0</property>
                 <property name="width">2</property>
               </packing>
@@ -144,12 +163,13 @@
                 <property name="label" translatable="yes">Connection / Port settings</property>
                 <property name="margin-top">5</property>
                 <property name="margin-bottom">5</property>
+                <signal name="notify::expanded" handler="ports_notify_expanded" />
                 <style>
                   <class name="boldText" />
                 </style>
               </object>
               <packing>
-                <property name="top-attach">4</property>
+                <property name="top-attach">30</property>
                 <property name="left-attach">0</property>
                 <property name="width">2</property>
               </packing>

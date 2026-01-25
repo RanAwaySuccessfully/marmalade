@@ -12,7 +12,7 @@
         <child type="start">
           <object class="GtkButton">
             <property name="icon-name">help-about-symbolic</property>
-            <signal name="clicked" handler="signal_about_button_clicked" />
+            <signal name="clicked" handler="about_button_clicked" />
           </object>
         </child>
 
@@ -50,7 +50,7 @@
                   <object class="GtkButton" id="main_button">
                     <property name="label" translatable="yes">Start MediaPipe</property>
                     <property name="hexpand">true</property>
-                    <signal name="clicked" handler="signal_main_button_clicked" />
+                    <signal name="clicked" handler="main_button_clicked" />
                   </object>
                 </child>
 
@@ -58,7 +58,7 @@
                   <object class="GtkButton" id="list_clients_button">
                     <property name="icon-name">view-list-symbolic</property>
                     <property name="visible">false</property>
-                    <signal name="clicked" handler="signal_listclients_button_clicked" />
+                    <signal name="clicked" handler="listclients_button_clicked" />
                   </object>
                 </child>
 
@@ -97,7 +97,7 @@
                 <child>
                   <object class="GtkButton" id="webcam_refresh">
                     <property name="icon-name">view-refresh-symbolic</property>
-                    <signal name="clicked" handler="signal_webcam_refresh_clicked" />
+                    <signal name="clicked" handler="webcam_refresh_clicked" />
                   </object>
                 </child>
 
@@ -174,7 +174,7 @@
                 <child type="end">
                   <object class="GtkButton">
                     <property name="label" translatable="yes">Save</property>
-                    <signal name="clicked" handler="signal_save_button_clicked" />
+                    <signal name="clicked" handler="save_button_clicked" />
                   </object>
                 </child>
 

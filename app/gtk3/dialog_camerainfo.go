@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"marmalade/app/gtk3/ui"
 	"marmalade/internal/devices"
 	"slices"
 	"strconv"
@@ -17,29 +18,16 @@ func create_camera_info_window(camera_id uint8) error {
 		return err
 	}
 
-	window := gtk.NewWindow(gtk.WindowToplevel)
+	builder := NewBuilder(ui.DialogCameraInfo)
+	stack := builder.GetObject("camerainfo_dialog_stack").(*gtk.Stack)
 
+	window := builder.GetObject("camerainfo_dialog").(*gtk.Window)
 	window.SetTitle("Marmalade - " + camera.Name)
-	window.SetDefaultSize(400, 550)
-	window.SetResizable(false)
-	window.SetVisible(true)
-
-	box := gtk.NewBox(gtk.OrientationVertical, 0)
-	window.Add(box)
-
-	content_box := gtk.NewBox(gtk.OrientationHorizontal, 10)
-
-	stack := gtk.NewStack()
 
 	for _, format := range camera.Formats {
 
-		grid := gtk.NewGrid()
-		grid.SetRowSpacing(7)
-		grid.SetColumnSpacing(10)
-		grid.SetMarginStart(2)
-		grid.SetMarginEnd(12)
-		grid.SetMarginTop(10)
-		grid.SetMarginBottom(12)
+		grid_builder := NewBuilder(ui.DialogCameraInfo)
+		grid := grid_builder.GetObject("camerainfo_dialog_grid").(*gtk.Grid)
 
 		compressed := "No"
 		if format.Compressed {
@@ -58,38 +46,20 @@ func create_camera_info_window(camera_id uint8) error {
 
 		create_resolution_list(&format, grid)
 
-		scrollable_content := gtk.NewViewport(nil, nil)
-		scrollable_content.Add(grid)
-
-		scrollable_container := gtk.NewScrolledWindow(nil, nil)
-		scrollable_container.Add(scrollable_content)
-
+		scrollable_container := grid_builder.GetObject("camerainfo_dialog_detail").(*gtk.ScrolledWindow)
 		stack.AddTitled(scrollable_container, format.Id, format.Id)
 	}
 
-	sidebar := gtk.NewStackSidebar()
+	sidebar := builder.GetObject("camerainfo_dialog_sidebar").(*gtk.StackSidebar)
 	sidebar.SetStack(stack)
-	sidebar.SetVExpand(true)
 
-	content_box.Add(sidebar)
-	content_box.Add(stack)
-
-	box.Add(content_box)
-
-	action_bar := gtk.NewActionBar()
-	box.Add(action_bar)
-
-	button := gtk.NewButton()
-	button.SetLabel("Close")
-
-	action_bar.SetCenterWidget(button)
-
-	window.ShowAll()
-
-	button.Connect("clicked", func() {
+	button := builder.GetObject("camerainfo_dialog_close").(*gtk.Button)
+	button.ConnectClicked(func() {
 		window.Destroy()
 	})
 
+	window.SetVisible(true)
+	window.ShowAll()
 	return nil
 }
 
@@ -97,6 +67,10 @@ func create_resolution_list(format *devices.VideoFormat, grid *gtk.Grid) {
 	line_index := 3
 
 	var header_text string
+
+	if len(format.Resolutions) == 0 {
+		return
+	}
 
 	frameSizeType := format.Resolutions[0].Data.Type
 

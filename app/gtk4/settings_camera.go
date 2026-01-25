@@ -11,12 +11,8 @@ import (
 
 //export camera_notify_expanded
 func camera_notify_expanded() {
-	grid := UI.GetObject("main_grid").(*gtk.Grid)
 	camera_row := UI.GetObject("camera_expander").(*gtk.Expander)
-
 	expanded := camera_row.Expanded()
-	_, row, _, _ := grid.QueryChild(camera_row)
-	row++
 
 	resolution_label := UI.GetObject("resolution_label").(*gtk.Label)
 	resolution_box := UI.GetObject("resolution_box").(*gtk.Box)
