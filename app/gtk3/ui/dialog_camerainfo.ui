@@ -5,12 +5,6 @@
     <property name="default-height">550</property>
     <property name="resizable">false</property>
 
-    <child type="titlebar">
-      <object class="GtkHeaderBar">
-        <property name="show-close-button">true</property>
-      </object>
-    </child>
-
     <child>
       <object class="GtkBox">
         <property name="orientation">GTK_ORIENTATION_VERTICAL</property>

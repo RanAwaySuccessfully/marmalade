@@ -1,16 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <object class="GtkWindow" id="listclient_dialog">
+    <property name="title" translatable="yes">Marmalade - Client List</property>
     <property name="default-width">400</property>
     <property name="default-height">550</property>
     <property name="resizable">false</property>
-
-    <child type="titlebar">
-      <object class="GtkHeaderBar">
-        <property name="title" translatable="yes">Marmalade - Client List</property>
-        <property name="show-close-button">true</property>
-      </object>
-    </child>
 
     <child>
       <object class="GtkBox">

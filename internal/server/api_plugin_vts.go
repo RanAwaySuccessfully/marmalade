@@ -31,7 +31,7 @@ type vtsPluginMessage struct {
 	MessageType string `json:"messageType"`
 }
 
-func (plugin *VTSPlugin) listen(err_ch chan error) {
+func (plugin *VTSPlugin) Listen(err_ch chan error) {
 	plugin.callbacks = make(map[string]*vtsPluginCallback)
 	plugin.authenticated = false
 	plugin.closed = false
@@ -121,6 +121,7 @@ func (plugin *VTSPlugin) handleMessage(err_ch chan error) {
 		callback := *ptr
 		callback(msg_map, err_ch)
 	} else {
+		fmt.Printf("[%d] %s\n", msg.Timestamp, msg.MessageType)
 		// handle messages that don't fit into the req/res architecture
 	}
 }
@@ -225,13 +226,13 @@ func (plugin *VTSPlugin) handleAuth(msg_map map[string]any, err_ch chan error) {
 
 // SEND MEDIAPIPE DATA
 
-type vtsPayloadMessageLive2D struct {
+type vtsParameter struct {
 	Id     string  `json:"id"`
 	Weight float64 `json:"weight"`
-	Value  float64 `json:"value"`
+	Value  float32 `json:"value"`
 }
 
-func (plugin *VTSPlugin) send(mp_data *TrackingData, err_ch chan error) {
+func (plugin *VTSPlugin) Send(mp_data *TrackingData, err_ch chan error) {
 	if !plugin.authenticated {
 		return
 	}
@@ -241,15 +242,57 @@ func (plugin *VTSPlugin) send(mp_data *TrackingData, err_ch chan error) {
 
 	// now the magic starts!
 
-	payload_parameters := make([]vtsPayloadMessageLive2D, 0, 100)
+	payload_parameters := make([]vtsParameter, 0, 100)
 
-	parameter1 := vtsPayloadMessageLive2D{
-		Id:     "FaceAngleX",
-		Weight: 1,
-		Value:  12.31, // between -1000000 and 1000000
-	}
+	/*
+		payload_parameters = append(payload_parameters, vtsParameter{
+			Id:     "FaceAngleX",
+			Weight: 1,
+			Value:  12.31, // between -1000000 and 1000000
+		})
+	*/
 
-	payload_parameters = append(payload_parameters, parameter1)
+	//add_parameter(&payload_parameters, "MousePositionX", 12.31)
+	//add_parameter(&payload_parameters, "MousePositionY", 12.31)
+
+	format_vts_plugin_facem(mp_data.FaceData, &payload_parameters)
+
+	/*
+		if mp_data.Type == HandTrackingType {
+			add_parameter(&payload_parameters, "HandLeftFound", 12.31)
+			add_parameter(&payload_parameters, "HandRightFound", 12.31)
+			add_parameter(&payload_parameters, "BothHandsFound", 12.31)
+			add_parameter(&payload_parameters, "HandDistance", 12.31)
+
+			add_parameter(&payload_parameters, "HandLeftPositionX", 12.31)
+			add_parameter(&payload_parameters, "HandLeftPositionY", 12.31)
+			add_parameter(&payload_parameters, "HandLeftPositionZ", 12.31)
+
+			add_parameter(&payload_parameters, "HandRightPositionX", 12.31)
+			add_parameter(&payload_parameters, "HandRightPositionY", 12.31)
+			add_parameter(&payload_parameters, "HandRightPositionZ", 12.31)
+
+			add_parameter(&payload_parameters, "HandLeftAngleX", 12.31)
+			add_parameter(&payload_parameters, "HandLeftAngleZ", 12.31)
+			add_parameter(&payload_parameters, "HandRightAngleX", 12.31)
+			add_parameter(&payload_parameters, "HandRightAngleZ", 12.31)
+
+			add_parameter(&payload_parameters, "HandLeftOpen", 12.31)
+			add_parameter(&payload_parameters, "HandRightOpen", 12.31)
+
+			add_parameter(&payload_parameters, "HandLeftFinger_1_Thumb", 12.31)
+			add_parameter(&payload_parameters, "HandLeftFinger_2_Index", 12.31)
+			add_parameter(&payload_parameters, "HandLeftFinger_3_Middle", 12.31)
+			add_parameter(&payload_parameters, "HandLeftFinger_4_Ring", 12.31)
+			add_parameter(&payload_parameters, "HandLeftFinger_5_Pinky", 12.31)
+
+			add_parameter(&payload_parameters, "HandRightFinger_1_Thumb", 12.31)
+			add_parameter(&payload_parameters, "HandRightFinger_2_Index", 12.31)
+			add_parameter(&payload_parameters, "HandRightFinger_3_Middle", 12.31)
+			add_parameter(&payload_parameters, "HandRightFinger_4_Ring", 12.31)
+			add_parameter(&payload_parameters, "HandRightFinger_5_Pinky", 12.31)
+		}
+	*/
 
 	payload_data := make(map[string]any)
 	payload_data["parameterValues"] = payload_parameters
@@ -264,10 +307,59 @@ func (plugin *VTSPlugin) send(mp_data *TrackingData, err_ch chan error) {
 	}
 }
 
-func (plugin *VTSPlugin) close() {
+func (plugin *VTSPlugin) Close() {
 	if plugin.conn != nil {
 		plugin.conn.Close(websocket.StatusNormalClosure, "Closing plugin connection.")
 	}
 
 	plugin.closed = true
+}
+
+func format_vts_plugin_facem(mp_data FaceTracking, payload_parameters *[]vtsParameter) {
+	if len(mp_data.Matrixes) > 0 {
+		matrix := mp_data.Matrixes[0].Data
+		y, x, z := format_rotation_matrix(matrix)
+
+		add_parameter(payload_parameters, "FaceAngleX", y)
+		add_parameter(payload_parameters, "FaceAngleY", x)
+		add_parameter(payload_parameters, "FaceAngleZ", -z)
+
+		add_parameter(payload_parameters, "FacePositionX", -matrix[12])
+		add_parameter(payload_parameters, "FacePositionY", matrix[13])
+		add_parameter(payload_parameters, "FacePositionZ", -matrix[14])
+	}
+
+	/*
+		for _, blendshape := range mp_data.Blendshapes {
+			switch blendshape.CategoryName {
+			case "mouthClose":
+				add_parameter(payload_parameters, "MouthOpen", -blendshape.Score)
+			case "":
+				add_parameter(payload_parameters, "MouthOpen", -blendshape.Score)
+			}
+		}
+
+		add_parameter(&payload_parameters, "BrowLeftY", 12.31)
+		add_parameter(&payload_parameters, "BrowRightY", 12.31)
+		//add_parameter(&payload_parameters, "Brows", 12.31)
+
+		add_parameter(&payload_parameters, "EyeOpenLeft", 12.31)
+		add_parameter(&payload_parameters, "EyeOpenRight", 12.31)
+		add_parameter(&payload_parameters, "EyeLeftX", 12.31)
+		add_parameter(&payload_parameters, "EyeLeftY", 12.31)
+		add_parameter(&payload_parameters, "EyeRightX", 12.31)
+		add_parameter(&payload_parameters, "EyeRightY", 12.31)
+
+		add_parameter(&payload_parameters, "MouthX", 12.31)
+		add_parameter(&payload_parameters, "MouthSmile", 12.31)
+		//add_parameter(&payload_parameters, "TongueOut", 12.31)
+	*/
+}
+
+func add_parameter(slice *[]vtsParameter, id string, value float32) {
+	*slice = append(*slice, vtsParameter{
+		Id:     id,
+		Weight: 1,
+		Value:  value, // between -1000000 and 1000000
+	})
 }

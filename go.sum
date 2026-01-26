@@ -6,10 +6,13 @@ github.com/coder/websocket v1.8.14 h1:9L0p0iKiNOibykf283eHkKUHHrpG7f65OE3BhhO7v9
 github.com/coder/websocket v1.8.14/go.mod h1:NX3SzP+inril6yawo5CQXx8+fk145lPDC6pumgx0mVg=
 github.com/diamondburned/gotk4/pkg v0.3.1 h1:uhkXSUPUsCyz3yujdvl7DSN8jiLS2BgNTQE95hk6ygg=
 github.com/diamondburned/gotk4/pkg v0.3.1/go.mod h1:DqeOW+MxSZFg9OO+esk4JgQk0TiUJJUBfMltKhG+ub4=
+github.com/hypebeast/go-osc v0.0.0-20220308234300-cec5a8a1e5f5 h1:fqwINudmUrvGCuw+e3tedZ2UJ0hklSw6t8UPomctKyQ=
+github.com/hypebeast/go-osc v0.0.0-20220308234300-cec5a8a1e5f5/go.mod h1:lqMjoCs0y0GoRRujSPZRBaGb4c5ER6TfkFKSClxkMbY=
 github.com/ungerik/go3d v0.0.0-20251020194721-1bde1320d420 h1:Ziz6uKC//mt/aOs61IMzk+a7XyMzTaMcJBQFwUx2LXc=
 github.com/ungerik/go3d v0.0.0-20251020194721-1bde1320d420/go.mod h1:4OT7jWjZCxpaqXQHhYO54/UBbHpEuw0OCx8nIS8rvyI=
 github.com/vladimirvivien/go4vl v0.2.0 h1:BwBegMH8n9Tha11MKfCj8r+HgKJX/3WM/J+tUm22/hY=
 github.com/vladimirvivien/go4vl v0.2.0/go.mod h1:xwWmrQ30jIM6LfpwWVRalvZirx9e94oVgD5tsCKrV1s=
+github.com/vladimirvivien/go4vl v0.3.0/go.mod h1:iWUNl4OswQ/oekJXIS6S8MN5inoPOsbpF3m4azwrzsA=
 go4.org/unsafe/assume-no-moving-gc v0.0.0-20231121144256-b99613f794b6 h1:lGdhQUN/cnWdSH3291CUuxSEqc+AsGTiDxPP3r2J0l4=
 go4.org/unsafe/assume-no-moving-gc v0.0.0-20231121144256-b99613f794b6/go.mod h1:FftLjUGFEDu5k8lt0ddY+HcrH/qU/0qk+H8j9/nTl3E=
 golang.org/x/sync v0.13.0 h1:AauUjRAJ9OSnvULf/ARrrVywoJDy0YS2AwQ98I37610=

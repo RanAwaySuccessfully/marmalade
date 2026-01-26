@@ -36,7 +36,7 @@ type vtsApiMessage struct {
 	Ports   []float64 `json:"ports"`
 }
 
-func (api *VTSApi) listen(err_ch chan error) {
+func (api *VTSApi) Listen(err_ch chan error) {
 	api.clients = make(map[string]*VTSClient)
 	api.closed = false
 
@@ -121,7 +121,7 @@ func (api *VTSApi) handleMessage(buf []byte, addr net.Addr) error {
 	return err
 }
 
-func (api *VTSApi) send(mp_data *TrackingData, err_ch chan error) {
+func (api *VTSApi) Send(mp_data *TrackingData, err_ch chan error) {
 	api_data, err := format_vts_api_data(&mp_data.FaceData, mp_data.Timestamp)
 	if err != nil {
 		err_ch <- err
@@ -140,7 +140,7 @@ func (api *VTSApi) send(mp_data *TrackingData, err_ch chan error) {
 	api.mutex.Unlock()
 }
 
-func (api *VTSApi) close() {
+func (api *VTSApi) Close() {
 	if api.udpListener != nil {
 		api.udpListener.Close()
 	}
@@ -256,19 +256,11 @@ func format_vts_api_data(mp_data *FaceTracking, timestamp int) ([]byte, error) {
 
 	if len(mp_data.Matrixes) > 0 {
 		matrix := mp_data.Matrixes[0].Data
+		y, x, z := format_rotation_matrix(matrix)
 
-		rotationMatrix := mat4.T{
-			vec4.T{matrix[0], matrix[4], matrix[8], matrix[12]},
-			vec4.T{matrix[1], matrix[5], matrix[9], matrix[13]},
-			vec4.T{matrix[2], matrix[6], matrix[10], matrix[14]},
-			vec4.T{matrix[3], matrix[7], matrix[11], matrix[15]},
-		}
-
-		y, x, z := rotationMatrix.ExtractEulerAngles()
-
-		rotation["x"] = y * (180 / math.Pi)
-		rotation["y"] = -x * (180 / math.Pi)
-		rotation["z"] = z * (180 / math.Pi)
+		rotation["x"] = y
+		rotation["y"] = -x
+		rotation["z"] = z
 
 		position["x"] = matrix[12]
 		position["y"] = matrix[13]
@@ -296,4 +288,19 @@ func format_vts_api_data(mp_data *FaceTracking, timestamp int) ([]byte, error) {
 	payload["EyeRight"] = eye_right
 
 	return json.Marshal(payload)
+}
+
+func format_rotation_matrix(matrix []float32) (y float32, x float32, z float32) {
+	rotationMatrix := mat4.T{
+		vec4.T{matrix[0], matrix[4], matrix[8], matrix[12]},
+		vec4.T{matrix[1], matrix[5], matrix[9], matrix[13]},
+		vec4.T{matrix[2], matrix[6], matrix[10], matrix[14]},
+		vec4.T{matrix[3], matrix[7], matrix[11], matrix[15]},
+	}
+
+	y, x, z = rotationMatrix.ExtractEulerAngles()
+	y *= (180 / math.Pi)
+	x *= (180 / math.Pi)
+	z *= (180 / math.Pi)
+	return // no need to specify which variables to return, since they are already specified in the function definition up above
 }

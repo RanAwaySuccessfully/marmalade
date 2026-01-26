@@ -20,6 +20,7 @@ type ServerData struct {
 	exit      bool
 	mpData    TrackingData
 	mpCmd     *exec.Cmd
+	VMCApi    *VMCApi
 	VTSApi    *VTSApi
 	VTSPlugin *VTSPlugin
 }
@@ -66,14 +67,19 @@ func (server *ServerData) Start(err_ch chan error, callback func()) {
 	}
 	defer os.Remove("marmalade.sock")
 
+	if Config.VMCApi.Enabled {
+		server.VMCApi = &VMCApi{}
+		go server.VMCApi.Listen(err_ch)
+	}
+
 	if Config.VTSApi.Enabled {
 		server.VTSApi = &VTSApi{}
-		go server.VTSApi.listen(err_ch)
+		go server.VTSApi.Listen(err_ch)
 	}
 
 	if Config.VTSPlugin.Enabled {
 		server.VTSPlugin = &VTSPlugin{}
-		go server.VTSPlugin.listen(err_ch)
+		go server.VTSPlugin.Listen(err_ch)
 	}
 
 	go server.waitMediaPipeProcess(server.mpCmd, err_ch)
@@ -118,12 +124,16 @@ func (server *ServerData) Stop() {
 
 		server.exit = true
 
+		if server.VMCApi != nil {
+			server.VMCApi.Close()
+		}
+
 		if server.VTSApi != nil {
-			server.VTSApi.close()
+			server.VTSApi.Close()
 		}
 
 		if server.VTSPlugin != nil {
-			server.VTSPlugin.close()
+			server.VTSPlugin.Close()
 		}
 
 		if server.mpCmd.Process != nil {
@@ -153,12 +163,16 @@ func (server *ServerData) sendToClients(mp_data TrackingData, err_ch chan error)
 	server.mpData.Status = mp_data.Status
 	server.mpData.Timestamp = mp_data.Timestamp
 
+	if server.VMCApi != nil {
+		server.VMCApi.Send(&server.mpData, err_ch)
+	}
+
 	if server.VTSApi != nil {
-		server.VTSApi.send(&server.mpData, err_ch)
+		server.VTSApi.Send(&server.mpData, err_ch)
 	}
 
 	if server.VTSPlugin != nil {
-		server.VTSPlugin.send(&server.mpData, err_ch)
+		server.VTSPlugin.Send(&server.mpData, err_ch)
 	}
 }
 
