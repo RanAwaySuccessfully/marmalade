@@ -38,16 +38,16 @@ jobs:
         go work init
         printf "\nreplace github.com/diamondburned/gotk4/pkg => ../gotk4/pkg\n\nuse ." >> go.work
     
-    - name: Download libmediapipe
+    - name: Download libmediapipe.so
       run: wget
 
-    - name: Build libtoast
+    - name: Build libtoast.a
       run: |
         cd ./app/mediapipe/cc/
-        g++ -I./mediapipe/ -L./ -lmediapipe -shared -fPIC libtoast.cc -o libtoast.so
+        make
         cd ../../../
 
-    - name: Build MediaPipe libraries
+    - name: Build MediaPipe sub-process
       run: go build -v -o mediapipe ./app/mediapipe
 
     - name: Build CMD version

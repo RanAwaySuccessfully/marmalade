@@ -13,12 +13,10 @@ import (
 
 // Inter-process communication
 type IPC struct {
-	mutex      sync.Mutex
-	mutex_type uint8
-	socket     net.Conn
-	enabled    bool
-	encoder    *gob.Encoder
-	sender     func(uint8, any)
+	mutex   sync.Mutex
+	socket  net.Conn
+	encoder *gob.Encoder
+	sender  func(uint8, any)
 }
 
 var ipc = IPC{}
@@ -26,18 +24,17 @@ var ipc = IPC{}
 func main() {
 	fmt.Println("[MP +TOAST] Starting...")
 
-	ipc.enabled = false
-	if (len(os.Args) > 1) && (os.Args[1] == "--ipc") {
-		ipc.enabled = true
-	}
+	useGob := (len(os.Args) > 1) && (os.Args[1] == "--ipc")
 
 	var err error
-	if ipc.enabled {
+	if useGob {
 		ipc.socket, err = net.Dial("unix", "marmalade.sock")
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "[MP +TOAST] %v\n", err)
+			err = create_error("creating Unix socket IPC", err)
+			fmt.Fprintln(os.Stderr, err)
 			return
 		}
+		//defer ipc.socket.Close()
 
 		ipc.encoder = gob.NewEncoder(ipc.socket)
 		ipc.sender = send_result_socket
@@ -49,7 +46,9 @@ func main() {
 	err = mp.start()
 	if err != nil {
 		mp.stop()
-		fmt.Fprintf(os.Stderr, "[MP +TOAST] %v\n", err)
+		fmt.Fprintln(os.Stderr, err)
+		fmt.Println("[MP +TOAST] Stopping early...")
+		os.Exit(111)
 		return
 	}
 
@@ -61,7 +60,8 @@ func main() {
 
 	select {
 	case err = <-err_channel:
-		fmt.Fprintf(os.Stderr, "[MP +TOAST] %v\n", err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(110)
 	case sig := <-sig_channel:
 		fmt.Printf("[MP +TOAST] Terminating: %v\n", sig)
 	}
@@ -71,22 +71,12 @@ func main() {
 }
 
 func send_result_socket(msg_type uint8, result any) {
-	/*
-		if msg_type == ipc.mutex_type {
-			// if CPU usage is high, we want to discard some results instead of queueing them
-			locked := ipc.mutex.TryLock()
-			if !locked {
-				return
-			}
-		} else {
-	*/
 	ipc.mutex.Lock()
-	//ipc.mutex_type = msg_type
-	//}
 
 	err := ipc.encoder.Encode(result)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[MP +TOAST] %v\n", err)
+		err = create_error("sending data to Unix socket IPC", err)
+		fmt.Fprintln(os.Stderr, err)
 	}
 
 	ipc.mutex.Unlock()

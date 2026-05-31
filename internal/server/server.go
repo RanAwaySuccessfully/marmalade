@@ -8,14 +8,13 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"strconv"
 	"syscall"
 
 	"github.com/diamondburned/gotk4/pkg/core/glib"
 )
 
-type ServerData struct {
-	ErrPipe   *ServerErrPipe
+type ServerInstance struct {
+	ErrPipe   *ErrPipeProxy
 	started   bool
 	exit      bool
 	mpData    TrackingData
@@ -23,24 +22,31 @@ type ServerData struct {
 	VMCApi    *VMCApi
 	VTSApi    *VTSApi
 	VTSPlugin *VTSPlugin
+	VRChatOSC *VRChatOSC
 }
 
-var Server = ServerData{
+var Server = ServerInstance{
 	exit: true,
 }
 
-func (server *ServerData) Started() bool {
+func (server *ServerInstance) Started() bool {
 	return !server.exit
 }
 
-func (server *ServerData) Start(err_ch chan error, callback func()) {
+func (server *ServerInstance) Start(err_ch chan error, callback func()) {
 	server.started = false
 	server.exit = false
 
 	fmt.Println("[MARMALADE] Listening...")
 
+	if server.ErrPipe == nil {
+		server.ErrPipe = &ErrPipeProxy{}
+	} else {
+		server.ErrPipe.Log = ""
+	}
+
 	var err error
-	server.mpCmd, err = server.createMediaPipeProcess()
+	server.mpCmd, err = createMediaPipeProcess(server)
 	if err != nil {
 		err_ch <- err
 		return
@@ -82,7 +88,12 @@ func (server *ServerData) Start(err_ch chan error, callback func()) {
 		go server.VTSPlugin.Listen(err_ch)
 	}
 
-	go server.waitMediaPipeProcess(server.mpCmd, err_ch)
+	if Config.VRChatOSC.Enabled {
+		server.VRChatOSC = &VRChatOSC{}
+		go server.VRChatOSC.Listen(err_ch)
+	}
+
+	go waitMediaPipeProcess(server.mpCmd, err_ch)
 
 	conn, err := socket.Accept()
 	if err != nil {
@@ -117,7 +128,7 @@ func (server *ServerData) Start(err_ch chan error, callback func()) {
 	fmt.Println("[MARMALADE] Ended")
 }
 
-func (server *ServerData) Stop() {
+func (server *ServerInstance) Stop() {
 
 	if !server.exit {
 		fmt.Println("[MARMALADE] Ending...")
@@ -146,7 +157,7 @@ func (server *ServerData) Stop() {
 	}
 }
 
-func (server *ServerData) sendToClients(mp_data TrackingData, err_ch chan error) {
+func (server *ServerInstance) sendToClients(mp_data TrackingData, err_ch chan error) {
 	if server.exit {
 		return
 	}
@@ -174,8 +185,4 @@ func (server *ServerData) sendToClients(mp_data TrackingData, err_ch chan error)
 	if server.VTSPlugin != nil {
 		server.VTSPlugin.Send(&server.mpData, err_ch)
 	}
-}
-
-func int_to_string(number int) string {
-	return strconv.Itoa(number) // convert int to string
 }

@@ -67,6 +67,13 @@
               </object>
             </child>
 
+            <child>
+              <object class="GtkColumnViewColumn" id="listclient_column_ok">
+                <property name="title">OK</property>
+                <property name="resizable">true</property>
+              </object>
+            </child>
+
           </object>
         </child>
 

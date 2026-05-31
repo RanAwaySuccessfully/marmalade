@@ -44,6 +44,7 @@ func main() {
 		display := window.Widget.Display()
 		css := gtk.NewCSSProvider()
 		css.LoadFromData(ui.EmbeddedCSS)
+		// css.LoadFromString(ui.EmbeddedCSS)
 		gtk.StyleContextAddProviderForDisplay(display, css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 		init_webcam_setting()
@@ -52,7 +53,8 @@ func main() {
 		init_ports_settings()
 
 		init_ports_actions_vmcap(app)
-		init_ports_actions_plugin(app)
+		init_ports_actions_vtsplugin(app)
+		init_ports_actions_vrcosc(app)
 
 		/* ERROR HANDLING */
 		button := UI.GetObject("main_button").(*gtk.Button)

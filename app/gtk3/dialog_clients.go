@@ -23,6 +23,7 @@ func listclients_show_dialog() {
 		glib.TypeString,
 		glib.TypeString,
 		glib.TypeString,
+		glib.TypeString,
 	}
 
 	model := gtk.NewTreeStore(columns)
@@ -74,8 +75,21 @@ func listclients_update_model(window *gtk.Window, model *gtk.TreeStore, update *
 				source := glib.NewValue(client.Source)
 				target := glib.NewValue(client.Target)
 
-				columns := []int{0, 1, 2, 3}
-				values := []glib.Value{*name, *typev, *source, *target}
+				var iconName string
+
+				switch client.Status {
+				case server.StatusOK:
+					iconName = "emblem-ok-symbolic"
+				case server.StatusWarning:
+					iconName = "dialog-warning-symbolic"
+				case server.StatusError:
+					iconName = "dialog-error-symbolic"
+				}
+
+				status := glib.NewValue(iconName)
+
+				columns := []int{0, 1, 2, 3, 4}
+				values := []glib.Value{*name, *typev, *source, *target, *status}
 
 				model.Set(iter, columns, values)
 			}

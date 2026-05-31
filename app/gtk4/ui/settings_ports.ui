@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
 
-  <!-- VTS iPhone API -->
+  <!-- VTS 3rd-party API -->
 
-  <object class="GtkLabel" id="mimic_label">
+  <object class="GtkLabel" id="vts3p_label">
     <property name="visible">false</property>
     <property name="label" translatable="yes">VTS 3rd Party API:</property>
     <property name="halign">GTK_ALIGN_START</property>
   </object>
 
-  <object class="GtkBox" id="mimic_box">
+  <object class="GtkBox" id="vts3p_box">
     <property name="visible">false</property>
     <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
     <property name="spacing">3</property>
 
     <child>
-      <object class="GtkSwitch" id="mimic_enable">
+      <object class="GtkSwitch" id="vts3p_enable">
         <property name="active">true</property>
       </object>
     </child>
 
     <child>
-      <object class="GtkLabel" id="mimic_port_label">
+      <object class="GtkLabel" id="vts3p_port_label">
         <property name="label" translatable="yes">Port:</property>
         <property name="halign">GTK_ALIGN_END</property>
         <property name="margin-start">50</property>
@@ -29,15 +29,15 @@
     </child>
 
     <child>
-      <object class="GtkEntry" id="mimic_port">
+      <object class="GtkEntry" id="vts3p_port">
         <property name="placeholder-text">21412</property>
       </object>
     </child>
 
     <child>
-      <object class="GtkMenuButton" id="mimic_settings">
+      <object class="GtkMenuButton" id="vts3p_settings">
         <property name="icon-name">help-about-symbolic</property>
-        <property name="popover">mimic_popover</property>
+        <property name="popover">vts3p_popover</property>
         <style>
           <class name="smallIcon" />
         </style>
@@ -46,7 +46,7 @@
 
   </object>
 
-  <object class="GtkPopover" id="mimic_popover">
+  <object class="GtkPopover" id="vts3p_popover">
     <child>
       <object class="GtkLabel">
         <property name="max-width-chars">50</property>
@@ -58,25 +58,25 @@
 
   <!-- VTS Plugin -->
 
-  <object class="GtkLabel" id="plugin_label">
+  <object class="GtkLabel" id="vtsplugin_label">
     <property name="visible">false</property>
     <property name="label" translatable="yes">VTS Plugin:</property>
     <property name="halign">GTK_ALIGN_START</property>
   </object>
 
-  <object class="GtkBox" id="plugin_box">
+  <object class="GtkBox" id="vtsplugin_box">
     <property name="visible">false</property>
     <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
     <property name="spacing">3</property>
 
     <child>
-      <object class="GtkSwitch" id="plugin_enable">
+      <object class="GtkSwitch" id="vtsplugin_enable">
         <property name="active">false</property>
       </object>
     </child>
 
     <child>
-      <object class="GtkLabel" id="plugin_port_label">
+      <object class="GtkLabel" id="vtsplugin_port_label">
         <property name="label" translatable="yes">Port:</property>
         <property name="halign">GTK_ALIGN_END</property>
         <property name="margin-start">50</property>
@@ -84,14 +84,14 @@
     </child>
 
     <child>
-      <object class="GtkEntry" id="plugin_port">
+      <object class="GtkEntry" id="vtsplugin_port">
         <property name="placeholder-text">8001</property>
       </object>
     </child>
 
     <child>
-      <object class="GtkMenuButton" id="plugin_settings">
-        <property name="menu-model">plugin_menu</property>
+      <object class="GtkMenuButton" id="vtsplugin_settings">
+        <property name="menu-model">vtsplugin_menu</property>
         <style>
           <class name="smallIcon" />
         </style>
@@ -100,8 +100,8 @@
 
   </object>
 
-  <object class="GtkPopover" id="plugin_popover">
-    <signal name="closed" handler="ports_plugin_popover_closed" />
+  <object class="GtkPopover" id="vtsplugin_popover">
+    <signal name="closed" handler="ports_vtsplugin_popover_closed" />
     <child>
       <object class="GtkLabel">
         <property name="max-width-chars">50</property>
@@ -111,19 +111,19 @@
     </child>
   </object>
 
-  <menu id="plugin_menu">
+  <menu id="vtsplugin_menu">
     <section>
       <item>
         <attribute name="label" translatable="yes">Face tracking</attribute>
-        <attribute name="action">app.ports_plugin_facem</attribute>
+        <attribute name="action">app.ports_vtsplugin_facem</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">Hand tracking</attribute>
-        <attribute name="action">app.ports_plugin_handm</attribute>
+        <attribute name="action">app.ports_vtsplugin_handm</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">About</attribute>
-        <attribute name="action">app.ports_plugin_about</attribute>
+        <attribute name="action">app.ports_vtsplugin_about</attribute>
       </item>
     </section>
   </menu>
@@ -196,6 +196,78 @@
       <item>
         <attribute name="label" translatable="yes">About</attribute>
         <attribute name="action">app.ports_vmcap_about</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <!-- VRChat OSC -->
+
+  <object class="GtkLabel" id="vrcosc_label">
+    <property name="visible">false</property>
+    <property name="label" translatable="yes">VRChat OSC:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkBox" id="vrcosc_box">
+    <property name="visible">false</property>
+    <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+    <property name="spacing">3</property>
+
+    <child>
+      <object class="GtkSwitch" id="vrcosc_enable">
+        <property name="active">false</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkLabel" id="vrcosc_port_label">
+        <property name="label" translatable="yes">Port:</property>
+        <property name="halign">GTK_ALIGN_END</property>
+        <property name="margin-start">50</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkEntry" id="vrcosc_port">
+        <property name="placeholder-text">39540</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkMenuButton" id="vrcosc_settings">
+        <property name="menu-model">vrcosc_menu</property>
+        <style>
+          <class name="smallIcon" />
+        </style>
+      </object>
+    </child>
+
+  </object>
+
+  <object class="GtkPopover" id="vrcosc_popover">
+    <signal name="closed" handler="ports_vrcosc_popover_closed" />
+    <child>
+      <object class="GtkLabel">
+        <property name="max-width-chars">50</property>
+        <property name="wrap">true</property>
+        <property name="label" translatable="yes">Marmalade supports the Open Sound Control (OSC) protocol used by VRChat for custom tracking. Do note that despite the name, Marmalade does not use this for sending or receiving audio data.</property>
+      </object>
+    </child>
+  </object>
+
+  <menu id="vrcosc_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Face tracking</attribute>
+        <attribute name="action">app.ports_vrcosc_facem</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Hand tracking</attribute>
+        <attribute name="action">app.ports_vrcosc_handm</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">About</attribute>
+        <attribute name="action">app.ports_vrcosc_about</attribute>
       </item>
     </section>
   </menu>

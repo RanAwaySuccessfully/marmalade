@@ -50,7 +50,9 @@ You can choose to connect apps to Marmalade in a few different ways, as long as 
 
 **Warudo** only supports **VMC Protocol**.
 
-Connecting directly to **VTube Studio** without using any of the apps above requires using the **VTS Plugin** option.
+**VRChat** only supports **VRChat OSC**.
+
+<!-- Connecting directly to **VTube Studio** without using any of the apps above requires using the **VTS Plugin** option. -->
 
 Hand tracking is not available when using **VTS 3rd Party API**, but is available using the other protocols.
 
@@ -109,13 +111,13 @@ If you want to debug it, it comes with some Visual Studio Code configuration dep
 
 Before building the mediapipe sub-process, you'll need to build or download a copy of `libmediapipe.so` and `libtoast.so`.
 
-While the most recent stable release of MediaPipe is `v0.10.26`, if you clone the MediaPipe GitHub repository at specific commits you can grab in-development versions such as `v0.10.32`. These recent versions contain a C library that programs like Marmalade can use directly via **libmediapipe**. Unfortunately, the C API still has some trace amounts of C++ in it, which makes it impossible for Go to connect to it directly, so I created a wrapper called **libtoast** written in C but compiled as C++. In the future, I assume the C API will stabilize and **libtoast** will be removed, but for now this is a necessary component of Marmalade.
+The most recent stable release of MediaPipe (`v0.10.35`) contains a C library that can be used directly by programs like Marmalade via **libmediapipe**. Unfortunately, the C API still has some trace amounts of C++ in it, which makes it impossible for Go to connect to it directly, so I created a wrapper called **libtoast** written in C but compiled as C++. In the future, I assume the C API will stabilize and **libtoast** will be removed, but for now this is a necessary component of Marmalade.
 
 For compiling **libmediapipe**, a Git submodule is available at `app/mediapipe/cc/mediapipe` containing a fork of the MediaPipe version currently used by Marmalade, alongside a few extra patches I made for compatibility. If it's not already downloaded, you can download it by running `git submodule update --init --recursive`. Once you have downloaded the repo, please take a look at the [MediaPipe docs](https://ai.google.dev/edge/mediapipe/framework/getting_started/install) as well as the [Bazel command-line arguments](https://bazel.build/reference/command-line-reference) for more information on how to build MediaPipe. The only target you need to build is `//mediapipe/tasks/c:libmediapipe.so`.
 
-I have provided [bazel-build.sh](/app/mediapipe/cc/bazel-build.sh) as an example but I provide no guarantees that it will work for you. Once you have compiled MediaPipe, the file `libmediapipe.so` will have been created inside MediaPipe submodule in the folder `bazel-bin/mediapipe/tasks/c/`. Copy that file to Marmalade's `cc` folder (the same folder that contains the file `libtoast.cc`).
+I have provided [bazel-build.sh](/app/mediapipe/cc/bazel-build.sh) as an example but I provide no guarantees that it will work for you. Once you have compiled MediaPipe, the file `libmediapipe.so` will have been created inside the MediaPipe submodule in the folder `bazel-bin/mediapipe/tasks/c/`. Copy that file to Marmalade's `cc` folder (the same folder that contains the file `libtoast.cc`).
 
-You can compile **libtoast** by running [build.sh](/app/mediapipe/cc/build.sh) while your working directory (current folder) is the `cc` folder. This will generate `libtoast.so`. This will fail if `libmediapipe.so` is not found. This requires GCC (specifically, the `g++` command) to be installed on your system.
+You can compile **libtoast** by running the command `make` while your working directory (current folder) is the `cc` folder. This will generate `libtoast.a`. This will fail if `libmediapipe.so` is not found. This requires `make` or an equivalent command to be installed on your system. Once you have this file, you can proceed with compiling the MediaPipe subprocess via `go build -v ./app/mediapipe`.
 
 ### FourCC
 
@@ -131,7 +133,7 @@ Go has a caching mechanism that makes it so you don't have to go through this ev
 
 Licensed under the [MIT License](LICENSE).
 
-This project uses [gotk4](https://github.com/diamondburned/gotk4), which provides [GTK4](https://docs.gtk.org/gtk4/) and [GTK3](https://docs.gtk.org/gtk3/) language bindings for Go. This project does **not** use libadwaita.
+This project uses [gotk4](https://github.com/diamondburned/gotk4), which provides [GTK4](https://docs.gtk.org/gtk4/) and [GTK3](https://docs.gtk.org/gtk3/) language bindings for Go. This project does **not** use libadwaita as I want an app that integrates well with many common desktop environments.
 
 This project used to have Python code that was modified from [lilacGalaxy's VTS Plugin](https://github.com/lilac-galaxy/lilacs-mediapipe-forward-vts-plugin).
 

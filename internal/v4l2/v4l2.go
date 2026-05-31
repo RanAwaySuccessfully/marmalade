@@ -1,4 +1,6 @@
-package devices
+package v4l2
+
+// WORK IN PROGRESS / NOT USED FOR NOW
 
 /*
 #cgo LDFLAGS: -lv4l2
@@ -18,6 +20,7 @@ int m_v4l2_ioctl(int fd, long request, void* obj) {
 import "C"
 import (
 	"errors"
+	"marmalade/internal/devices"
 	"syscall"
 	"unsafe"
 
@@ -38,7 +41,7 @@ func close_device(device uintptr) {
 	C.v4l2_close(C.int(device))
 }
 
-func get_formats2(device uintptr, result *VideoCapture) error {
+func get_formats2(device uintptr, result *devices.VideoCapture) error {
 	formats := make([]v4l2.FormatDescription, 0)
 	var err error
 
@@ -71,7 +74,7 @@ func get_formats2(device uintptr, result *VideoCapture) error {
 		return err
 	}
 
-	result.Formats = make([]VideoFormat, 0, len(formats))
+	result.Formats = make([]devices.VideoFormat, 0, len(formats))
 
 	for _, format_data := range formats {
 
@@ -83,7 +86,7 @@ func get_formats2(device uintptr, result *VideoCapture) error {
 			pixelformat += string(byte(format_data.PixelFormat >> (i * 8)))
 		}
 
-		format := VideoFormat{
+		format := devices.VideoFormat{
 			Id:         pixelformat,
 			Data:       format_data,
 			Compressed: isCompressed,
@@ -101,7 +104,7 @@ func get_formats2(device uintptr, result *VideoCapture) error {
 	return nil
 }
 
-func get_resolutions2(device uintptr, format *VideoFormat) error {
+func get_resolutions2(device uintptr, format *devices.VideoFormat) error {
 	resolutions := make([]v4l2.FrameSizeEnum, 0)
 	var err error
 
@@ -136,10 +139,10 @@ func get_resolutions2(device uintptr, format *VideoFormat) error {
 		return err
 	}
 
-	format.Resolutions = make([]VideoFormatResolution, 0, len(resolutions))
+	format.Resolutions = make([]devices.VideoFormatResolution, 0, len(resolutions))
 
 	for _, resolution_data := range resolutions {
-		resolution := VideoFormatResolution{
+		resolution := devices.VideoFormatResolution{
 			Data: resolution_data,
 		}
 
@@ -154,7 +157,7 @@ func get_resolutions2(device uintptr, format *VideoFormat) error {
 	return nil
 }
 
-func get_frame_rates2(device uintptr, format *VideoFormat, resolution *VideoFormatResolution) error {
+func get_frame_rates2(device uintptr, format *devices.VideoFormat, resolution *devices.VideoFormatResolution) error {
 	resolution.FrameRates = make([]v4l2.FrameIntervalEnum, 0)
 	index := 0
 

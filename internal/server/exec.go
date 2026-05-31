@@ -8,19 +8,7 @@ import (
 	"strings"
 )
 
-type ServerErrPipe struct {
-	Log string
-}
-
-func (err_pipe *ServerErrPipe) Write(data []byte) (n int, err error) {
-	n, err = os.Stderr.Write(data)
-	err_pipe.Log += string(data[:n])
-	return
-	// this is interesting...
-	// since i specified the variable names on the function definition line, i don't need to specify them on the return statement!
-}
-
-func (server *ServerData) createMediaPipeProcess() (*exec.Cmd, error) {
+func createMediaPipeProcess(server *ServerInstance) (*exec.Cmd, error) {
 	var cmd *exec.Cmd
 
 	_, err := os.Stat("./mediapipe")
@@ -68,14 +56,13 @@ func (server *ServerData) createMediaPipeProcess() (*exec.Cmd, error) {
 		return nil, err
 	}
 
-	server.ErrPipe = &ServerErrPipe{}
 	go io.Copy(server.ErrPipe, stderr)
 	go io.Copy(os.Stdout, stdout)
 
 	return cmd, nil
 }
 
-func (server *ServerData) waitMediaPipeProcess(cmd *exec.Cmd, err_ch chan error) {
+func waitMediaPipeProcess(cmd *exec.Cmd, err_ch chan error) {
 	err := cmd.Wait()
 	if err != nil {
 		err_ch <- err

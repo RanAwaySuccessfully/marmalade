@@ -1,9 +1,12 @@
 package server
 
+// MEDIAPIPE TRACKING DATA
+
 const (
 	NullTrackingType = iota
 	FaceTrackingType
 	HandTrackingType
+	HolisticTrackingType
 )
 
 type TrackingData struct {

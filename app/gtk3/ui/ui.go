@@ -4,6 +4,9 @@ import (
 	_ "embed"
 )
 
+//go:embed style.css
+var EmbeddedCSS string
+
 //go:embed app.ui
 var App string
 

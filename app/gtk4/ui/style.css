@@ -20,3 +20,15 @@
     border-top-width: 1px;
     border-top-style: solid;
 }
+
+.statusSuccess {
+    color: @success_color;
+}
+
+.statusWarning {
+    color: @warning_color;
+}
+
+.statusError {
+    color: @error_color;
+}

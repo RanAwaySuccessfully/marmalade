@@ -5,7 +5,6 @@ import (
 	"marmalade/app/gtk4/ui"
 	"marmalade/internal/devices"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
@@ -189,7 +188,7 @@ func create_frame_rate_line(resolution *devices.VideoFormatResolution, grid *gtk
 		label_slice := make([]string, 0, len(resolution.FrameRates))
 
 		for _, frame_rate := range frame_rates {
-			label_slice = append(label_slice, strconv.FormatUint(uint64(frame_rate), 10))
+			label_slice = append(label_slice, int_to_string(int(frame_rate)))
 		}
 
 		label_text = strings.Join(label_slice, ", ")

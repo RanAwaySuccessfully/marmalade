@@ -63,17 +63,13 @@ func error_handler(button *gtk.Button, err_channel chan error) {
 
 			switch exitCode {
 			case 110:
-				errTitle = "Unable to connect to camera."
+				errTitle = "Error while running MediaPipe."
 			case 111:
-				errTitle = "Unable to start MediaPipe. Is the model (.task) file configured correctly?"
-			case 112:
-				errTitle = "A client appears to have disconnected."
-			case 113:
-				errTitle = "Too many failed attempts at reading an image from the camera."
+				errTitle = "Error while starting MediaPipe. Is the model (.task) file configured correctly?"
 			}
 
 			// exitError.Stderr is empty, so we use our own copy of Stderr instead
-			err = fmt.Errorf("[%d] %s\n%s", exitCode, errTitle, srv.ErrPipe.Log)
+			err = fmt.Errorf("[%d] %s\n\nDetails:\n\n%s", exitCode, errTitle, srv.ErrPipe.Log)
 		}
 
 		glib.IdleAdd(func() {

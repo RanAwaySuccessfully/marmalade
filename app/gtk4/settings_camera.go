@@ -4,7 +4,6 @@ import "C"
 import (
 	"marmalade/app/gtk4/ui"
 	"marmalade/internal/server"
-	"strconv"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
@@ -46,7 +45,7 @@ func init_camera_widgets() {
 
 	width := ""
 	if server.Config.Width != 0 {
-		width = strconv.Itoa(server.Config.Width) // convert int to string
+		width = int_to_string(server.Config.Width)
 	}
 
 	width_input := UI.GetObject("width_input").(*gtk.Entry)
@@ -57,7 +56,7 @@ func init_camera_widgets() {
 
 	height := ""
 	if server.Config.Height != 0 {
-		height = strconv.Itoa(server.Config.Height) // convert int to string
+		height = int_to_string(server.Config.Height)
 	}
 
 	height_input := UI.GetObject("height_input").(*gtk.Entry)
@@ -68,7 +67,7 @@ func init_camera_widgets() {
 
 	fps := ""
 	if server.Config.FPS != 0 {
-		fps = strconv.Itoa(server.Config.FPS) // convert int to string
+		fps = int_to_string(server.Config.FPS)
 	}
 
 	fps_input := UI.GetObject("fps_input").(*gtk.Entry)

@@ -21,20 +21,26 @@ type ConfigSchema struct {
 	VTSApi    struct {
 		Enabled bool `json:"enabled"`
 		Port    int  `json:"port"`
-	} `json:"vts_api"`
+	} `json:"vts_api"` // vts3p
 	VTSPlugin struct {
 		Enabled bool   `json:"enabled"`
 		UseFace bool   `json:"use_face"`
 		UseHand bool   `json:"use_hand"`
 		Port    int    `json:"port"`
 		Token   string `json:"token"`
-	} `json:"vts_plugin"`
+	} `json:"vts_plugin"` // vtsplugin
 	VMCApi struct {
 		Enabled bool `json:"enabled"`
 		UseFace bool `json:"use_face"`
 		UseHand bool `json:"use_hand"`
 		Port    int  `json:"port"`
-	} `json:"vmc_api"`
+	} `json:"vmc_api"` // vmcap
+	VRChatOSC struct {
+		Enabled bool `json:"enabled"`
+		UseFace bool `json:"use_face"`
+		UseHand bool `json:"use_hand"`
+		Port    int  `json:"port"`
+	} `json:"vrc_osc"` // vrcosc
 }
 
 // for compatibility with fields that have been changed / renamed

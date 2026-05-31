@@ -11,7 +11,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 )
 
@@ -36,7 +35,7 @@ func (conv *ConverterFFMPEG) init(format string) error {
 
 	file, err := os.Open("fourcc.json")
 	if err != nil {
-		return err
+		return create_error("opening FourCC file", err)
 	}
 
 	var mapping []Mapping
@@ -44,7 +43,7 @@ func (conv *ConverterFFMPEG) init(format string) error {
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&mapping)
 	if err != nil {
-		return err
+		return create_error("reading FourCC file", err)
 	}
 
 	for _, mapItem := range mapping {
@@ -55,7 +54,8 @@ func (conv *ConverterFFMPEG) init(format string) error {
 	}
 
 	if codec_id == 0 {
-		return errors.New("format " + format + " is not mapped on file fourcc.json. You may manually add the mapping, or ask the developer to do so.")
+		err := errors.New("format " + format + " is not mapped on file fourcc.json. You may manually add the mapping, or ask the developer to do so.")
+		return create_error("finding codec for FFmpeg", err)
 	}
 
 	codec := C.avcodec_find_decoder(codec_id)
@@ -67,17 +67,18 @@ func (conv *ConverterFFMPEG) init(format string) error {
 
 	ret := C.avcodec_open2(conv.inputCtx, codec, nil)
 	if ret < 0 {
-		return conv.get_error("opening decoder", ret)
+		err := conv.get_error(ret)
+		return create_error("opening decoder", err)
 	}
 
 	conv.inputFrame = C.av_frame_alloc()
 	if conv.inputFrame == nil {
-		return errors.New("unable to allocate input frame")
+		return create_error("unable to allocate input frame", nil)
 	}
 
 	conv.inputPacket = C.av_packet_alloc()
 	if conv.inputPacket == nil {
-		return errors.New("unable to allocate input packet")
+		return create_error("unable to allocate input packet", nil)
 	}
 
 	return nil
@@ -91,7 +92,8 @@ func (conv *ConverterFFMPEG) init_output_frame() error {
 
 	ret := C.av_frame_get_buffer(conv.outputFrame, 0)
 	if ret < 0 {
-		return conv.get_error("allocating output frame pointers", ret)
+		err := conv.get_error(ret)
+		return create_error("allocating output frame pointers", err)
 	}
 
 	conv.outputCtx = C.sws_getContext(
@@ -101,7 +103,7 @@ func (conv *ConverterFFMPEG) init_output_frame() error {
 	)
 
 	if conv.outputCtx == nil {
-		return errors.New("unable to allocate the thing that will do the conversion")
+		return create_error("unable to allocate the thing that will do the conversion", nil)
 	}
 
 	return nil
@@ -115,12 +117,14 @@ func (conv *ConverterFFMPEG) convert(input []byte) ([]byte, error) {
 
 	ret := C.av_packet_from_data(conv.inputPacket, (*C.uchar)(data), (C.int)(data_length))
 	if ret < 0 {
-		return nil, conv.get_error("creating input packet", ret)
+		err := conv.get_error(ret)
+		return nil, create_error("creating input packet", err)
 	}
 
 	length := C.avcodec_send_packet(conv.inputCtx, conv.inputPacket) // packet -> codec
 	if length < 0 {
-		return nil, conv.get_error("reading input packet", length)
+		err := conv.get_error(length)
+		return nil, create_error("reading input packet", err)
 	}
 
 	output := bytes.Buffer{}
@@ -131,7 +135,8 @@ func (conv *ConverterFFMPEG) convert(input []byte) ([]byte, error) {
 		if length == -C.EAGAIN || length == C.AVERROR_EOF {
 			break
 		} else if length < 0 {
-			return nil, conv.get_error("decoding packet into frame", length)
+			err := conv.get_error(length)
+			return nil, create_error("decoding packet into frame", err)
 		}
 
 		frame := conv.inputFrame
@@ -186,7 +191,7 @@ func (conv *ConverterFFMPEG) end() {
 	}
 }
 
-func (conv *ConverterFFMPEG) get_error(prefix string, errnum C.int) error {
+func (conv *ConverterFFMPEG) get_error(errnum C.int) error {
 	error_size := C.sizeof_uchar * 100
 	error_c := C.malloc(C.ulong(error_size))
 	error_c_char := (*C.char)(error_c)
@@ -199,10 +204,5 @@ func (conv *ConverterFFMPEG) get_error(prefix string, errnum C.int) error {
 	}
 
 	C.free(error_c)
-
-	if prefix != "" {
-		result = fmt.Sprintf("(%s) %s", prefix, result)
-	}
-
 	return errors.New(result)
 }

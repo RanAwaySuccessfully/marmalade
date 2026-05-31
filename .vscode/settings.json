@@ -33,5 +33,6 @@
         "**/app/mediapipe/cc/mediapipe/mediapipe/tas[!k]*/**": true,
         "**/app/mediapipe/cc/mediapipe/mediapipe/task[!s]*/**": true,
         "**/app/mediapipe/cc/mediapipe/mediapipe/tasks/[!c]*/**": true
-    }
+    },
+    "css.validate": false
 }

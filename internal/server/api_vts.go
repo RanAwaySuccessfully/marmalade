@@ -26,6 +26,7 @@ type VTSClient struct {
 	source    string
 	udpSender net.Conn
 	message   vtsApiMessage
+	errors    []string
 }
 
 type vtsApiMessage struct {
@@ -42,7 +43,7 @@ func (api *VTSApi) Listen(err_ch chan error) {
 
 	port := ":21412"
 	if Config.VTSApi.Port != 0 {
-		port = ":" + int_to_string(int(Config.VTSApi.Port))
+		port = ":" + int_to_string(Config.VTSApi.Port)
 	}
 
 	var err error
@@ -133,6 +134,7 @@ func (api *VTSApi) Send(mp_data *TrackingData, err_ch chan error) {
 	for _, client := range api.clients {
 		_, err = client.udpSender.Write(api_data)
 		if err != nil {
+			//client.errors = append()
 			fmt.Fprintf(os.Stderr, "[MARMALADE] unable to send packet %v\n", err)
 		}
 	}
@@ -256,7 +258,7 @@ func format_vts_api_data(mp_data *FaceTracking, timestamp int) ([]byte, error) {
 
 	if len(mp_data.Matrixes) > 0 {
 		matrix := mp_data.Matrixes[0].Data
-		y, x, z := format_rotation_matrix(matrix)
+		y, x, z := format_rotation_angles(matrix)
 
 		rotation["x"] = y
 		rotation["y"] = -x
@@ -268,13 +270,13 @@ func format_vts_api_data(mp_data *FaceTracking, timestamp int) ([]byte, error) {
 	}
 
 	eye_left := make(map[string]any)
-	eye_left["x"] = (eyeLookDownLeft - eyeLookUpLeft) * 20
-	eye_left["y"] = (eyeLookOutLeft - eyeLookInLeft) * 20
+	eye_left["x"] = (eyeLookDownLeft - eyeLookUpLeft) * 30
+	eye_left["y"] = (eyeLookOutLeft - eyeLookInLeft) * 30
 	eye_left["z"] = 0
 
 	eye_right := make(map[string]any)
-	eye_right["x"] = (eyeLookDownRight - eyeLookUpRight) * 20
-	eye_right["y"] = (eyeLookInRight - eyeLookOutRight) * 20
+	eye_right["x"] = (eyeLookDownRight - eyeLookUpRight) * 30
+	eye_right["y"] = (eyeLookInRight - eyeLookOutRight) * 30
 	eye_right["z"] = 0
 
 	payload := make(map[string]any)
@@ -290,7 +292,7 @@ func format_vts_api_data(mp_data *FaceTracking, timestamp int) ([]byte, error) {
 	return json.Marshal(payload)
 }
 
-func format_rotation_matrix(matrix []float32) (y float32, x float32, z float32) {
+func format_rotation_angles(matrix []float32) (y float32, x float32, z float32) {
 	rotationMatrix := mat4.T{
 		vec4.T{matrix[0], matrix[4], matrix[8], matrix[12]},
 		vec4.T{matrix[1], matrix[5], matrix[9], matrix[13]},

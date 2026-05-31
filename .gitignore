@@ -6,6 +6,7 @@ tasks
 
 marmalade.sock
 *.so
+*.a
 
 # Executables
 __debug*

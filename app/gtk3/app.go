@@ -41,6 +41,11 @@ func main() {
 		window := UI.GetObject("main_app").(*gtk.ApplicationWindow)
 		app.AddWindow(&window.Window)
 
+		screen := window.Widget.Screen()
+		css := gtk.NewCSSProvider()
+		css.LoadFromData(ui.EmbeddedCSS)
+		gtk.StyleContextAddProviderForScreen(screen, css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
 		init_webcam_setting()
 		init_camera_widgets()
 		init_mediapipe_widgets()

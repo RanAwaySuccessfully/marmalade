@@ -98,3 +98,7 @@ func update_unsaved_config(value bool) {
 		revealer.SetRevealChild(value)
 	}
 }
+
+func int_to_string(number int) string {
+	return strconv.Itoa(number) // convert int to string
+}

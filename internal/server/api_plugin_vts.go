@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"marmalade/internal/resources"
 	"math/rand/v2"
-	"strconv"
 	"sync"
 
 	"github.com/coder/websocket"
@@ -38,7 +37,7 @@ func (plugin *VTSPlugin) Listen(err_ch chan error) {
 
 	port := "8001"
 	if Config.VTSPlugin.Port != 0 {
-		port = strconv.Itoa(Config.VTSPlugin.Port) // convert int to string
+		port = int_to_string(Config.VTSPlugin.Port)
 	}
 
 	var err error
@@ -318,7 +317,7 @@ func (plugin *VTSPlugin) Close() {
 func format_vts_plugin_facem(mp_data FaceTracking, payload_parameters *[]vtsParameter) {
 	if len(mp_data.Matrixes) > 0 {
 		matrix := mp_data.Matrixes[0].Data
-		y, x, z := format_rotation_matrix(matrix)
+		y, x, z := format_rotation_angles(matrix)
 
 		add_parameter(payload_parameters, "FaceAngleX", y)
 		add_parameter(payload_parameters, "FaceAngleY", x)
@@ -353,6 +352,23 @@ func format_vts_plugin_facem(mp_data FaceTracking, payload_parameters *[]vtsPara
 		add_parameter(&payload_parameters, "MouthX", 12.31)
 		add_parameter(&payload_parameters, "MouthSmile", 12.31)
 		//add_parameter(&payload_parameters, "TongueOut", 12.31)
+	*/
+
+	/*
+		BodyAngleX
+		BodyAngleY
+		BodyAngleZ
+		BodyPositionX
+		BodyPositionY
+		BodyPositionZ
+		EyeSquintLeft
+		EyeSquintRight
+		JawOpen
+		MouthFunnel
+		MouthPressLipOpen
+		MouthPucker
+		MouthShrug
+		BrownInnerUp
 	*/
 }
 

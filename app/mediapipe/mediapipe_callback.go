@@ -1,9 +1,6 @@
 package main
 
 /*
-#cgo CFLAGS: -I./cc/ -I./cc/mediapipe/
-#cgo LDFLAGS: -L./cc/ -ltoast -lmediapipe
-
 #include <libtoast.h>
 */
 import "C"
@@ -55,7 +52,7 @@ func face_landmarker_callback_external(mp_result *C.struct_FaceLandmarkerResult,
 
 		for i := 0; i < int(mp_result.face_blendshapes.categories_count); i++ {
 			mp_blendshape := C.face_landmarker_blendshape(mp_result, C.uint(i))
-			blendshape := ConvertCategory(&mp_blendshape)
+			blendshape := ConvertCategory(mp_blendshape)
 			result.Blendshapes = append(result.Blendshapes, blendshape)
 		}
 	}
@@ -65,7 +62,7 @@ func face_landmarker_callback_external(mp_result *C.struct_FaceLandmarkerResult,
 
 		for i := 0; i < int(mp_result.face_landmarks.landmarks_count); i++ {
 			mp_landmark := C.face_landmarker_landmark(mp_result, C.uint(i))
-			landmark := ConvertNormalizedLandmark(&mp_landmark)
+			landmark := ConvertNormalizedLandmark(mp_landmark)
 			result.Landmarks = append(result.Landmarks, landmark)
 		}
 	}
@@ -84,8 +81,8 @@ func face_landmarker_callback_external(mp_result *C.struct_FaceLandmarkerResult,
 		matrix.Data = make([]float32, 0, length)
 
 		for j := uint32(0); j < length; j++ {
-			value := C.face_landmarker_matrix_data(&mp_matrix, C.uint(j))
-			matrix.Data = append(matrix.Data, float32(value))
+			value := C.face_landmarker_matrix_data(mp_matrix, C.uint(j))
+			matrix.Data = append(matrix.Data, float32(*value))
 		}
 
 		result.Matrixes = append(result.Matrixes, matrix)
@@ -110,12 +107,13 @@ func hand_landmarker_callback_external(mp_result *C.struct_HandLandmarkerResult,
 
 		for i := 0; i < int(mp_result.handedness_count); i++ {
 			count := C.hand_landmarker_handedness_count(mp_result, C.uint(i))
+			int_count := int(*count)
 
-			handedess_slice := make([]server.Category, 0, int(count))
+			handedess_slice := make([]server.Category, 0, int_count)
 
-			for j := 0; j < int(count); j++ {
+			for j := 0; j < int_count; j++ {
 				mp_handedness := C.hand_landmarker_handedness(mp_result, C.uint(i), C.uint(j))
-				handedness := ConvertCategory(&mp_handedness)
+				handedness := ConvertCategory(mp_handedness)
 				handedess_slice = append(handedess_slice, handedness)
 			}
 
@@ -127,12 +125,13 @@ func hand_landmarker_callback_external(mp_result *C.struct_HandLandmarkerResult,
 
 		for i := 0; i < int(mp_result.hand_landmarks_count); i++ {
 			count := C.hand_landmarker_landmark_count(mp_result, C.uint(i))
+			int_count := int(*count)
 
-			landmark_slice := make([]server.Landmark, 0, int(count))
+			landmark_slice := make([]server.Landmark, 0, int_count)
 
-			for j := 0; j < int(count); j++ {
+			for j := 0; j < int_count; j++ {
 				mp_landmark := C.hand_landmarker_landmark(mp_result, C.uint(i), C.uint(j))
-				landmark := ConvertNormalizedLandmark(&mp_landmark)
+				landmark := ConvertNormalizedLandmark(mp_landmark)
 				landmark_slice = append(landmark_slice, landmark)
 			}
 
@@ -144,12 +143,13 @@ func hand_landmarker_callback_external(mp_result *C.struct_HandLandmarkerResult,
 
 		for i := 0; i < int(mp_result.hand_world_landmarks_count); i++ {
 			count := C.hand_landmarker_world_landmark_count(mp_result, C.uint(i))
+			int_count := int(*count)
 
-			landmark_slice := make([]server.Landmark, 0, int(count))
+			landmark_slice := make([]server.Landmark, 0, int(*count))
 
-			for j := 0; j < int(count); j++ {
+			for j := 0; j < int_count; j++ {
 				mp_landmark := C.hand_landmarker_world_landmark(mp_result, C.uint(i), C.uint(j))
-				landmark := ConvertLandmark(&mp_landmark)
+				landmark := ConvertLandmark(mp_landmark)
 				landmark_slice = append(landmark_slice, landmark)
 			}
 

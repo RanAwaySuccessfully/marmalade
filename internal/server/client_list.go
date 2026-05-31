@@ -1,18 +1,25 @@
 package server
 
 import (
-	"strconv"
 	"strings"
 )
 
+const (
+	StatusOK uint8 = iota
+	StatusWarning
+	StatusError
+)
+
 type Client struct {
-	Name   string
-	Type   string
-	Source string
-	Target string
+	Name      string
+	Type      string
+	Source    string
+	Target    string
+	Status    uint8
+	StatusMsg string // not sure how to use this in GTK 3. might scratch it
 }
 
-func (server *ServerData) GetClientList() []Client {
+func (server *ServerInstance) GetClientList() []Client {
 	length := 0
 
 	if server.VTSApi != nil {
@@ -36,7 +43,7 @@ func (server *ServerData) GetClientList() []Client {
 			ports := make([]string, 0, len(client.message.Ports))
 
 			for _, port := range client.message.Ports {
-				ports = append(ports, strconv.FormatFloat(port, 'f', 0, 64))
+				ports = append(ports, int_to_string(int(port)))
 			}
 
 			list_item.Target = strings.Join(ports, ", ")
@@ -49,7 +56,19 @@ func (server *ServerData) GetClientList() []Client {
 		list_item := Client{
 			Name:   "VTube Studio",
 			Type:   "VTS Plugin",
-			Target: strconv.Itoa(Config.VTSPlugin.Port), // convert int to string
+			Target: int_to_string(Config.VTSPlugin.Port),
+		}
+
+		list = append(list, list_item)
+	}
+
+	if server.VMCApi != nil && server.VMCApi.client != nil {
+		target := int_to_string(server.VMCApi.client.Port())
+
+		list_item := Client{
+			Name:   "(unknown)",
+			Type:   "VMC Protocol",
+			Target: target,
 		}
 
 		list = append(list, list_item)

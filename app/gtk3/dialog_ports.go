@@ -4,7 +4,6 @@ import "C"
 import (
 	"marmalade/app/gtk3/ui"
 	"marmalade/internal/server"
-	"strconv"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
@@ -46,7 +45,7 @@ func create_dialog_port(title string, label string, placeholder string, port *in
 
 	port_value := ""
 	if *port != 0 {
-		port_value = strconv.Itoa(*port) // convert int to string
+		port_value = int_to_string(*port)
 	}
 
 	port_input := builder.GetObject("ports_input").(*gtk.Entry)
