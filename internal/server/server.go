@@ -169,6 +169,8 @@ func (server *ServerInstance) sendToClients(mp_data TrackingData, err_ch chan er
 		server.mpData.FaceData = mp_data.FaceData
 	case HandTrackingType:
 		server.mpData.HandData = mp_data.HandData
+	case PoseTrackingType:
+		server.mpData.PoseData = mp_data.PoseData
 	}
 
 	server.mpData.Status = mp_data.Status

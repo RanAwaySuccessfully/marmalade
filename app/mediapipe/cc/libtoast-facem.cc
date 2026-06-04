@@ -32,7 +32,7 @@ void mediapipe_lm_face_callback(MpStatus status, const struct FaceLandmarkerResu
   MpFaceLandmarkerCloseResult((struct FaceLandmarkerResult*)result);
 }
 
-void* mediapipe_lm_face_start(char* face_model_path, int delegate_opt) {
+void* mediapipe_lm_face_start(char* face_model_path, int delegate_opt, float confidence[3]) {
 	struct FaceLandmarkerOptions face_landmarker_options;
   face_landmarker_options.base_options.model_asset_path = face_model_path;
   set_base_options(&face_landmarker_options.base_options);
@@ -48,6 +48,18 @@ void* mediapipe_lm_face_start(char* face_model_path, int delegate_opt) {
   face_landmarker_options.output_facial_transformation_matrixes = true;
   face_landmarker_options.num_faces = 1;
   face_landmarker_options.result_callback = mediapipe_lm_face_callback;
+
+  if (confidence[0] >= 0) {
+    face_landmarker_options.min_face_detection_confidence = confidence[0];
+  }
+
+  if (confidence[1] >= 0) {
+    face_landmarker_options.min_face_presence_confidence = confidence[1];
+  }
+
+  if (confidence[2] >= 0) {
+    face_landmarker_options.min_tracking_confidence = confidence[2];
+  }
 
   MpFaceLandmarkerPtr face_landmarker = NULL;
   char* error_msg = NULL;

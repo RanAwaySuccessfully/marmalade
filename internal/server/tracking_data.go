@@ -6,6 +6,7 @@ const (
 	NullTrackingType = iota
 	FaceTrackingType
 	HandTrackingType
+	PoseTrackingType
 	HolisticTrackingType
 )
 
@@ -15,6 +16,7 @@ type TrackingData struct {
 	Timestamp int   `json:"timestamp"`
 	FaceData  FaceTracking
 	HandData  HandTracking
+	PoseData  PoseTracking
 }
 
 type Category struct {
@@ -57,6 +59,13 @@ type HandTracking struct {
 
 type Hand struct {
 	Handedness     []Category `json:"handedness"`
+	Landmarks      []Landmark `json:"landmarks"`
+	WorldLandmarks []Landmark `json:"world_landmarks"`
+}
+
+// POSE TRACKING
+
+type PoseTracking struct {
 	Landmarks      []Landmark `json:"landmarks"`
 	WorldLandmarks []Landmark `json:"world_landmarks"`
 }

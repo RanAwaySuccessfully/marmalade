@@ -40,7 +40,7 @@ void mediapipe_lm_hand_callback(MpStatus status, const struct HandLandmarkerResu
   MpHandLandmarkerCloseResult((struct HandLandmarkerResult*)result);
 }
 
-void* mediapipe_lm_hand_start(char* hand_model_path, int delegate_opt) {
+void* mediapipe_lm_hand_start(char* hand_model_path, int delegate_opt, float confidence[3]) {
 	struct HandLandmarkerOptions hand_landmarker_options;
   hand_landmarker_options.base_options.model_asset_path = hand_model_path;
   set_base_options(&hand_landmarker_options.base_options);
@@ -54,6 +54,18 @@ void* mediapipe_lm_hand_start(char* hand_model_path, int delegate_opt) {
   hand_landmarker_options.running_mode = LIVE_STREAM;
   hand_landmarker_options.num_hands = 2;
   hand_landmarker_options.result_callback = mediapipe_lm_hand_callback;
+
+  if (confidence[0] >= 0) {
+    hand_landmarker_options.min_hand_detection_confidence = confidence[0];
+  }
+
+  if (confidence[1] >= 0) {
+    hand_landmarker_options.min_hand_presence_confidence = confidence[1];
+  }
+
+  if (confidence[2] >= 0) {
+    hand_landmarker_options.min_tracking_confidence = confidence[2];
+  }
 
   MpHandLandmarkerPtr hand_landmarker = NULL;
   char* error_msg = NULL;

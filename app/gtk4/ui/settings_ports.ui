@@ -229,7 +229,7 @@
 
     <child>
       <object class="GtkEntry" id="vrcosc_port">
-        <property name="placeholder-text">39540</property>
+        <property name="placeholder-text">9000</property>
       </object>
     </child>
 

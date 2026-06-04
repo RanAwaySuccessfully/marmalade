@@ -34,6 +34,14 @@ void set_base_options(struct BaseOptions* base_options) {
   base_options->ca_bundle_path = NULL;
 }
 
+void set_confidence(float** target, float** source, int count) {
+  for (int i = 0; i < count; i++) {
+    if (*source[i] >= 0) {
+      *target[i] = *source[i];
+    }
+  }
+}
+
 // ERROR HANDLING
 
 char* mediapipe_last_error = NULL;

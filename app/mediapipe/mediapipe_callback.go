@@ -164,3 +164,47 @@ func hand_landmarker_callback_external(mp_result *C.struct_HandLandmarkerResult,
 
 	ipc.sender(server.HandTrackingType, payload)
 }
+
+//export pose_landmarker_callback_external
+func pose_landmarker_callback_external(mp_result *C.struct_PoseLandmarkerResult, status C.int, timestamp C.long) {
+	result := server.PoseTracking{}
+
+	// Convert between C data types and structs to Go
+
+	if mp_result.pose_landmarks_count != 0 {
+		count := C.pose_landmarker_landmark_count(mp_result)
+		int_count := int(*count)
+
+		landmark_slice := make([]server.Landmark, 0, int_count)
+
+		for j := 0; j < int_count; j++ {
+			mp_landmark := C.pose_landmarker_landmark(mp_result, C.uint(j))
+			landmark := ConvertNormalizedLandmark(mp_landmark)
+			landmark_slice = append(landmark_slice, landmark)
+		}
+
+		result.Landmarks = landmark_slice
+	}
+
+	if mp_result.pose_world_landmarks_count != 0 {
+		count := C.pose_landmarker_world_landmark_count(mp_result)
+		int_count := int(*count)
+
+		landmark_slice := make([]server.Landmark, 0, int(*count))
+
+		for j := 0; j < int_count; j++ {
+			mp_landmark := C.pose_landmarker_world_landmark(mp_result, C.uint(j))
+			landmark := ConvertLandmark(mp_landmark)
+			landmark_slice = append(landmark_slice, landmark)
+		}
+
+		result.WorldLandmarks = landmark_slice
+	}
+
+	payload := server.TrackingData{PoseData: result}
+	payload.Status = int(status)
+	payload.Timestamp = int(timestamp)
+	payload.Type = server.PoseTrackingType
+
+	ipc.sender(server.PoseTrackingType, payload)
+}

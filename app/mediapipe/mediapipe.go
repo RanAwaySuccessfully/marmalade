@@ -28,6 +28,8 @@ type MediaPipe struct {
 	facem_path *C.char
 	handm_lm   unsafe.Pointer
 	handm_path *C.char
+	posem_lm   unsafe.Pointer
+	posem_path *C.char
 }
 
 func (mp *MediaPipe) start() error {
@@ -93,8 +95,10 @@ func (mp *MediaPipe) start() error {
 		(server.Config.VRChatOSC.Enabled && server.Config.VRChatOSC.UseHand)
 
 	if (server.Config.ModelFace != "") && anyFaceApi {
+		confidences := [3]C.float{-1, -1, -1}
+
 		mp.facem_path = C.CString(server.Config.ModelFace)
-		mp.facem_lm = C.mediapipe_lm_face_start(mp.facem_path, C.int(delegate))
+		mp.facem_lm = C.mediapipe_lm_face_start(mp.facem_path, C.int(delegate), &confidences[0])
 		if mp.facem_lm == nil {
 			err := mediapipe_get_error()
 			return create_error("creating MediaPipe FaceLandmarker", err)
@@ -102,11 +106,24 @@ func (mp *MediaPipe) start() error {
 	}
 
 	if (server.Config.ModelHand != "") && anyHandApi {
+		confidences := [3]C.float{-1, -1, -1}
+
 		mp.handm_path = C.CString(server.Config.ModelHand)
-		mp.handm_lm = C.mediapipe_lm_hand_start(mp.handm_path, C.int(delegate))
+		mp.handm_lm = C.mediapipe_lm_hand_start(mp.handm_path, C.int(delegate), &confidences[0])
 		if mp.handm_lm == nil {
 			err := mediapipe_get_error()
 			return create_error("creating MediaPipe HandLandmarker", err)
+		}
+	}
+
+	if anyHandApi {
+		confidences := [3]C.float{-1, -1, -1}
+
+		mp.posem_path = C.CString("tasks/pose_landmarker_lite.task")
+		mp.posem_lm = C.mediapipe_lm_pose_start(mp.posem_path, C.int(delegate), &confidences[0])
+		if mp.posem_lm == nil {
+			err := mediapipe_get_error()
+			return create_error("creating MediaPipe PoseLandmarker", err)
 		}
 	}
 
@@ -150,20 +167,35 @@ func (mp *MediaPipe) detect(err_ch chan error) {
 		}
 
 		timestamp := frame.Timestamp.UnixMilli()
-		ret = C.mediapipe_lm_face_detect(mp.facem_lm, img_ptr, C.long(timestamp))
-		if ret < 0 {
-			C.mediapipe_free_img(img_ptr)
-			err := mediapipe_get_error()
-			err_ch <- create_error("running FaceLandmarker detection", err)
-			break
+
+		if mp.facem_lm != nil {
+			ret = C.mediapipe_lm_face_detect(mp.facem_lm, img_ptr, C.long(timestamp))
+			if ret < 0 {
+				C.mediapipe_free_img(img_ptr)
+				err := mediapipe_get_error()
+				err_ch <- create_error("running FaceLandmarker detection", err)
+				break
+			}
 		}
 
-		ret = C.mediapipe_lm_hand_detect(mp.handm_lm, img_ptr, C.long(timestamp))
-		if ret < 0 {
-			C.mediapipe_free_img(img_ptr)
-			err := mediapipe_get_error()
-			err_ch <- create_error("running HandLandmarker detection", err)
-			break
+		if mp.handm_lm != nil {
+			ret = C.mediapipe_lm_hand_detect(mp.handm_lm, img_ptr, C.long(timestamp))
+			if ret < 0 {
+				C.mediapipe_free_img(img_ptr)
+				err := mediapipe_get_error()
+				err_ch <- create_error("running HandLandmarker detection", err)
+				break
+			}
+		}
+
+		if mp.posem_lm != nil {
+			ret = C.mediapipe_lm_pose_detect(mp.posem_lm, img_ptr, C.long(timestamp))
+			if ret < 0 {
+				C.mediapipe_free_img(img_ptr)
+				err := mediapipe_get_error()
+				err_ch <- create_error("running PoseLandmarker detection", err)
+				break
+			}
 		}
 
 		frame.Release()
@@ -204,12 +236,24 @@ func (mp *MediaPipe) stop() error {
 		}
 	}
 
+	if mp.posem_lm != nil {
+		ret := C.mediapipe_lm_pose_stop(mp.posem_lm)
+		if ret < 0 {
+			err := mediapipe_get_error()
+			return create_error("stopping MediaPipe PoseLandmarker", err)
+		}
+	}
+
 	if mp.facem_path != nil {
 		C.free(unsafe.Pointer(mp.facem_path))
 	}
 
 	if mp.handm_path != nil {
 		C.free(unsafe.Pointer(mp.handm_path))
+	}
+
+	if mp.posem_path != nil {
+		C.free(unsafe.Pointer(mp.posem_path))
 	}
 
 	return nil

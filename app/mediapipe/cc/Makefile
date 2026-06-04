@@ -2,7 +2,8 @@
 CPPFLAGS=-I./mediapipe/
 LDFLAGS=-L./ -lmediapipe
 
-OBJS = libtoast-facem.o libtoast-handm.o libtoast.o
+#OBJS = libtoast-bodym.o libtoast-facem.o libtoast-handm.o libtoast.o
+OBJS = libtoast-posem.o libtoast-facem.o libtoast-handm.o libtoast.o
 
 OPTS = -O2
 
