@@ -93,7 +93,7 @@ func face_landmarker_callback_external(mp_result *C.struct_FaceLandmarkerResult,
 	payload.Timestamp = int(timestamp)
 	payload.Type = server.FaceTrackingType
 
-	ipc.sender(server.FaceTrackingType, payload)
+	ipc.sender(payload)
 }
 
 //export hand_landmarker_callback_external
@@ -162,7 +162,7 @@ func hand_landmarker_callback_external(mp_result *C.struct_HandLandmarkerResult,
 	payload.Timestamp = int(timestamp)
 	payload.Type = server.HandTrackingType
 
-	ipc.sender(server.HandTrackingType, payload)
+	ipc.sender(payload)
 }
 
 //export pose_landmarker_callback_external
@@ -206,5 +206,5 @@ func pose_landmarker_callback_external(mp_result *C.struct_PoseLandmarkerResult,
 	payload.Timestamp = int(timestamp)
 	payload.Type = server.PoseTrackingType
 
-	ipc.sender(server.PoseTrackingType, payload)
+	ipc.sender(payload)
 }

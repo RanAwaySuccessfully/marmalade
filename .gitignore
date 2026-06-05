@@ -10,6 +10,7 @@ marmalade.sock
 
 # Executables
 __debug*
+kalidokit-bin
 marmalade
 marmalade-gtk3
 marmalade-gtk4

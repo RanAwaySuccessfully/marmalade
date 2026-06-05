@@ -16,7 +16,7 @@ type IPC struct {
 	mutex   sync.Mutex
 	socket  net.Conn
 	encoder *gob.Encoder
-	sender  func(uint8, any)
+	sender  func(any)
 }
 
 var ipc = IPC{}
@@ -70,7 +70,7 @@ func main() {
 	fmt.Println("[MP +TOAST] Stopping...")
 }
 
-func send_result_socket(msg_type uint8, result any) {
+func send_result_socket(result any) {
 	ipc.mutex.Lock()
 
 	err := ipc.encoder.Encode(result)
@@ -82,7 +82,7 @@ func send_result_socket(msg_type uint8, result any) {
 	ipc.mutex.Unlock()
 }
 
-func send_result_stdout(msg_type uint8, result any) {
+func send_result_stdout(result any) {
 	text, err := json.Marshal(result)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v", err)

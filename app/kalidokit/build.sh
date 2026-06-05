@@ -1,0 +1,1 @@
+bun build main.js --compile --outfile kalidokit-bin

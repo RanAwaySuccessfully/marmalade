@@ -1,14 +1,7 @@
 package server
 
 import (
-	"encoding/gob"
-	"errors"
 	"fmt"
-	"io"
-	"net"
-	"os"
-	"os/exec"
-	"syscall"
 
 	"github.com/diamondburned/gotk4/pkg/core/glib"
 )
@@ -18,7 +11,9 @@ type ServerInstance struct {
 	started   bool
 	exit      bool
 	mpData    TrackingData
-	mpCmd     *exec.Cmd
+	mpCmd     *MediaPipeProcess
+	kaData    KalidoKitData
+	kaCmd     *KalidoKitProcess
 	VMCApi    *VMCApi
 	VTSApi    *VTSApi
 	VTSPlugin *VTSPlugin
@@ -45,35 +40,23 @@ func (server *ServerInstance) Start(err_ch chan error, callback func()) {
 		server.ErrPipe.Log = ""
 	}
 
-	var err error
-	server.mpCmd, err = createMediaPipeProcess(server)
+	server.mpCmd = &MediaPipeProcess{}
+	err := server.mpCmd.createSocket()
 	if err != nil {
 		err_ch <- err
 		return
 	}
 
-	err = server.mpCmd.Start()
+	err = server.mpCmd.create(server.ErrPipe)
 	if err != nil {
 		err_ch <- err
 		return
 	}
 
-	err = os.Remove("marmalade.sock")
-	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			err_ch <- err
-			return
-		}
-	}
-
-	socket, err := net.Listen("unix", "marmalade.sock")
-	if err != nil {
-		err_ch <- err
-		return
-	}
-	defer os.Remove("marmalade.sock")
+	needs_kalidokit := false
 
 	if Config.VMCApi.Enabled {
+		needs_kalidokit = true
 		server.VMCApi = &VMCApi{}
 		go server.VMCApi.Listen(err_ch)
 	}
@@ -93,43 +76,45 @@ func (server *ServerInstance) Start(err_ch chan error, callback func()) {
 		go server.VRChatOSC.Listen(err_ch)
 	}
 
-	go waitMediaPipeProcess(server.mpCmd, err_ch)
+	go server.mpCmd.wait(err_ch)
 
-	conn, err := socket.Accept()
-	if err != nil {
-		err_ch <- err
-		return
-	}
-
-	fmt.Println("[MARMALADE] MediaPipe connection started")
-	decoder := gob.NewDecoder(conn)
-
-	for !server.exit {
-		var mp_data TrackingData
-
-		err := decoder.Decode(&mp_data)
+	var ka_ch chan KalidoKitData
+	if needs_kalidokit {
+		server.kaCmd = &KalidoKitProcess{}
+		err = server.kaCmd.createSocket()
 		if err != nil {
-			if err != io.EOF {
-				err_ch <- err
-			}
-
-			break
+			err_ch <- err
+			return
 		}
 
+		err = server.kaCmd.create()
+		if err != nil {
+			err_ch <- err
+			return
+		}
+
+		go server.kaCmd.wait(err_ch)
+
+		ka_ch = make(chan KalidoKitData)
+		go server.kaCmd.listen(&server.exit, err_ch, ka_ch)
+	}
+
+	result := make(chan TrackingData)
+	go server.mpCmd.listen(&server.exit, err_ch, result)
+
+	for mp_data := range result {
 		if !server.started {
 			server.started = true
 			glib.IdleAdd(callback)
 		}
 
-		server.sendToClients(mp_data, err_ch)
+		server.sendToClients(mp_data, ka_ch, err_ch)
 	}
 
-	socket.Close()
 	fmt.Println("[MARMALADE] Ended")
 }
 
 func (server *ServerInstance) Stop() {
-
 	if !server.exit {
 		fmt.Println("[MARMALADE] Ending...")
 
@@ -147,17 +132,21 @@ func (server *ServerInstance) Stop() {
 			server.VTSPlugin.Close()
 		}
 
-		if server.mpCmd.Process != nil {
-			err := server.mpCmd.Process.Signal(syscall.SIGTERM)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "%v", err)
-			}
+		if server.VRChatOSC != nil {
+			server.VRChatOSC.Close()
 		}
 
+		if server.kaCmd != nil {
+			server.kaCmd.close()
+		}
+
+		if server.mpCmd != nil {
+			server.mpCmd.close()
+		}
 	}
 }
 
-func (server *ServerInstance) sendToClients(mp_data TrackingData, err_ch chan error) {
+func (server *ServerInstance) sendToClients(mp_data TrackingData, ka_ch chan KalidoKitData, err_ch chan error) {
 	if server.exit {
 		return
 	}
@@ -176,8 +165,38 @@ func (server *ServerInstance) sendToClients(mp_data TrackingData, err_ch chan er
 	server.mpData.Status = mp_data.Status
 	server.mpData.Timestamp = mp_data.Timestamp
 
+	if server.kaCmd != nil {
+		switch mp_data.Type {
+		case HandTrackingType:
+			err := server.kaCmd.send(mp_data.HandData)
+			if err != nil {
+				err_ch <- err
+			}
+
+			ka_data, ok := <-ka_ch
+			if !ok {
+				return
+			}
+
+			server.kaData.LeftHandData = ka_data.LeftHandData
+			server.kaData.RightHandData = ka_data.RightHandData
+		case PoseTrackingType:
+			err := server.kaCmd.send(mp_data.PoseData)
+			if err != nil {
+				err_ch <- err
+			}
+
+			ka_data, ok := <-ka_ch
+			if !ok {
+				return
+			}
+
+			server.kaData.PoseData = ka_data.PoseData
+		}
+	}
+
 	if server.VMCApi != nil {
-		server.VMCApi.Send(&server.mpData, err_ch)
+		server.VMCApi.Send(&server.mpData, mp_data.Type, &server.kaData, err_ch)
 	}
 
 	if server.VTSApi != nil {
@@ -186,5 +205,9 @@ func (server *ServerInstance) sendToClients(mp_data TrackingData, err_ch chan er
 
 	if server.VTSPlugin != nil {
 		server.VTSPlugin.Send(&server.mpData, err_ch)
+	}
+
+	if server.VRChatOSC != nil {
+		server.VRChatOSC.Send(&server.mpData, err_ch)
 	}
 }

@@ -1,12 +1,7 @@
 package server
 
 import (
-	"bytes"
-	"encoding/json"
-	"io"
-	"net/http"
 	"strings"
-	"time"
 
 	"github.com/hypebeast/go-osc/osc"
 	"github.com/ungerik/go3d/mat4"
@@ -21,50 +16,6 @@ type VMCApi struct {
 	frame_counter int
 }
 
-type KalidoKitData struct {
-	X float32 `json:"x"`
-	Y float32 `json:"y"`
-	Z float32 `json:"z"`
-}
-
-type KalidoKitHand struct {
-	Wrist              KalidoKitData
-	RingProximal       KalidoKitData
-	RingIntermediate   KalidoKitData
-	RingDistal         KalidoKitData
-	IndexProximal      KalidoKitData
-	IndexIntermediate  KalidoKitData
-	IndexDistal        KalidoKitData
-	MiddleProximal     KalidoKitData
-	MiddleIntermediate KalidoKitData
-	MiddleDistal       KalidoKitData
-	ThumbProximal      KalidoKitData
-	ThumbIntermediate  KalidoKitData
-	ThumbDistal        KalidoKitData
-	LittleProximal     KalidoKitData
-	LittleIntermediate KalidoKitData
-	LittleDistal       KalidoKitData
-}
-
-type KalidoKitPose struct {
-	RightUpperArm KalidoKitData
-	RightLowerArm KalidoKitData
-	LeftUpperArm  KalidoKitData
-	LeftLowerArm  KalidoKitData
-	RightHand     KalidoKitData
-	LeftHand      KalidoKitData
-	RightUpperLeg KalidoKitData
-	RightLowerLeg KalidoKitData
-	LeftUpperLeg  KalidoKitData
-	LeftLowerLeg  KalidoKitData
-	Spine         KalidoKitData
-	Hips          struct {
-		Position      KalidoKitData `json:"position"`
-		WorldPosition KalidoKitData `json:"worldPosition"`
-		Rotation      KalidoKitData `json:"rotation"`
-	}
-}
-
 func (api *VMCApi) Listen(err_ch chan error) {
 	port := 39540
 	if Config.VMCApi.Port != 0 {
@@ -74,14 +25,19 @@ func (api *VMCApi) Listen(err_ch chan error) {
 	api.client = osc.NewClient("127.0.0.1", port)
 }
 
-func (api *VMCApi) Send(mp_data *TrackingData, err_ch chan error) {
+func (api *VMCApi) Send(mp_data *TrackingData, mp_type uint8, ka_data *KalidoKitData, err_ch chan error) {
 	if api.client == nil {
 		return
 	}
 
-	api.send_face_data(&mp_data.FaceData)
-	api.send_hand_data(&mp_data.HandData)
-	api.send_pose_data(&mp_data.PoseData)
+	switch mp_type {
+	case FaceTrackingType:
+		api.send_face_data(&mp_data.FaceData)
+	case HandTrackingType:
+		api.send_hand_data(&mp_data.HandData, ka_data)
+	case PoseTrackingType:
+		api.send_pose_data(&mp_data.PoseData, ka_data)
+	}
 }
 
 func (api *VMCApi) Close() {
@@ -156,6 +112,9 @@ func (api *VMCApi) send_face_data(face_data *FaceTracking) {
 		api.sendBlendshape(category_name, score)
 	}
 
+	msg := osc.NewMessage("/VMC/Ext/Blend/Apply")
+	api.client.Send(msg)
+
 	if hasEyeLeft {
 		api.sendEye("LeftEye", (eyeLookDownLeft - eyeLookUpLeft), (eyeLookOutLeft - eyeLookInLeft), 0)
 	}
@@ -165,7 +124,29 @@ func (api *VMCApi) send_face_data(face_data *FaceTracking) {
 	}
 }
 
-func (api *VMCApi) send_hand_data(hand_data *HandTracking) {
+func (api *VMCApi) sendBlendshape(blendshape string, value float32) {
+	if api.client == nil {
+		return
+	}
+
+	msg := osc.NewMessage("/VMC/Ext/Blend/Val")
+	msg.Append(blendshape)
+	msg.Append(value)
+	api.client.Send(msg)
+}
+
+func (api *VMCApi) sendEye(name string, x float32, y float32, z float32) {
+	msg := osc.NewMessage("/VMC/Ext/Set/Eye")
+	msg.Append(name)
+	//msg.Append(1)
+	msg.Append(x)
+	msg.Append(y)
+	msg.Append(z)
+
+	api.client.Send(msg)
+}
+
+func (api *VMCApi) send_hand_data(hand_data *HandTracking, ka_data *KalidoKitData) {
 	for _, hand := range hand_data.Hand {
 		if len(hand.Handedness) <= 0 {
 			continue
@@ -177,22 +158,21 @@ func (api *VMCApi) send_hand_data(hand_data *HandTracking) {
 			return
 		}
 
-		payload := map[string]any{}
-		payload["handedness"] = handedness
-		payload["landmarks"] = hand.WorldLandmarks // hand.WorldLandmarks
-
-		jsonData, err := json.Marshal(payload)
-		if err != nil {
-			println("oops!")
-			return
+		var hand_rot KalidoKitHand
+		switch handedness {
+		case "Left":
+			hand_rot = ka_data.LeftHandData
+		case "Right":
+			hand_rot = ka_data.RightHandData
 		}
 
-		response := api.requestKalidokitSolve("hand", bytes.NewReader(jsonData))
-		defer response.Close()
-
-		var hand_rot KalidoKitHand
-		decoder := json.NewDecoder(response)
-		decoder.Decode(&hand_rot)
+		/*
+			if handedness == "Left" {
+				handedness = "Right"
+			} else {
+				handedness = "Left"
+			}
+		*/
 
 		api.sendKalidokitBone(2, handedness+"Wrist", &hand_rot.Wrist, nil)
 		api.sendKalidokitBone(2, handedness+"RingProximal", &hand_rot.RingProximal, nil)
@@ -213,23 +193,12 @@ func (api *VMCApi) send_hand_data(hand_data *HandTracking) {
 	}
 }
 
-func (api *VMCApi) send_pose_data(pose_data *PoseTracking) {
+func (api *VMCApi) send_pose_data(pose_data *PoseTracking, ka_data *KalidoKitData) {
 	if len(pose_data.WorldLandmarks) <= 0 {
 		return
 	}
 
-	jsonData, err := json.Marshal(pose_data)
-	if err != nil {
-		println("oops!")
-		return
-	}
-
-	response := api.requestKalidokitSolve("pose", bytes.NewReader(jsonData))
-	defer response.Close()
-
-	var pose KalidoKitPose
-	decoder := json.NewDecoder(response)
-	decoder.Decode(&pose)
+	pose := ka_data.PoseData
 
 	api.sendKalidokitBone(3, "RightUpperArm", &pose.RightUpperArm, nil)
 	api.sendKalidokitBone(3, "RightLowerArm", &pose.RightLowerArm, nil)
@@ -245,48 +214,7 @@ func (api *VMCApi) send_pose_data(pose_data *PoseTracking) {
 	api.sendKalidokitBone(3, "Hips", &pose.Hips.Rotation, &pose.Hips.WorldPosition)
 }
 
-func (api *VMCApi) sendBlendshape(blendshape string, value float32) {
-	if api.client == nil {
-		return
-	}
-
-	msg := osc.NewMessage("/VMC/Ext/Blend/Val")
-	msg.Append(blendshape)
-	msg.Append(value)
-	api.client.Send(msg)
-}
-
-func (api *VMCApi) sendEye(name string, x float32, y float32, z float32) {
-	msg := osc.NewMessage("/VMC/Ext/Set/Eye")
-	//msg.Append(name)
-	msg.Append(1)
-	msg.Append(x)
-	msg.Append(y)
-	msg.Append(z)
-
-	api.client.Send(msg)
-}
-
-func (api *VMCApi) requestKalidokitSolve(path string, data io.Reader) io.ReadCloser {
-	req, err := http.NewRequest("POST", "http://localhost:4242/"+path, data)
-	if err != nil {
-		println("oops!2")
-		return nil
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		println("oops!3")
-		return nil
-	}
-
-	return resp.Body
-}
-
-func (api *VMCApi) sendKalidokitBone(msg_type uint8, bone_name string, rotation *KalidoKitData, position *KalidoKitData) {
+func (api *VMCApi) sendKalidokitBone(msg_type uint8, bone_name string, rotation *KalidoKitCoords, position *KalidoKitCoords) {
 	rot := quaternion.FromEulerAngles(-rotation.Y, rotation.X, rotation.Z)
 
 	if position == nil {
