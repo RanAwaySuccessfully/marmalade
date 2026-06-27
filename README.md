@@ -22,11 +22,25 @@ Also available under GTK 3 (GUI).
     - `xdg-utils`
     - `pciutils`
 
-<sub>¹ May be suffixed by another version number, for example: `libgtk-3-0t64`, `libgtk-4-1`, `libv4l-0`.</sub>
+<sub>¹ May be suffixed by another version number depending on your Linux distribution, for example: `libgtk-3-0t64`, `libgtk-4-1`, `libv4l-0`.</sub>
 
 <sub>² Technically speaking you only need `libavcodec`, `libavutil` and `libswscale`.</sub>
 
 And you're done. You can just run the program at any time, and it should take care of the rest for you.
+
+### How much CPU/GPU/RAM does it use?
+
+I have no idea, but take a look at the following and try to estimate how much of an impact it could have on your system:
+
+| Component | Usage | Model |
+| ---- | ---- | -------- |
+| CPU | 5% | Ryzen 7 5700X3D |
+| Memory | 850MB | - |
+| GPU | 50% | Intel ARC A310* |
+
+The numbers above were taken with all tracking types enabled (face, hands and pose). Enabling only face tracking lowers the resource usage.
+
+\* This graphics card is roughly in-between a GTX 1630 and a RX 6400.
 
 ### First-time setup
 
@@ -50,11 +64,11 @@ You can choose to connect apps to Marmalade in a few different ways, as long as 
 
 **Warudo** only supports **VMC Protocol**.
 
-**VRChat** only supports **VRChat OSC**.
+<!-- **VRChat** only supports **VRChat OSC**. -->
 
 <!-- Connecting directly to **VTube Studio** without using any of the apps above requires using the **VTS Plugin** option. -->
 
-Hand tracking is not available when using **VTS 3rd Party API**, but is available using the other protocols.
+The **VTS 3rd Party API** protocol only supports face tracking.
 
 ## Config file
 
@@ -78,65 +92,24 @@ The fields `model` and `prime_id` are string values, and as such they're surroun
 
 ## Building, Testing, Debugging
 
-**You do not need to do any of this to install Marmalade. See the "Installing" section above instead.**
-
-If you want to develop or tinker with this program, you'll need to install the [Go programming language](https://go.dev/).
-
-Marmalade is divided between the following apps:
-- `cmd`
-- `gtk3`
-- `gtk4`
-- `mediapipe`
-
-For running one of these directly, run: `go run -v ./app/cmd`
-
-For building an executable, run: `go build -v ./app/cmd`
-
-If building the MediaPipe sub-process, see the section "MediaPipe" below.
-
-Note that this will generate an executable in the folder typed out above, which you should copy the main folder of the repository (the top-most folder). You can tell it to build an executable with a different name, but you can also rename it by adding `-o custom_name_here` to the command. Note that Marmalade expects the `mediapipe` executable to have that exact name.
-
-Depending on which executable you're building, you'll also need some extra development files installed:
-- gtk3: `libv4l-dev gobject-introspection libgtk-3-dev`
-- gtk4: `libv4l-dev gobject-introspection libgtk-4-dev`
-- mediapipe: `libv4l-dev libavcodec-dev libavutil-dev libswscale-dev`
-
-If you want to debug it, it comes with some Visual Studio Code configuration depending on what you want to debug:
-
-- If you want to debug the command-line version, run `Go: Debug CMD`.
-- If you want to debug the GTK 3 or GTK 4 version, run `Go: Debug GTK 3 Build` or `Go: Debug GTK 4 Build`. Note that this one will pre-build a `marmalade-gtk3` or `marmalade-gtk4` executable (so you can see each step of the build process).
-- If you want to debug the MediaPipe sub-process, run `Go: Debug MediaPipe`.
-
-### MediaPipe
-
-Before building the mediapipe sub-process, you'll need to build or download a copy of `libmediapipe.so` and `libtoast.so`.
-
-The most recent stable release of MediaPipe (`v0.10.35`) contains a C library that can be used directly by programs like Marmalade via **libmediapipe**. Unfortunately, the C API still has some trace amounts of C++ in it, which makes it impossible for Go to connect to it directly, so I created a wrapper called **libtoast** written in C but compiled as C++. In the future, I assume the C API will stabilize and **libtoast** will be removed, but for now this is a necessary component of Marmalade.
-
-For compiling **libmediapipe**, a Git submodule is available at `app/mediapipe/cc/mediapipe` containing a fork of the MediaPipe version currently used by Marmalade, alongside a few extra patches I made for compatibility. If it's not already downloaded, you can download it by running `git submodule update --init --recursive`. Once you have downloaded the repo, please take a look at the [MediaPipe docs](https://ai.google.dev/edge/mediapipe/framework/getting_started/install) as well as the [Bazel command-line arguments](https://bazel.build/reference/command-line-reference) for more information on how to build MediaPipe. The only target you need to build is `//mediapipe/tasks/c:libmediapipe.so`.
-
-I have provided [bazel-build.sh](/app/mediapipe/cc/bazel-build.sh) as an example but I provide no guarantees that it will work for you. Once you have compiled MediaPipe, the file `libmediapipe.so` will have been created inside the MediaPipe submodule in the folder `bazel-bin/mediapipe/tasks/c/`. Copy that file to Marmalade's `cc` folder (the same folder that contains the file `libtoast.cc`).
-
-You can compile **libtoast** by running the command `make` while your working directory (current folder) is the `cc` folder. This will generate `libtoast.a`. This will fail if `libmediapipe.so` is not found. This requires `make` or an equivalent command to be installed on your system. Once you have this file, you can proceed with compiling the MediaPipe subprocess via `go build -v ./app/mediapipe`.
-
-### FourCC
-
-The file `fourcc.json` contains a mapping file in order to bridge V4L2's encoding types with FFMPEG's. You can generate this file by running `go run -v ./app/fourcc`.
-
-### Build times
-
-The GUI version of this project takes about 10 minutes to compile when building via GitHub Actions (probably faster on your PC), most of this time is taken up by building GTK and its dependencies. This will happen when building the program for the first time, but if you're using VSCode with the Go extension, it will also happen the first time you open a .go file in this project as VSCode will get busy generating all the IntelliSense data it needs.
-
-Go has a caching mechanism that makes it so you don't have to go through this every time, but the cache does not last forever, so don't be surprised if you see it recompiling the GTK dependencies again. If you compile the GTK4 version, the GTK3 version will take slightly less time and vice-versa.
+If you want to compile, change or debug Marmalade, see [this document](/docs/connecting.md).
 
 ## License and Credits
 
 Licensed under the [MIT License](LICENSE).
 
-This project uses [gotk4](https://github.com/diamondburned/gotk4), which provides [GTK4](https://docs.gtk.org/gtk4/) and [GTK3](https://docs.gtk.org/gtk3/) language bindings for Go. This project does **not** use libadwaita as I want an app that integrates well with many common desktop environments.
+This project uses [ffmpeg](https://www.ffmpeg.org/) and [MediaPipe](https://github.com/google-ai-edge/mediapipe).
+
+This project uses [gotk4](https://github.com/diamondburned/gotk4), which provides [GTK4](https://docs.gtk.org/gtk4/) and [GTK3](https://docs.gtk.org/gtk3/) language bindings for Go. This project does **not** use libadwaita as it's meant to integrate well with many common desktop environments.
+
+We use the following Go libraries: [go4vl](https://github.com/vladimirvivien/go4vl), [go3d](https://github.com/ungerik/go3d), [go-osc](https://github.com/hypebeast/go-osc) and [websocket](https://github.com/coder/websocket).
 
 This project used to have Python code that was modified from [lilacGalaxy's VTS Plugin](https://github.com/lilac-galaxy/lilacs-mediapipe-forward-vts-plugin).
 
 Somewhat inspired by [Facetracker](https://codeberg.org/ZRayEntertainment/Facetracker) which uses OpenSeeFace instead.
 
 Many thanks to Kylo-Neko's [Linux Guide to Vtubing](https://codeberg.org/KyloNeko/Linux-Guide-to-Vtubing) which is what kickstarted my adventuring into seeing if/how I can make this work.
+
+### MediaPipe Tasks APIs Telemetry
+
+Since v0.10.35, the MediaPipe Tasks APIs "send metrics about the performance and utilization of the APIs in your app to Google", however, Marmalade as of v0.5.0 specifically uses a compiled shared-library version of the C API which (we believe) does not contain this telemetry. In either case, they mention that "processing of the input data (e.g. images, video, text) takes place on device, and MediaPipe does not send that input data to Google servers".

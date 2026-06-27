@@ -168,7 +168,7 @@ func (server *ServerInstance) sendToClients(mp_data TrackingData, ka_ch chan Kal
 	if server.kaCmd != nil {
 		switch mp_data.Type {
 		case HandTrackingType:
-			err := server.kaCmd.send(mp_data.HandData)
+			err := server.kaCmd.send(HandTrackingType, mp_data.HandData)
 			if err != nil {
 				err_ch <- err
 			}
@@ -181,7 +181,7 @@ func (server *ServerInstance) sendToClients(mp_data TrackingData, ka_ch chan Kal
 			server.kaData.LeftHandData = ka_data.LeftHandData
 			server.kaData.RightHandData = ka_data.RightHandData
 		case PoseTrackingType:
-			err := server.kaCmd.send(mp_data.PoseData)
+			err := server.kaCmd.send(PoseTrackingType, mp_data.PoseData)
 			if err != nil {
 				err_ch <- err
 			}

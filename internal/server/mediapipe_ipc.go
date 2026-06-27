@@ -120,8 +120,10 @@ func (mp *MediaPipeProcess) create(err_pipe io.Writer) error {
 		mp.cmd = exec.Command("./mediapipe", "--ipc")
 	}
 
-	if Config.PrimeId != "" {
-		prime_env := "DRI_PRIME=" + Config.PrimeId
+	if Config.HwAccel.PrimeId != "" {
+		replacer := strings.NewReplacer(":", "_", ".", "_")
+		prime_id := replacer.Replace(Config.HwAccel.PrimeId)
+		prime_env := "DRI_PRIME=" + prime_id
 		mp.cmd.Env = append(mp.cmd.Environ(), prime_env)
 	}
 
@@ -200,7 +202,7 @@ func (mp *MediaPipeProcess) listen(exit *bool, err_ch chan error, result chan Tr
 }
 
 func (mp *MediaPipeProcess) close() {
-	if mp.cmd.Process != nil {
+	if mp.cmd != nil && mp.cmd.Process != nil {
 		err := mp.cmd.Process.Signal(syscall.SIGTERM)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%v", err)

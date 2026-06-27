@@ -13,12 +13,6 @@ import (
 
 // KALIDOKIT DATA
 
-const (
-	NullKalidoKitType = iota
-	HandKalidoKitType
-	PoseKalidoKitType
-)
-
 type KalidoKitData struct {
 	Type          uint8
 	LeftHandData  KalidoKitHand
@@ -154,13 +148,15 @@ func (ka *KalidoKitProcess) listen(exit *bool, err_ch chan error, result chan Ka
 	close(result)
 }
 
-func (ka *KalidoKitProcess) send(value any) error {
-	// TODO: should probably receive a JSON with a type field, so that verification on the JS side is easier
-	return ka.encoder.Encode(value)
+func (ka *KalidoKitProcess) send(type_field uint8, value any) error {
+	payload_data := make(map[string]any)
+	payload_data["type"] = type_field
+	payload_data["data"] = value
+	return ka.encoder.Encode(payload_data)
 }
 
 func (ka *KalidoKitProcess) close() {
-	if ka.cmd.Process != nil {
+	if ka.cmd != nil && ka.cmd.Process != nil {
 		err := ka.cmd.Process.Signal(syscall.SIGTERM)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%v", err)

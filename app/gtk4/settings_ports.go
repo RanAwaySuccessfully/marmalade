@@ -76,9 +76,9 @@ func init_ports_settings() {
 
 	grid := UI.GetObject("main_grid").(*gtk.Grid)
 	init_ports_settings_vtsapi(grid)
-	init_ports_settings_vtsplugin(grid)
+	//init_ports_settings_vtsplugin(grid)
 	init_ports_settings_vmcap(grid)
-	init_ports_settings_vrcosc(grid)
+	//init_ports_settings_vrcosc(grid)
 }
 
 func init_ports_settings_vtsapi(grid *gtk.Grid) {

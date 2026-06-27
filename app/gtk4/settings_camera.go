@@ -20,6 +20,7 @@ func camera_notify_expanded() {
 	format_label := UI.GetObject("format_label").(*gtk.Label)
 	format_input := UI.GetObject("format_input").(*gtk.Entry)
 	camera_info := UI.GetObject("camera_info").(*gtk.Button)
+	decode_input := UI.GetObject("decode_input").(*gtk.CheckButton)
 
 	if expanded {
 		resolution_label.SetVisible(true)
@@ -29,6 +30,7 @@ func camera_notify_expanded() {
 		format_label.SetVisible(true)
 		format_input.SetVisible(true)
 		camera_info.SetVisible(true)
+		decode_input.SetVisible(true)
 	} else {
 		resolution_label.SetVisible(false)
 		resolution_box.SetVisible(false)
@@ -37,6 +39,7 @@ func camera_notify_expanded() {
 		format_label.SetVisible(false)
 		format_input.SetVisible(false)
 		camera_info.SetVisible(false)
+		decode_input.SetVisible(false)
 	}
 }
 
@@ -93,6 +96,13 @@ func init_camera_widgets() {
 		}
 	})
 
+	decode_input := UI.GetObject("decode_input").(*gtk.CheckButton)
+	decode_input.Connect("toggled", func() {
+		value := decode_input.Active()
+		server.Config.HwAccel.Decode = value
+		update_unsaved_config(true)
+	})
+
 	resolution_label := UI.GetObject("resolution_label").(*gtk.Label)
 	resolution_box := UI.GetObject("resolution_box").(*gtk.Box)
 	fps_label := UI.GetObject("fps_label").(*gtk.Label)
@@ -106,6 +116,7 @@ func init_camera_widgets() {
 	grid.Attach(format_label, 0, 13, 1, 1)
 	grid.Attach(format_input, 1, 13, 1, 1)
 	grid.Attach(camera_info, 1, 14, 1, 1)
+	grid.Attach(decode_input, 1, 15, 1, 1)
 
 	return
 }

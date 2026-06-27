@@ -50,4 +50,10 @@
     <property name="label">View supported settings</property>
   </object>
 
+  <object class="GtkCheckButton" id="decode_input">
+    <property name="visible">false</property>
+    <property name="label" translatable="yes">Use GPU video decoding</property>
+    <property name="hexpand">true</property>
+  </object>
+
 </interface>

@@ -8,6 +8,12 @@ import (
 
 var Config ConfigSchema
 
+const (
+	MediaPipeDelegateCPU = iota
+	MediaPipeDelegateGPU
+	//MediaPipeDelegateNPU_GOOGLE
+)
+
 type ConfigSchema struct {
 	Camera    int    `json:"camera"`
 	Width     int    `json:"width"`
@@ -16,9 +22,14 @@ type ConfigSchema struct {
 	Format    string `json:"format"`
 	ModelFace string `json:"model_face"`
 	ModelHand string `json:"model_hand"`
-	UseGpu    bool   `json:"use_gpu"`
-	PrimeId   string `json:"prime_id"`
-	VTSApi    struct {
+	ModelPose string `json:"model_pose"`
+	HwAccel   struct {
+		DelegateMP int    `json:"delegate_mp"`
+		Decode     bool   `json:"decode"`
+		PrimeId    string `json:"prime_id"`
+		//DecodeId  string `json:"decode_id"`
+	} `json:"hw_accel"` // hardware acceleration
+	VTSApi struct {
 		Enabled bool `json:"enabled"`
 		Port    int  `json:"port"`
 	} `json:"vts_api"` // vts3p
@@ -33,6 +44,7 @@ type ConfigSchema struct {
 		Enabled bool `json:"enabled"`
 		UseFace bool `json:"use_face"`
 		UseHand bool `json:"use_hand"`
+		UsePose bool `json:"use_pose"`
 		Port    int  `json:"port"`
 	} `json:"vmc_api"` // vmcap
 	VRChatOSC struct {
@@ -45,8 +57,10 @@ type ConfigSchema struct {
 
 // for compatibility with fields that have been changed / renamed
 type oldSchema struct {
-	Port  int    `json:"port"`
-	Model string `json:"model"`
+	Port   int    `json:"port"`
+	Model  string `json:"model"`
+	UseGpu bool   `json:"use_gpu"`
+	//PrimeId string `json:"prime_id"` // this setting unfortunately cannot be carried over from v0.4.x
 }
 
 func (config *ConfigSchema) Read() error {
@@ -87,6 +101,10 @@ func (config *ConfigSchema) Read() error {
 
 	if oldConfig.Port != 0 {
 		config.VTSApi.Port = oldConfig.Port
+	}
+
+	if oldConfig.UseGpu == true {
+		config.HwAccel.DelegateMP = 1
 	}
 
 	file.Close()

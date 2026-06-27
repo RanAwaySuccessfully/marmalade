@@ -81,8 +81,8 @@ func (mp *MediaPipe) start() error {
 	}
 
 	delegate := 0
-	if server.Config.UseGpu {
-		delegate = 1
+	if server.Config.HwAccel.DelegateMP != 0 {
+		delegate = server.Config.HwAccel.DelegateMP
 	}
 
 	anyFaceApi := server.Config.VTSApi.Enabled ||
@@ -93,6 +93,8 @@ func (mp *MediaPipe) start() error {
 	anyHandApi := (server.Config.VMCApi.Enabled && server.Config.VMCApi.UseHand) ||
 		(server.Config.VTSPlugin.Enabled && server.Config.VTSPlugin.UseHand) ||
 		(server.Config.VRChatOSC.Enabled && server.Config.VRChatOSC.UseHand)
+
+	anyPoseApi := (server.Config.VMCApi.Enabled && server.Config.VMCApi.UsePose)
 
 	if (server.Config.ModelFace != "") && anyFaceApi {
 		confidences := [3]C.float{-1, -1, -1}
@@ -116,10 +118,10 @@ func (mp *MediaPipe) start() error {
 		}
 	}
 
-	if anyHandApi {
+	if (server.Config.ModelPose != "") && anyPoseApi {
 		confidences := [3]C.float{-1, -1, -1}
 
-		mp.posem_path = C.CString("tasks/pose_landmarker_lite.task")
+		mp.posem_path = C.CString(server.Config.ModelPose)
 		mp.posem_lm = C.mediapipe_lm_pose_start(mp.posem_path, C.int(delegate), &confidences[0])
 		if mp.posem_lm == nil {
 			err := mediapipe_get_error()

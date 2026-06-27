@@ -11,13 +11,19 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"marmalade/internal/server"
 	"os"
+	"unsafe"
 )
 
 type ConverterFFMPEG struct {
 	inputCtx    *C.struct_AVCodecContext
 	inputPacket *C.struct_AVPacket
 	inputFrame  *C.struct_AVFrame
+
+	copyFrame  *C.struct_AVFrame
+	copyDevice *C.char
+	copyFromHw bool
 
 	outputCtx   *C.struct_SwsContext
 	outputFrame *C.struct_AVFrame
@@ -65,6 +71,66 @@ func (conv *ConverterFFMPEG) init(format string) error {
 		conv.inputCtx.pix_fmt = pix_fmt
 	}
 
+	can_vaapi := false
+	//can_qsv := false
+
+	for i := 0; ; i++ {
+		hw := C.avcodec_get_hw_config(codec, C.int(i))
+		if hw == nil {
+			break
+		}
+
+		switch hw.device_type {
+		case C.AV_HWDEVICE_TYPE_VAAPI:
+			can_vaapi = true
+			continue
+			/*
+				case C.AV_HWDEVICE_TYPE_QSV:
+					can_qsv = true
+					continue
+			*/
+			/*
+				default:
+					println(C.GoString(C.av_hwdevice_get_type_name(hw.device_type)))
+			*/
+		}
+	}
+
+	if server.Config.HwAccel.Decode {
+		if can_vaapi {
+			var hwCtx *C.AVBufferRef
+
+			if server.Config.HwAccel.PrimeId != "" {
+				device_str := "/dev/dri/by-path/" + server.Config.HwAccel.PrimeId + "-render"
+				conv.copyDevice = C.CString(device_str)
+			}
+
+			ret := C.av_hwdevice_ctx_create(&hwCtx, C.AV_HWDEVICE_TYPE_VAAPI, conv.copyDevice, nil, 0)
+			if ret < 0 {
+				err := conv.get_error(ret)
+				return create_error("creating hardware context", err)
+			}
+
+			conv.inputCtx.hwaccel_flags = 1
+			conv.inputCtx.hw_device_ctx = hwCtx
+			conv.copyFromHw = true
+		} /* else if can_qsv {
+			quicksync_ctx := C.av_hwdevice_ctx_alloc(C.AV_HWDEVICE_TYPE_QSV)
+			if quicksync_ctx == nil {
+				return create_error("unable to allocate quicksync context", nil)
+			}
+
+			ret := C.av_hwdevice_ctx_init(quicksync_ctx)
+			if ret < 0 {
+				err := conv.get_error(ret)
+				return create_error("initializing quicksync context", err)
+			}
+
+			conv.inputCtx.hwaccel_flags = 1
+			conv.inputCtx.hw_device_ctx = quicksync_ctx
+		} */
+	}
+
 	ret := C.avcodec_open2(conv.inputCtx, codec, nil)
 	if ret < 0 {
 		err := conv.get_error(ret)
@@ -84,10 +150,10 @@ func (conv *ConverterFFMPEG) init(format string) error {
 	return nil
 }
 
-func (conv *ConverterFFMPEG) init_output_frame() error {
+func (conv *ConverterFFMPEG) init_output_frame(inputFrame *C.AVFrame) error {
 	conv.outputFrame = C.av_frame_alloc()
-	conv.outputFrame.width = conv.inputFrame.width
-	conv.outputFrame.height = conv.inputFrame.height
+	conv.outputFrame.width = inputFrame.width
+	conv.outputFrame.height = inputFrame.height
 	conv.outputFrame.format = C.AV_PIX_FMT_RGB24
 
 	ret := C.av_frame_get_buffer(conv.outputFrame, 0)
@@ -97,7 +163,7 @@ func (conv *ConverterFFMPEG) init_output_frame() error {
 	}
 
 	conv.outputCtx = C.sws_getContext(
-		conv.inputFrame.width, conv.inputFrame.height, int32(conv.inputFrame.format),
+		inputFrame.width, inputFrame.height, int32(inputFrame.format),
 		conv.outputFrame.width, conv.outputFrame.height, int32(conv.outputFrame.format),
 		C.SWS_FAST_BILINEAR, nil, nil, nil,
 	)
@@ -141,17 +207,34 @@ func (conv *ConverterFFMPEG) convert(input []byte) ([]byte, error) {
 
 		frame := conv.inputFrame
 
+		// uses hardware acceleration
+		if conv.copyFromHw {
+			if conv.copyFrame == nil {
+				conv.copyFrame = C.av_frame_alloc()
+				conv.copyFrame.height = frame.height
+				conv.copyFrame.width = frame.width
+			}
+
+			ret = C.av_hwframe_transfer_data(conv.copyFrame, frame, 0)
+			if ret < 0 {
+				err := conv.get_error(ret)
+				return nil, create_error("transferring hardware frame", err)
+			}
+
+			frame = conv.copyFrame
+		}
+
 		// do pixelformat conversion
 		if conv.inputFrame.format != C.AV_PIX_FMT_RGB24 {
 
 			if conv.outputFrame == nil {
-				err := conv.init_output_frame()
+				err := conv.init_output_frame(frame)
 				if err != nil {
 					return nil, err
 				}
 			}
 
-			C.ffmpeg_convert_frame(conv.outputCtx, conv.inputFrame, conv.outputFrame)
+			C.ffmpeg_convert_frame(conv.outputCtx, frame, conv.outputFrame)
 
 			frame = conv.outputFrame
 		}
@@ -188,6 +271,10 @@ func (conv *ConverterFFMPEG) end() {
 
 	if conv.inputCtx != nil {
 		C.avcodec_free_context(&conv.inputCtx)
+	}
+
+	if conv.copyDevice != nil {
+		C.free(unsafe.Pointer(conv.copyDevice))
 	}
 }
 

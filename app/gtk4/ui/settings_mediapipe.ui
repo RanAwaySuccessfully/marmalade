@@ -23,6 +23,17 @@
     <property name="placeholder-text">hand_landmarker.task</property>
   </object>
 
+  <object class="GtkLabel" id="posem_label">
+    <property name="visible">false</property>
+    <property name="label" translatable="yes">Pose tracking file:</property>
+    <property name="halign">GTK_ALIGN_START</property>
+  </object>
+
+  <object class="GtkEntry" id="posem_input">
+    <property name="visible">false</property>
+    <property name="placeholder-text">pose_landmarker.task</property>
+  </object>
+
   <object class="GtkLabel" id="device_label">
     <property name="visible">false</property>
     <property name="label" translatable="yes">Device:</property>

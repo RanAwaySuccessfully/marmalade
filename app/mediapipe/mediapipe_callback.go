@@ -4,12 +4,23 @@ package main
 #include <libtoast.h>
 */
 import "C"
-import "marmalade/internal/server"
+import (
+	"marmalade/internal/server"
+	"math"
+)
+
+func removeNaN(value float32) float32 {
+	if math.IsNaN(float64(value)) {
+		return 0 // should this be -1?
+	} else {
+		return value
+	}
+}
 
 func ConvertCategory(mp_category *C.struct_Category) server.Category {
 	return server.Category{
 		Index:        int(mp_category.index),
-		Score:        float32(mp_category.score),
+		Score:        removeNaN(float32(mp_category.score)),
 		CategoryName: C.GoString(mp_category.category_name),
 		DisplayName:  C.GoString(mp_category.display_name),
 	}
@@ -17,26 +28,26 @@ func ConvertCategory(mp_category *C.struct_Category) server.Category {
 
 func ConvertNormalizedLandmark(mp_landmark *C.struct_NormalizedLandmark) server.Landmark {
 	return server.Landmark{
-		X:             float32(mp_landmark.x),
-		Y:             float32(mp_landmark.y),
-		Z:             float32(mp_landmark.z),
+		X:             removeNaN(float32(mp_landmark.x)),
+		Y:             removeNaN(float32(mp_landmark.y)),
+		Z:             removeNaN(float32(mp_landmark.z)),
 		HasVisibility: bool(mp_landmark.has_visibility),
-		Visibility:    float32(mp_landmark.visibility),
+		Visibility:    removeNaN(float32(mp_landmark.visibility)),
 		HasPresence:   bool(mp_landmark.has_presence),
-		Presence:      float32(mp_landmark.presence),
+		Presence:      removeNaN(float32(mp_landmark.presence)),
 		Name:          C.GoString(mp_landmark.name),
 	}
 }
 
 func ConvertLandmark(mp_landmark *C.struct_Landmark) server.Landmark {
 	return server.Landmark{
-		X:             float32(mp_landmark.x),
-		Y:             float32(mp_landmark.y),
-		Z:             float32(mp_landmark.z),
+		X:             removeNaN(float32(mp_landmark.x)),
+		Y:             removeNaN(float32(mp_landmark.y)),
+		Z:             removeNaN(float32(mp_landmark.z)),
 		HasVisibility: bool(mp_landmark.has_visibility),
-		Visibility:    float32(mp_landmark.visibility),
+		Visibility:    removeNaN(float32(mp_landmark.visibility)),
 		HasPresence:   bool(mp_landmark.has_presence),
-		Presence:      float32(mp_landmark.presence),
+		Presence:      removeNaN(float32(mp_landmark.presence)),
 		Name:          C.GoString(mp_landmark.name),
 	}
 }

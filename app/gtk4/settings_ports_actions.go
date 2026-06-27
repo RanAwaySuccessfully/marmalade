@@ -67,6 +67,17 @@ func init_ports_actions_vmcap(app *gtk.Application) {
 
 	app.ActionMap.AddAction(handm_action)
 
+	posem_variant := glib.NewVariantBoolean(server.Config.VMCApi.UsePose)
+	posem_action := gio.NewSimpleActionStateful("ports_vmcap_posem", nil, posem_variant)
+	posem_action.ConnectChangeState(func(parameter *glib.Variant) {
+		server.Config.VMCApi.UsePose = parameter.Boolean()
+		posem_action.SetState(parameter)
+		update_unsaved_config(true)
+		return
+	})
+
+	app.ActionMap.AddAction(posem_action)
+
 	about_action := gio.NewSimpleAction("ports_vmcap_about", nil)
 	about_action.ConnectActivate(func(parameter *glib.Variant) {
 		settings := UI.GetObject("vmcap_settings").(*gtk.MenuButton)

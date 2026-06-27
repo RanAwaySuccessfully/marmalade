@@ -11,25 +11,25 @@ import (
 //export create_dialog_vtsapi
 func create_dialog_vtsapi() {
 	title := "Marmalade - VTS 3rd Party API"
-	label := "Marmalade can mimic VTube Studio's \"3rd Party PC Apps\" API, and will connect to any application that is expecting it (usually worded like \"VTube Studio / iPhone\"). Note that there is no support for hand tracking using this type of connection."
-	create_dialog_port(title, label, "21412", &server.Config.VTSApi.Port, nil, nil)
+	label := "Marmalade can mimic VTube Studio's \"3rd Party PC Apps\" API, and will connect to any application that is expecting it (usually worded like \"VTube Studio / iPhone\"). Note that only face tracking is supported."
+	create_dialog_port(title, label, "21412", &server.Config.VTSApi.Port, nil, nil, nil)
 }
 
 //export create_dialog_vtsplugin
 func create_dialog_vtsplugin() {
 	title := "Marmalade - VTS Plugin"
 	label := "Marmalade can connect directly to VTube Studio as a plugin. Make sure VTube Studio's Plugin API is enabled and that you have authorized Marmalade to connect."
-	create_dialog_port(title, label, "8001", &server.Config.VTSPlugin.Port, &server.Config.VTSPlugin.UseFace, &server.Config.VTSPlugin.UseHand)
+	create_dialog_port(title, label, "8001", &server.Config.VTSPlugin.Port, &server.Config.VTSPlugin.UseFace, &server.Config.VTSPlugin.UseHand, nil)
 }
 
 //export create_dialog_vmcapi
 func create_dialog_vmcapi() {
 	title := "Marmalade - VMC Protocol"
 	label := "Marmalade supports the Virtual Motion Capture (VMC) protocol."
-	create_dialog_port(title, label, "39540", &server.Config.VMCApi.Port, &server.Config.VMCApi.UseFace, &server.Config.VMCApi.UseHand)
+	create_dialog_port(title, label, "39540", &server.Config.VMCApi.Port, &server.Config.VMCApi.UseFace, &server.Config.VMCApi.UseHand, &server.Config.VMCApi.UsePose)
 }
 
-func create_dialog_port(title string, label string, placeholder string, port *int, facem *bool, handm *bool) {
+func create_dialog_port(title string, label string, placeholder string, port *int, facem *bool, handm *bool, posem *bool) {
 	builder := NewBuilder(ui.DialogPorts)
 
 	window := builder.GetObject("ports_dialog").(*gtk.Window)
@@ -77,6 +77,17 @@ func create_dialog_port(title string, label string, placeholder string, port *in
 		})
 	}
 
+	if posem != nil {
+		posem_input := builder.GetObject("ports_posem").(*gtk.Switch)
+
+		posem_input.SetState(*posem)
+		posem_input.ConnectStateSet(func(state bool) bool {
+			*posem = state
+			update_unsaved_config(true)
+			return false
+		})
+	}
+
 	window.SetVisible(true)
 	window.ShowAll()
 
@@ -88,5 +99,10 @@ func create_dialog_port(title string, label string, placeholder string, port *in
 	if handm == nil {
 		handm_row := builder.GetObject("ports_handm_row").(*gtk.ListBoxRow)
 		handm_row.SetVisible(false)
+	}
+
+	if posem == nil {
+		posem_row := builder.GetObject("ports_posem_row").(*gtk.ListBoxRow)
+		posem_row.SetVisible(false)
 	}
 }

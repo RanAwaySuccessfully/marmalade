@@ -15,13 +15,12 @@ Bun.connect({
             const payload = JSON.parse(text);
 
             let result = {
-                Type: 0
+                Type: payload.type
             };
 
             try {
-                if (payload.hands) {
-                    result.Type = 1;
-                    payload.hands.forEach(hand => {
+                if (payload.type === 2) {
+                    payload.data.hands.forEach(hand => {
                         if (!hand.handedness) {
                             return;
                         }
@@ -45,9 +44,8 @@ Bun.connect({
                                 break;
                         }
                     });
-                } else {
-                    result.Type = 2;
-                    result.PoseData = PoseSolver.solve(payload.world_landmarks, payload.landmarks, {
+                } else if (payload.type === 3) {
+                    result.PoseData = PoseSolver.solve(payload.data.world_landmarks, payload.data.landmarks, {
                         runtime: "mediapipe",
                         enableLegs: true,
                     });

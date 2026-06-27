@@ -8,7 +8,7 @@ require (
 	github.com/coder/websocket v1.8.14
 	github.com/hypebeast/go-osc v0.0.0-20220308234300-cec5a8a1e5f5
 	github.com/ungerik/go3d v0.0.0-20251020194721-1bde1320d420
-	github.com/vladimirvivien/go4vl v0.3.0
+	github.com/vladimirvivien/go4vl v0.5.0
 )
 
 require (

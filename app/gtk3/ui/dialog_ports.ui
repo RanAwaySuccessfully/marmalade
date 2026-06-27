@@ -107,6 +107,33 @@
               </object>
             </child>
 
+            <child>
+              <object class="GtkListBoxRow" id="ports_posem_row">
+                <property name="activatable">false</property>
+                <property name="selectable">false</property>
+
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Pose tracking:</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="hexpand">true</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSwitch" id="ports_posem">
+                        <property name="halign">GTK_ALIGN_END</property>
+                        <property name="active">false</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
           </object>
         </child>
 
