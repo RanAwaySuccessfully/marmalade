@@ -16,7 +16,7 @@ For building an executable, run: `go build -v ./app/cmd`
 
 If building the MediaPipe sub-process, see the section "MediaPipe" below.
 
-Note that this will generate an executable in the folder typed out above, which you should copy the main folder of the repository (the top-most folder). You can tell it to build an executable with a different name, but you can also rename it by adding `-o custom_name_here` to the command. Note that Marmalade expects the `mediapipe` executable to have that exact name.
+Note that this will generate an executable in the folder typed out above, which you should copy the main folder of the repository (the top-most folder). You can tell it to build an executable with a different name, but you can also rename it by adding `-o custom_name_here` to the command (you must add it like so: `go build -v -o custom_name_here ./app/cmd`). Note that Marmalade expects the `mediapipe` executable to have that exact name.
 
 Depending on which executable you're building, you'll also need some extra development files installed:
 - gtk3: `libv4l-dev gobject-introspection libgtk-3-dev`
@@ -37,9 +37,15 @@ The most recent stable release of MediaPipe (`v0.10.35`) contains a C library th
 
 For compiling **libmediapipe**, a Git submodule is available at `app/mediapipe/cc/mediapipe` containing a fork of the MediaPipe version currently used by Marmalade, alongside a few extra patches I made for compatibility. If it's not already downloaded, you can download it by running `git submodule update --init --recursive`. Once you have downloaded the repo, please take a look at the [MediaPipe docs](https://ai.google.dev/edge/mediapipe/framework/getting_started/install) as well as the [Bazel command-line arguments](https://bazel.build/reference/command-line-reference) for more information on how to build MediaPipe. The only target you need to build is `//mediapipe/tasks/c:libmediapipe.so`.
 
-I have provided [bazel-build.sh](/app/mediapipe/cc/bazel-build.sh) as an example but I provide no guarantees that it will work for you. Once you have compiled MediaPipe, the file `libmediapipe.so` will have been created inside the MediaPipe submodule in the folder `bazel-bin/mediapipe/tasks/c/`. Copy that file to Marmalade's `cc` folder (the same folder that contains the file `libtoast.cc`).
+I have provided [bazel-build.sh](/app/mediapipe/cc/bazel-build.sh) as an example but I provide no guarantees that it will work for you. Once you have compiled MediaPipe, the file `libmediapipe.so` will have been created inside the MediaPipe submodule in the folder `bazel-bin/mediapipe/tasks/c/`. Copy that file to Marmalade's `cc` folder (the same folder that contains the file `libtoast.cc`). Once copied, create a link (or copy it again) to Marmalade's main folder (the one where the `LICENSE` file exists).
 
 You can compile **libtoast** by running the command `make` while your working directory (current folder) is the `cc` folder. This will generate `libtoast.a`. This will fail if `libmediapipe.so` is not found. This requires `make` or an equivalent command to be installed on your system. Once you have this file, you can proceed with compiling the MediaPipe subprocess via `go build -v ./app/mediapipe`.
+
+### KalidoKit
+
+KalidoKit is necessary for proper hand and pose tracking, on top of MediaPipe. It's a library written in JavaScript, so to build it, you'll need [Bun](https://bun.com/) installed in your system.
+
+Run the `build.sh` script that's located on `app/kalidokit`. Once done, the file `kalidokit-bin` will be created, which is the executable containing all of the code and a copy of the Bun runtime. Copy this file (or create a link to it) on Marmalade's main folder (the one where the `LICENSE` file exists).
 
 ### FourCC
 

@@ -2,7 +2,7 @@ package main
 
 /*
 #cgo CFLAGS: -I${SRCDIR}/cc/ -I${SRCDIR}/cc/mediapipe/
-#cgo LDFLAGS: ${SRCDIR}/cc/libtoast.a -L${SRCDIR}/cc/ -lmediapipe
+#cgo LDFLAGS: ${SRCDIR}/cc/libtoast.a -L${SRCDIR}/cc/ -lmediapipe -Wl,-rpath,.
 
 #include <libtoast.h>
 #include <stdlib.h>
