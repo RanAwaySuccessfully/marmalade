@@ -7,7 +7,6 @@ import (
 )
 
 type ServerInstance struct {
-	ErrPipe   *ErrPipeProxy
 	started   bool
 	exit      bool
 	mpData    TrackingData
@@ -34,12 +33,6 @@ func (server *ServerInstance) Start(err_ch chan error, callback func()) {
 
 	fmt.Println("[MARMALADE] Listening...")
 
-	if server.ErrPipe == nil {
-		server.ErrPipe = &ErrPipeProxy{}
-	} else {
-		server.ErrPipe.Log = ""
-	}
-
 	server.mpCmd = &MediaPipeProcess{}
 	err := server.mpCmd.createSocket()
 	if err != nil {
@@ -47,7 +40,7 @@ func (server *ServerInstance) Start(err_ch chan error, callback func()) {
 		return
 	}
 
-	err = server.mpCmd.create(server.ErrPipe)
+	err = server.mpCmd.create()
 	if err != nil {
 		err_ch <- err
 		return

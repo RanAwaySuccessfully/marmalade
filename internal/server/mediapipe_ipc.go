@@ -85,11 +85,18 @@ type PoseTracking struct {
 // PROCESS
 
 type MediaPipeProcess struct {
+	stderr *SubProcessError
 	cmd    *exec.Cmd
 	socket net.Listener
 }
 
-func (mp *MediaPipeProcess) create(err_pipe io.Writer) error {
+func (mp *MediaPipeProcess) create() error {
+	if mp.stderr == nil {
+		mp.stderr = &SubProcessError{}
+	} else {
+		mp.stderr.Stderr = ""
+	}
+
 	_, err := os.Stat("./mediapipe")
 	if errors.Is(err, os.ErrNotExist) { // local testing
 		build_cmd := exec.Command("go", "build")
@@ -137,7 +144,7 @@ func (mp *MediaPipeProcess) create(err_pipe io.Writer) error {
 		return err
 	}
 
-	go io.Copy(err_pipe, stderr)
+	go io.Copy(mp.stderr, stderr)
 	go io.Copy(os.Stdout, stdout)
 
 	err = mp.cmd.Start()
@@ -167,7 +174,8 @@ func (mp *MediaPipeProcess) createSocket() error {
 func (mp *MediaPipeProcess) wait(err_ch chan error) {
 	err := mp.cmd.Wait()
 	if err != nil {
-		err_ch <- err
+		mp.stderr.Err = err
+		err_ch <- mp.stderr
 	} else {
 		err_ch <- os.ErrProcessDone
 	}

@@ -65,12 +65,19 @@ type KalidoKitPose struct {
 }
 
 type KalidoKitProcess struct {
+	stderr  *SubProcessError
 	cmd     *exec.Cmd
 	socket  net.Listener
 	encoder *json.Encoder
 }
 
 func (ka *KalidoKitProcess) create() error {
+	if ka.stderr == nil {
+		ka.stderr = &SubProcessError{}
+	} else {
+		ka.stderr.Stderr = ""
+	}
+
 	ka.cmd = exec.Command("./kalidokit-bin")
 
 	stdout, err := ka.cmd.StdoutPipe()
@@ -83,7 +90,7 @@ func (ka *KalidoKitProcess) create() error {
 		return err
 	}
 
-	go io.Copy(os.Stderr, stderr)
+	go io.Copy(ka.stderr, stderr)
 	go io.Copy(os.Stdout, stdout)
 
 	err = ka.cmd.Start()
@@ -113,7 +120,8 @@ func (ka *KalidoKitProcess) createSocket() error {
 func (ka *KalidoKitProcess) wait(err_ch chan error) {
 	err := ka.cmd.Wait()
 	if err != nil {
-		err_ch <- err
+		ka.stderr.Err = err
+		err_ch <- ka.stderr
 	} else {
 		err_ch <- os.ErrProcessDone
 	}

@@ -56,7 +56,6 @@ func error_handler(button *gtk.Button, err_channel chan error) {
 
 		var exitError *exec.ExitError
 		if errors.As(err, &exitError) {
-			exitError = err.(*exec.ExitError)
 			exitCode := exitError.ExitCode()
 
 			errTitle := "Unknown error while running sub-process."
@@ -68,8 +67,13 @@ func error_handler(button *gtk.Button, err_channel chan error) {
 				errTitle = "Error while starting MediaPipe. Is the model (.task) file configured correctly?"
 			}
 
-			// exitError.Stderr is empty, so we use our own copy of Stderr instead
-			err = fmt.Errorf("[%d] %s\n\nDetails:\n\n%s", exitCode, errTitle, srv.ErrPipe.Log)
+			var subError *server.SubProcessError
+			if errors.As(err, &subError) {
+				// exitError.Stderr is empty, so we use our own copy of Stderr instead
+				err = fmt.Errorf("[%d] %s\n\nDetails:\n\n%s", exitCode, errTitle, subError.Stderr)
+			} else {
+				err = fmt.Errorf("[%d] %s", exitCode, errTitle)
+			}
 		}
 
 		glib.IdleAdd(func() {
