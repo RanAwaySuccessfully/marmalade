@@ -6,9 +6,12 @@ If you want to develop or tinker with this program, you'll need to install the [
 
 Marmalade is divided between the following apps:
 - `cmd`
+- `ffmpeg`¹
 - `gtk3`
 - `gtk4`
 - `mediapipe`
+
+<sub>¹ not an app, see the "FFmpeg Plugin" section for more information</sub>
 
 For running one of these directly, run: `go run -v ./app/cmd`
 
@@ -35,7 +38,7 @@ Before building the mediapipe sub-process, you'll need to build or download a co
 
 The most recent stable release of MediaPipe (`v0.10.35`) contains a C library that can be used directly by programs like Marmalade via **libmediapipe**. Unfortunately, the C API still has some trace amounts of C++ in it, which makes it impossible for Go to connect to it directly, so I created a wrapper called **libtoast** written in C but compiled as C++. In the future, I assume the C API will stabilize and **libtoast** will be removed, but for now this is a necessary component of Marmalade.
 
-For compiling **libmediapipe**, a Git submodule is available at `app/mediapipe/cc/mediapipe` containing a fork of the MediaPipe version currently used by Marmalade, alongside a few extra patches I made for compatibility. If it's not already downloaded, you can download it by running `git submodule update --init --recursive`. Once you have downloaded the repo, please take a look at the [MediaPipe docs](https://ai.google.dev/edge/mediapipe/framework/getting_started/install) as well as the [Bazel command-line arguments](https://bazel.build/reference/command-line-reference) for more information on how to build MediaPipe. The only target you need to build is `//mediapipe/tasks/c:libmediapipe.so`.
+For compiling **libmediapipe**, a Git submodule is available at `app/mediapipe/cc/mediapipe` containing a fork of the MediaPipe version currently used by Marmalade, alongside a few extra patches I made for compatibility. If it's not already downloaded, you can download it by running `git submodule update --init app/mediapipe/cc/mediapipe`. Once you have downloaded the repo, please take a look at the [MediaPipe docs](https://ai.google.dev/edge/mediapipe/framework/getting_started/install) as well as the [Bazel command-line arguments](https://bazel.build/reference/command-line-reference) for more information on how to build MediaPipe. The only target you need to build is `//mediapipe/tasks/c:libmediapipe.so`.
 
 I have provided [bazel-build.sh](/app/mediapipe/cc/bazel-build.sh) as an example but I provide no guarantees that it will work for you. Once you have compiled MediaPipe, the file `libmediapipe.so` will have been created inside the MediaPipe submodule in the folder `bazel-bin/mediapipe/tasks/c/`. Copy that file to Marmalade's `cc` folder (the same folder that contains the file `libtoast.cc`). Once copied, create a link (or copy it again) to Marmalade's main folder (the one where the `LICENSE` file exists).
 
@@ -51,7 +54,21 @@ Run the `build.sh` script that's located on `app/kalidokit`. Once done, the file
 
 The file `fourcc.json` contains a mapping file in order to bridge V4L2's encoding types with FFMPEG's. You can generate this file by running `go run -v ./app/fourcc`.
 
-### Build times
+### FFmpeg Plugin
+
+MediaPipe only accepts images in a select few formats like RGB3. As such, if you use any other format then Marmalade will need to use an external library (such as FFmpeg) to convert it to RGB3. Because major versions of FFmpeg can introduce breaking changes, the mediapipe sub-process described above will import a Go plugin (shared library) that interacts with the FFmpeg version installed in your system. **This is not a statically built version of FFmpeg and will not work on its own.**
+
+If you're compiling your own version of the mediapipe sub-process, you'll also have to compile the FFmpeg plugin. If so, use the exact same environment to compile both the sub-process and the plugin, as even tiny changes can cause the two to conflict and crash.
+
+To build this plugin, specifically use the command `go build -buildmode=plugin -v -o ffmpegX_plugin.so ./app/ffmpeg`, replacing the X with the version of `ffmpeg` installed in your system (example: `ffmpeg 6.1` -> `ffmpeg6_plugin.so`).
+
+#### Custom FFmpeg version
+
+If you wish to use a specific version of FFmpeg instead, there is a Git submodule that can be downloaded by running `git submodule update --init app/ffmpeg/ffmpeg` which points to FFmpeg's GitHub mirror. With this, you can choose the branch that contains the release you want to compile against (example: `release/6.1`). In order to use this, specifically add the flag `-tags ffmpeg-local` right after the `go build` command, and before all the other flags.
+
+Note that in this case, you'll also need to build FFmpeg itself. A minimal install is enough, and can be done by running `build.sh` located on the `app/ffmpeg` folder.
+
+## Build times
 
 The GUI version of this project takes about 10 minutes to compile when building via GitHub Actions (probably faster on your PC), most of this time is taken up by building GTK and its dependencies. This will happen when building the program for the first time, but if you're using VSCode with the Go extension, it will also happen the first time you open a .go file in this project as VSCode will get busy generating all the IntelliSense data it needs.
 

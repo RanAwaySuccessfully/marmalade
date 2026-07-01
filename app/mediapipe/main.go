@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"marmalade/internal/interfaces"
 	"net"
 	"os"
 	"os/signal"
@@ -30,7 +31,7 @@ func main() {
 	if useGob {
 		ipc.socket, err = net.Dial("unix", "marmalade.sock")
 		if err != nil {
-			err = create_error("creating Unix socket IPC", err)
+			err = interfaces.CreateError("creating Unix socket IPC", err)
 			fmt.Fprintln(os.Stderr, err)
 			return
 		}
@@ -75,7 +76,7 @@ func send_result_socket(result any) {
 
 	err := ipc.encoder.Encode(result)
 	if err != nil {
-		err = create_error("sending data to Unix socket IPC", err)
+		err = interfaces.CreateError("sending data to Unix socket IPC", err)
 		fmt.Fprintln(os.Stderr, err)
 	}
 
