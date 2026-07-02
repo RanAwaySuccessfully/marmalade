@@ -64,9 +64,9 @@ To build this plugin, specifically use the command `go build -buildmode=plugin -
 
 #### Custom FFmpeg version
 
-If you wish to use a specific version of FFmpeg instead, there is a Git submodule that can be downloaded by running `git submodule update --init app/ffmpeg/ffmpeg` which points to FFmpeg's GitHub mirror. With this, you can choose the branch that contains the release you want to compile against (example: `release/6.1`). In order to use this, specifically add the flag `-tags ffmpeg-local` right after the `go build` command, and before all the other flags.
+If you wish to use a specific version of FFmpeg instead, there is a Git submodule that can be downloaded by running `git submodule update --init app/ffmpeg/ffmpeg` which points to FFmpeg's GitHub mirror. With this, you can choose the branch that contains the release you want to compile against (example: `release/6.1`). In order to use this, specifically add the flag `-tags ffmpeg_git` right after the `go build` command, and before all the other flags.
 
-Note that in this case, you'll also need to build FFmpeg itself. A minimal install is enough, and can be done by running `build.sh` located on the `app/ffmpeg` folder.
+Note that in this case, you'll also need to build FFmpeg itself. A minimal install is enough, and can be done by running `build.sh` located on the `app/ffmpeg` folder. To clean any files created by the build (such as for a subsequent build), you can run `make clean` on the `app/ffmpeg/ffmpeg` folder.
 
 ## Build times
 

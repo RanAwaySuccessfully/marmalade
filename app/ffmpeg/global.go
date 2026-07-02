@@ -1,4 +1,4 @@
-// go:build !ffmpeg-local
+//go:build !ffmpeg_git
 
 package main
 

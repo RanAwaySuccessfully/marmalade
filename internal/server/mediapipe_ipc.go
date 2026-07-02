@@ -98,31 +98,30 @@ func (mp *MediaPipeProcess) create() error {
 	}
 
 	_, err := os.Stat("./mediapipe")
-	if errors.Is(err, os.ErrNotExist) { // local testing
-		build_cmd := exec.Command("go", "build")
-		build_cmd.Dir = "./app/mediapipe"
+	if errors.Is(err, os.ErrNotExist) {
+		// local testing
 
-		err := build_cmd.Run()
+		build_cmd := exec.Command("go", "build", "-o", "mediapipe_temp", "./app/mediapipe")
+
+		stdout, err := mp.cmd.StdoutPipe()
 		if err != nil {
 			return err
 		}
 
-		mp.cmd = exec.Command("./app/mediapipe/mediapipe", "--ipc")
-		env := mp.cmd.Environ()
-
-		library_path := "LD_LIBRARY_PATH=./app/mediapipe/cc"
-
-		for i := 0; i < len(env); i++ {
-			env_var := env[i]
-			isLibraryPath := strings.HasPrefix(env_var, "LD_LIBRARY_PATH=")
-
-			if isLibraryPath {
-				library_path += ":" + env_var[16:]
-			}
+		stderr, err := mp.cmd.StderrPipe()
+		if err != nil {
+			return err
 		}
 
-		mp.cmd.Env = append(env, library_path)
+		go io.Copy(os.Stderr, stderr)
+		go io.Copy(os.Stdout, stdout)
 
+		err = build_cmd.Run()
+		if err != nil {
+			return err
+		}
+
+		mp.cmd = exec.Command("./mediapipe_temp", "--ipc")
 	} else {
 		mp.cmd = exec.Command("./mediapipe", "--ipc")
 	}

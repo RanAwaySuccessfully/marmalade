@@ -1,15 +1,4 @@
-package interfaces
-
-import "io"
-
-type FFMPEG interface {
-	Init(codec_id uint32, pix_fmt int32)
-	FindHwAccel() []uint32
-	UseHwAccel(device string) error
-	Ready() error
-	Convert(input []byte, output io.Writer) error
-	End()
-}
+package errs
 
 type DetailedError struct {
 	Where string

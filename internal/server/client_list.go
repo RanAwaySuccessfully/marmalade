@@ -66,7 +66,7 @@ func (server *ServerInstance) GetClientList() []Client {
 		target := int_to_string(server.VMCApi.client.Port())
 
 		list_item := Client{
-			Name:   "(unknown)",
+			Name:   "",
 			Type:   "VMC Protocol",
 			Target: target,
 		}

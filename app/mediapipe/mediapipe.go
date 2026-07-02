@@ -2,7 +2,7 @@ package main
 
 /*
 #cgo CFLAGS: -I${SRCDIR}/cc/ -I${SRCDIR}/cc/mediapipe/
-#cgo LDFLAGS: ${SRCDIR}/cc/libtoast.a -L${SRCDIR}/cc/ -lmediapipe -Wl,-rpath,.
+#cgo LDFLAGS: ${SRCDIR}/cc/libtoast.a -L${SRCDIR}/../../lib/ -lmediapipe -l:libopencv_core.so.414 -l:libopencv_features2d.so.414 -l:libopencv_imgproc.so.414 -Wl,-rpath,./lib
 
 #include <libtoast.h>
 #include <stdlib.h>
@@ -14,7 +14,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"marmalade/internal/interfaces"
+	"io"
+	"marmalade/internal/errs"
 	"marmalade/internal/server"
 	"unsafe"
 
@@ -22,9 +23,14 @@ import (
 	"github.com/vladimirvivien/go4vl/v4l2"
 )
 
+type Converter interface {
+	Convert(input []byte, output io.Writer) error
+	End()
+}
+
 type MediaPipe struct {
 	webcam     *device.Device
-	ffmpeg     interfaces.FFMPEG
+	converter  Converter
 	facem_lm   unsafe.Pointer
 	facem_path *C.char
 	handm_lm   unsafe.Pointer
@@ -42,7 +48,7 @@ func (mp *MediaPipe) start() error {
 	var fourcc uint32
 	err := binary.Read(&buffer, binary.LittleEndian, &fourcc)
 	if err != nil {
-		return interfaces.CreateError("converting FourCC", err)
+		return errs.CreateError("converting FourCC", err)
 	}
 
 	pix_format := v4l2.PixFormat{
@@ -61,7 +67,7 @@ func (mp *MediaPipe) start() error {
 	)
 
 	if err != nil {
-		return interfaces.CreateError("opening camera device", err)
+		return errs.CreateError("opening camera device", err)
 	}
 
 	//mp.check_supported_settings()
@@ -69,14 +75,21 @@ func (mp *MediaPipe) start() error {
 	mp.webcam.GetFrames()
 	err = mp.webcam.Start(context.Background())
 	if err != nil {
-		return interfaces.CreateError("starting camera feed", err)
+		return errs.CreateError("starting camera feed", err)
 	}
 
 	format := server.Config.Format
 	if format != "RGB3" {
-		err = mp.converter_init(format)
-		if err != nil {
-			return err // interfaces.CreateError() is already being called over at ffmpeg.go
+		if format == "MJPG" {
+			mp.converter, err = NewV4LConvert(mp.webcam)
+			if err != nil {
+				return err
+			}
+		} else {
+			mp.converter, err = NewFFMPEG(format)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -103,7 +116,7 @@ func (mp *MediaPipe) start() error {
 		mp.facem_lm = C.mediapipe_lm_face_start(mp.facem_path, C.int(delegate), &confidences[0])
 		if mp.facem_lm == nil {
 			err := mediapipe_get_error()
-			return interfaces.CreateError("creating MediaPipe FaceLandmarker", err)
+			return errs.CreateError("creating MediaPipe FaceLandmarker", err)
 		}
 	}
 
@@ -114,7 +127,7 @@ func (mp *MediaPipe) start() error {
 		mp.handm_lm = C.mediapipe_lm_hand_start(mp.handm_path, C.int(delegate), &confidences[0])
 		if mp.handm_lm == nil {
 			err := mediapipe_get_error()
-			return interfaces.CreateError("creating MediaPipe HandLandmarker", err)
+			return errs.CreateError("creating MediaPipe HandLandmarker", err)
 		}
 	}
 
@@ -125,7 +138,7 @@ func (mp *MediaPipe) start() error {
 		mp.posem_lm = C.mediapipe_lm_pose_start(mp.posem_path, C.int(delegate), &confidences[0])
 		if mp.posem_lm == nil {
 			err := mediapipe_get_error()
-			return interfaces.CreateError("creating MediaPipe PoseLandmarker", err)
+			return errs.CreateError("creating MediaPipe PoseLandmarker", err)
 		}
 	}
 
@@ -140,13 +153,13 @@ func (mp *MediaPipe) detect(err_ch chan error) {
 		var srgb_frame []byte
 		var err error
 
-		if mp.ffmpeg == nil {
+		if mp.converter == nil {
 			srgb_frame = frame.Data
 		} else {
 			output := bytes.Buffer{}
-			err = mp.ffmpeg.Convert(frame.Data, &output) // uses about 1% CPU and 40MB of RAM...pretty good!
+			err = mp.converter.Convert(frame.Data, &output) // uses about 1% CPU and 40MB of RAM...pretty good!
 			if err != nil {
-				err_ch <- err // interfaces.CreateError() is already being called over at ffmpeg.go
+				err_ch <- err // errs.CreateError() is already being called over at ffmpeg.go
 				break
 			}
 
@@ -155,7 +168,7 @@ func (mp *MediaPipe) detect(err_ch chan error) {
 
 		format, err := mp.webcam.GetPixFormat()
 		if err != nil {
-			err_ch <- interfaces.CreateError("reading webcam current format", err)
+			err_ch <- errs.CreateError("reading webcam current format", err)
 			break
 		}
 
@@ -167,7 +180,7 @@ func (mp *MediaPipe) detect(err_ch chan error) {
 		C.free(data_ptr)
 		if ret < 0 {
 			err := mediapipe_get_error()
-			err_ch <- interfaces.CreateError("creating MediaPipe image from webcam frame", err)
+			err_ch <- errs.CreateError("creating MediaPipe image from webcam frame", err)
 			break
 		}
 
@@ -178,7 +191,7 @@ func (mp *MediaPipe) detect(err_ch chan error) {
 			if ret < 0 {
 				C.mediapipe_free_img(img_ptr)
 				err := mediapipe_get_error()
-				err_ch <- interfaces.CreateError("running FaceLandmarker detection", err)
+				err_ch <- errs.CreateError("running FaceLandmarker detection", err)
 				break
 			}
 		}
@@ -188,7 +201,7 @@ func (mp *MediaPipe) detect(err_ch chan error) {
 			if ret < 0 {
 				C.mediapipe_free_img(img_ptr)
 				err := mediapipe_get_error()
-				err_ch <- interfaces.CreateError("running HandLandmarker detection", err)
+				err_ch <- errs.CreateError("running HandLandmarker detection", err)
 				break
 			}
 		}
@@ -198,7 +211,7 @@ func (mp *MediaPipe) detect(err_ch chan error) {
 			if ret < 0 {
 				C.mediapipe_free_img(img_ptr)
 				err := mediapipe_get_error()
-				err_ch <- interfaces.CreateError("running PoseLandmarker detection", err)
+				err_ch <- errs.CreateError("running PoseLandmarker detection", err)
 				break
 			}
 		}
@@ -221,15 +234,15 @@ func (mp *MediaPipe) stop() error {
 		mp.webcam.Close()
 	}
 
-	if mp.ffmpeg != nil {
-		mp.ffmpeg.End()
+	if mp.converter != nil {
+		mp.converter.End()
 	}
 
 	if mp.facem_lm != nil {
 		ret := C.mediapipe_lm_face_stop(mp.facem_lm)
 		if ret < 0 {
 			err := mediapipe_get_error()
-			return interfaces.CreateError("stopping MediaPipe FaceLandmarker", err)
+			return errs.CreateError("stopping MediaPipe FaceLandmarker", err)
 		}
 	}
 
@@ -237,7 +250,7 @@ func (mp *MediaPipe) stop() error {
 		ret := C.mediapipe_lm_hand_stop(mp.handm_lm)
 		if ret < 0 {
 			err := mediapipe_get_error()
-			return interfaces.CreateError("stopping MediaPipe HandLandmarker", err)
+			return errs.CreateError("stopping MediaPipe HandLandmarker", err)
 		}
 	}
 
@@ -245,7 +258,7 @@ func (mp *MediaPipe) stop() error {
 		ret := C.mediapipe_lm_pose_stop(mp.posem_lm)
 		if ret < 0 {
 			err := mediapipe_get_error()
-			return interfaces.CreateError("stopping MediaPipe PoseLandmarker", err)
+			return errs.CreateError("stopping MediaPipe PoseLandmarker", err)
 		}
 	}
 
@@ -267,12 +280,12 @@ func (mp *MediaPipe) stop() error {
 func (mp *MediaPipe) check_supported_settings() error {
 	fmt_real, err := mp.webcam.GetPixFormat()
 	if err != nil {
-		return interfaces.CreateError("reading webcam current format", err)
+		return errs.CreateError("reading webcam current format", err)
 	}
 
 	fps_real, err := mp.webcam.GetFrameRate()
 	if err != nil {
-		return interfaces.CreateError("reading webcam current frame rate", err)
+		return errs.CreateError("reading webcam current frame rate", err)
 	}
 
 	var pixelformat string

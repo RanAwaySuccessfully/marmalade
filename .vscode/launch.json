@@ -18,10 +18,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/app/mediapipe",
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "LD_LIBRARY_PATH": "${workspaceFolder}/app/mediapipe/cc:${env:LD_LIBRARY_PATH}"
-            }
+            "cwd": "${workspaceFolder}"
         },
         {
             "name": "Go: Debug GTK 4",

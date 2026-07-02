@@ -7,13 +7,13 @@ import "C"
 import (
 	"errors"
 	"io"
-	"marmalade/internal/interfaces"
+	"marmalade/internal/errs"
 	"unsafe"
 )
 
-var FFmpeg = FFMPEG{}
+var FFmpeg = FFMPEG_Plugin{}
 
-type FFMPEG struct {
+type FFMPEG_Plugin struct {
 	inputCodec  *C.struct_AVCodec
 	inputCtx    *C.struct_AVCodecContext
 	inputPacket *C.struct_AVPacket
@@ -27,7 +27,7 @@ type FFMPEG struct {
 	outputFrame *C.struct_AVFrame
 }
 
-func (ff *FFMPEG) Init(codec_id uint32, pix_fmt int32) {
+func (ff *FFMPEG_Plugin) Init(codec_id uint32, pix_fmt int32) {
 	ff.inputCodec = C.avcodec_find_decoder(codec_id)
 	ff.inputCtx = C.avcodec_alloc_context3(ff.inputCodec)
 
@@ -36,7 +36,7 @@ func (ff *FFMPEG) Init(codec_id uint32, pix_fmt int32) {
 	}
 }
 
-func (ff *FFMPEG) FindHwAccel() []uint32 {
+func (ff *FFMPEG_Plugin) FindHwAccel() []uint32 {
 	supported := []uint32{}
 
 	for i := 0; ; i++ {
@@ -51,14 +51,14 @@ func (ff *FFMPEG) FindHwAccel() []uint32 {
 	return supported
 }
 
-func (ff *FFMPEG) UseHwAccel(device string) error {
+func (ff *FFMPEG_Plugin) UseHwAccel(device string) error {
 	if device != "" {
 		ff.copyDevice = C.CString(device)
 	}
 
 	ret := C.av_hwdevice_ctx_create(&ff.copyHwCtx, C.AV_HWDEVICE_TYPE_VAAPI, ff.copyDevice, nil, 0)
 	if ret < 0 {
-		err := ff.get_error(ret)
+		err := get_error(ret)
 		return err
 	}
 
@@ -68,10 +68,10 @@ func (ff *FFMPEG) UseHwAccel(device string) error {
 	return nil
 }
 
-func (ff *FFMPEG) Ready() error {
+func (ff *FFMPEG_Plugin) Ready() error {
 	ret := C.avcodec_open2(ff.inputCtx, ff.inputCodec, nil)
 	if ret < 0 {
-		err := ff.get_error(ret)
+		err := get_error(ret)
 		return err
 	}
 
@@ -88,7 +88,7 @@ func (ff *FFMPEG) Ready() error {
 	return nil
 }
 
-func (ff *FFMPEG) Convert(input []byte, output io.Writer) error {
+func (ff *FFMPEG_Plugin) Convert(input []byte, output io.Writer) error {
 	data_length := len(input)
 	data := C.CBytes(input)
 	data = C.av_realloc(data, C.size_t(data_length+C.AV_INPUT_BUFFER_PADDING_SIZE))
@@ -96,14 +96,14 @@ func (ff *FFMPEG) Convert(input []byte, output io.Writer) error {
 
 	ret := C.av_packet_from_data(ff.inputPacket, (*C.uchar)(data), (C.int)(data_length))
 	if ret < 0 {
-		err := ff.get_error(ret)
-		return interfaces.CreateError("creating input packet", err)
+		err := get_error(ret)
+		return errs.CreateError("creating input packet", err)
 	}
 
 	length := C.avcodec_send_packet(ff.inputCtx, ff.inputPacket) // packet -> codec
 	if length < 0 {
-		err := ff.get_error(length)
-		return interfaces.CreateError("reading input packet", err)
+		err := get_error(length)
+		return errs.CreateError("reading input packet", err)
 	}
 
 	for length >= 0 { // this loop is likely not necessary
@@ -112,8 +112,8 @@ func (ff *FFMPEG) Convert(input []byte, output io.Writer) error {
 		if length == -C.EAGAIN || length == C.AVERROR_EOF {
 			break
 		} else if length < 0 {
-			err := ff.get_error(length)
-			return interfaces.CreateError("decoding packet into frame", err)
+			err := get_error(length)
+			return errs.CreateError("decoding packet into frame", err)
 		}
 
 		frame := ff.inputFrame
@@ -128,8 +128,8 @@ func (ff *FFMPEG) Convert(input []byte, output io.Writer) error {
 
 			ret = C.av_hwframe_transfer_data(ff.copyFrame, frame, 0)
 			if ret < 0 {
-				err := ff.get_error(ret)
-				return interfaces.CreateError("transferring hardware frame", err)
+				err := get_error(ret)
+				return errs.CreateError("transferring hardware frame", err)
 			}
 
 			frame = ff.copyFrame
@@ -160,7 +160,7 @@ func (ff *FFMPEG) Convert(input []byte, output io.Writer) error {
 	return nil
 }
 
-func (ff *FFMPEG) init_output_frame(inputFrame *C.AVFrame) error {
+func (ff *FFMPEG_Plugin) init_output_frame(inputFrame *C.AVFrame) error {
 	ff.outputFrame = C.av_frame_alloc()
 	ff.outputFrame.width = inputFrame.width
 	ff.outputFrame.height = inputFrame.height
@@ -168,8 +168,8 @@ func (ff *FFMPEG) init_output_frame(inputFrame *C.AVFrame) error {
 
 	ret := C.av_frame_get_buffer(ff.outputFrame, 0)
 	if ret < 0 {
-		err := ff.get_error(ret)
-		return interfaces.CreateError("allocating output frame pointers", err)
+		err := get_error(ret)
+		return errs.CreateError("allocating output frame pointers", err)
 	}
 
 	ff.outputCtx = C.sws_getContext(
@@ -185,7 +185,7 @@ func (ff *FFMPEG) init_output_frame(inputFrame *C.AVFrame) error {
 	return nil
 }
 
-func (ff *FFMPEG) End() {
+func (ff *FFMPEG_Plugin) End() {
 	if ff.copyHwCtx != nil {
 		C.av_buffer_unref(&ff.copyHwCtx)
 	}
@@ -217,7 +217,7 @@ func (ff *FFMPEG) End() {
 	}
 }
 
-func (ff *FFMPEG) get_error(errnum C.int) error {
+func get_error(errnum C.int) error {
 	error_size := C.sizeof_uchar * 100
 	error_c := C.malloc(C.ulong(error_size))
 	error_c_char := (*C.char)(error_c)

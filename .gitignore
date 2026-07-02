@@ -4,18 +4,18 @@ AppDir
 misc
 tasks
 
-marmalade.sock
-*.so
+*.sock
+/lib
 *.a
 
 # Executables
 __debug*
 kalidokit-bin
-marmalade
-marmalade-gtk3
-marmalade-gtk4
+/marmalade
+/marmalade-gtk3
+/marmalade-gtk4
 /mediapipe
-app/mediapipe/mediapipe
+/mediapipe_temp
 
 # Go workspace file
 go.work
