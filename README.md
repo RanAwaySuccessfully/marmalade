@@ -13,14 +13,15 @@ Also available under GTK 3 (GUI).
 ## Installing
 
 1. Download the [latest release](https://github.com/RanAwaySuccessfully/marmalade/releases/latest) of Marmalade.
-2. Download the latest [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) file from Google's MediaPipe page and place it anywhere in the main folder, or create a folder for it if you wish.
-3. Install `ffmpeg`¹ (>=4.3) or its individual components². It's likely already installed.
+2. Download the latest [`face_landmarker.task`](https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker) file from Google's MediaPipe page and place it anywhere in the main folder, or create a folder for it if you wish.
+3. *Optional:* If you plan on using hand and/or pose tracking, then also download [`hand_landmarker.task`](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker) and [`pose_landmarker_lite.task`](https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker) (if you wish, you may alternatively use the full or heavy versions instead).
 4. If using any of the GUI versions, you'll also need to have the following installed, although they are probably already installed by default:
     - `libgtk-3`¹ or `gtk3`¹ (>=3.24, only if using GTK 3)
     - `libgtk-4`¹ or `gtk4`¹ (>=4.8, only if using GTK 4)
     - `libv4l`¹
     - `xdg-utils`
     - `pciutils`
+5. *Optional:* Install `ffmpeg`¹ (>=4.3) or its individual components². It's likely already installed. See the section "FFmpeg requirement" for more details.
 
 <sub>¹ May be suffixed by another version number depending on your Linux distribution, for example: `libgtk-3-0t64`, `libgtk-4-1`, `libv4l-0`.</sub>
 
@@ -28,19 +29,15 @@ Also available under GTK 3 (GUI).
 
 And you're done. You can just run the program at any time, and it should take care of the rest for you.
 
-### How much CPU/GPU/RAM does it use?
+### FFmpeg requirement
 
-I have no idea, but take a look at the following and try to estimate how much of an impact it could have on your system:
+FFmpeg is only required if the video format your webcam uses cannot be converted using `v4lconvert` (`H264` is a good example). If this is the case for you, then you should download the plugin that corresponds to the FFmpeg verison that's installed on your system (other versions of the plugin will not be used). You can check the version of FFmpeg that's installed as follows:
 
-| Component | Usage | Model |
-| ---- | ---- | -------- |
-| CPU | 5% | Ryzen 7 5700X3D |
-| Memory | 850MB | - |
-| GPU | 50% | Intel ARC A310* |
+```sh
+ffmpeg -version | grep ffmpeg
+```
 
-The numbers above were taken with all tracking types enabled (face, hands and pose). Enabling only face tracking lowers the resource usage.
-
-\* This graphics card is roughly in-between a GTX 1630 and a RX 6400.
+The plugins are available on the releases page alongside each Marmalade release. For a list of formats that need this plugin, check the [fourcc.json](/fourcc.json) file.
 
 ### First-time setup
 
@@ -70,6 +67,28 @@ You can choose to connect apps to Marmalade in a few different ways, as long as 
 
 The **VTS 3rd Party API** protocol only supports face tracking.
 
+## Resource usage
+
+The numbers below were taken with all tracking types enabled (face, hands and pose). Enabling only face tracking lowers CPU/GPU usage by around 60% and lowers RAM/VRAM usage by around 25%.
+
+Here's an example of it running on a laptop at 1280x720@30FPS using MJPG.
+
+| Component | Usage (CPU mode) | Usage (GPU mode) | Model |
+| ---- | ---- | ---- | -------- |
+| CPU | 25% | 7% | Intel Core i3-7020U @ 2.30GHz |
+| GPU | 0% | 20% | Kaby Lake-U GT2 (HD Graphics 620) |
+| RAM | 515MB | 565MB | - |
+| VRAM | 30MB | 140MB | - |
+
+And here's an example of it running on a PC at 1920x1080@30FPS, also using MJPG. Higher resolutions (or frame rates) use more resources.
+
+| Component | Usage (CPU mode) | Usage (GPU mode) | Model |
+| ---- | ---- | ---- | -------- |
+| CPU | 6% | 4% | AMD Ryzen 5700X3D |
+| GPU | 0% | 23% | AMD Radeon RX 6600 |
+| RAM | 745MB | 844MB | - |
+| VRAM | 50MB | 130MB | - |
+
 ## Config file
 
 **If using a GUI version, you do not need to worry about this file** unless it becomes corrupted somehow, as the UI allows you to edit it seamlessly. If using the command line version, you'll need to edit it manually to use the settings that you want. It is located right beside the app's executable as `config.json`.
@@ -98,7 +117,7 @@ If you want to compile, change or debug Marmalade, see [this document](/docs/con
 
 Licensed under the [MIT License](LICENSE).
 
-This project uses [ffmpeg](https://www.ffmpeg.org/) and [MediaPipe](https://github.com/google-ai-edge/mediapipe).
+This project uses [ffmpeg](https://www.ffmpeg.org/), [OpenCV](https://github.com/opencv/opencv) and [MediaPipe](https://github.com/google-ai-edge/mediapipe).
 
 This project uses [gotk4](https://github.com/diamondburned/gotk4), which provides [GTK4](https://docs.gtk.org/gtk4/) and [GTK3](https://docs.gtk.org/gtk3/) language bindings for Go. This project does **not** use libadwaita as it's meant to integrate well with many common desktop environments.
 

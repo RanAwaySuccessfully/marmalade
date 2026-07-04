@@ -11,10 +11,10 @@ import "C"
 import (
 	"bytes"
 	"context"
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
+	"marmalade/internal/devices"
 	"marmalade/internal/errs"
 	"marmalade/internal/server"
 	"unsafe"
@@ -42,11 +42,7 @@ type MediaPipe struct {
 func (mp *MediaPipe) start() error {
 	server.Config.Read()
 
-	buffer := bytes.Buffer{}
-	buffer.WriteString(server.Config.Format)
-
-	var fourcc uint32
-	err := binary.Read(&buffer, binary.LittleEndian, &fourcc)
+	fourcc, err := devices.StringToPixFmt(server.Config.Format)
 	if err != nil {
 		return errs.CreateError("converting FourCC", err)
 	}
@@ -78,15 +74,18 @@ func (mp *MediaPipe) start() error {
 		return errs.CreateError("starting camera feed", err)
 	}
 
-	format := server.Config.Format
-	if format != "RGB3" {
-		if format == "MJPG" {
+	// "RGB3" is the format MediaPipe needs
+	if fourcc != v4l2.PixelFmtRGB24 {
+		pixfmt_map, err := find_mapping(fourcc)
+
+		if pixfmt_map == nil && !server.Config.HwAccel.ForceFFMPEG {
 			mp.converter, err = NewV4LConvert(mp.webcam)
 			if err != nil {
 				return err
 			}
+
 		} else {
-			mp.converter, err = NewFFMPEG(format)
+			mp.converter, err = NewFFMPEG(pixfmt_map)
 			if err != nil {
 				return err
 			}
@@ -107,7 +106,9 @@ func (mp *MediaPipe) start() error {
 		(server.Config.VTSPlugin.Enabled && server.Config.VTSPlugin.UseHand) ||
 		(server.Config.VRChatOSC.Enabled && server.Config.VRChatOSC.UseHand)
 
-	anyPoseApi := (server.Config.VMCApi.Enabled && server.Config.VMCApi.UsePose)
+	anyPoseApi := (server.Config.VMCApi.Enabled && server.Config.VMCApi.UsePose) ||
+		(server.Config.VTSPlugin.Enabled && server.Config.VTSPlugin.UsePose) ||
+		(server.Config.VRChatOSC.Enabled && server.Config.VRChatOSC.UsePose)
 
 	if (server.Config.ModelFace != "") && anyFaceApi {
 		confidences := [3]C.float{-1, -1, -1}
@@ -288,10 +289,7 @@ func (mp *MediaPipe) check_supported_settings() error {
 		return errs.CreateError("reading webcam current frame rate", err)
 	}
 
-	var pixelformat string
-	for i := range 4 {
-		pixelformat += string(byte(fmt_real.PixelFormat >> (i * 8)))
-	}
+	pixelformat := devices.PixFmtToString(fmt_real.PixelFormat)
 
 	fmt.Printf("[%s] %dx%d@%d\n", pixelformat, fmt_real.Width, fmt_real.Height, fps_real)
 	return nil

@@ -8,24 +8,16 @@ const int libavcodec_check_version() {
 */
 import "C"
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"marmalade/internal/errs"
 	"marmalade/internal/server"
-	"os"
 	"plugin"
 )
 
 const AvHwDeviceTypeVAAPI uint32 = 3
 const AvHwDeviceTypeQSV uint32 = 5
-
-type Mapping struct {
-	FourCC  string
-	CodecID int
-	PixFmt  int
-}
 
 type FFMPEG_Plugin interface {
 	Init(codec_id uint32, pix_fmt int32)
@@ -36,32 +28,12 @@ type FFMPEG_Plugin interface {
 	End()
 }
 
-func NewFFMPEG(format string) (FFMPEG_Plugin, error) {
-	var codec_id uint32
-	var pix_fmt int32
-
-	file, err := os.Open("fourcc.json")
-	if err != nil {
-		return nil, errs.CreateError("opening FourCC file", err)
-	}
-
-	var mapping []Mapping
-
-	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&mapping)
-	if err != nil {
-		return nil, errs.CreateError("reading FourCC file", err)
-	}
-
-	for _, mapItem := range mapping {
-		if mapItem.FourCC == format {
-			codec_id = uint32(mapItem.CodecID)
-			pix_fmt = int32(mapItem.PixFmt)
-		}
-	}
+func NewFFMPEG(format *Mapping) (FFMPEG_Plugin, error) {
+	codec_id := format.CodecID
+	pix_fmt := format.PixFmt
 
 	if codec_id == 0 {
-		err := errors.New("format " + format + " is not mapped on file fourcc.json. You may manually add the mapping, or ask the developer to do so.")
+		err := errors.New("format " + format.Format + " is not mapped on file fourcc.json. You may manually add the mapping, or ask the developer to do so.")
 		return nil, errs.CreateError("finding codec for FFmpeg", err)
 	}
 

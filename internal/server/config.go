@@ -24,9 +24,10 @@ type ConfigSchema struct {
 	ModelHand string `json:"model_hand"`
 	ModelPose string `json:"model_pose"`
 	HwAccel   struct {
-		DelegateMP int    `json:"delegate_mp"`
-		Decode     bool   `json:"decode"`
-		PrimeId    string `json:"prime_id"`
+		ForceFFMPEG bool   `json:"force_ffmpeg"`
+		DelegateMP  int    `json:"delegate_mp"`
+		Decode      bool   `json:"decode"`
+		PrimeId     string `json:"prime_id"`
 		//DecodeId  string `json:"decode_id"`
 	} `json:"hw_accel"` // hardware acceleration
 	VTSApi struct {
@@ -37,6 +38,7 @@ type ConfigSchema struct {
 		Enabled bool   `json:"enabled"`
 		UseFace bool   `json:"use_face"`
 		UseHand bool   `json:"use_hand"`
+		UsePose bool   `json:"use_pose"`
 		Port    int    `json:"port"`
 		Token   string `json:"token"`
 	} `json:"vts_plugin"` // vtsplugin
@@ -51,6 +53,7 @@ type ConfigSchema struct {
 		Enabled bool `json:"enabled"`
 		UseFace bool `json:"use_face"`
 		UseHand bool `json:"use_hand"`
+		UsePose bool `json:"use_pose"`
 		Port    int  `json:"port"`
 	} `json:"vrc_osc"` // vrcosc
 }

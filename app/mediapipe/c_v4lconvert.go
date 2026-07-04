@@ -41,6 +41,7 @@ func NewV4LConvert(dev *device.Device) (*V4LConvert, error) {
 	converter.data = C.v4lconvert_create(C.int(fd))
 
 	// TODO: check if input pixel format is supported by V4LConvert
+	// v4lconvert_try_format(struct v4lconvert_data *data, struct v4l2_format *dest_fmt, /* in / out */ struct v4l2_format *src_fmt /* out */);
 
 	// INPUT
 

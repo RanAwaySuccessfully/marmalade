@@ -33,15 +33,17 @@ func create_camera_info_window(camera_id uint8) error {
 			compressed = "Yes"
 		}
 
-		emulated := "No"
-		if format.Emulated {
-			emulated = "Yes"
-		}
+		/*
+			emulated := "No"
+			if format.Emulated {
+				emulated = "Yes"
+			}
+		*/
 
 		create_line("ID:", format.Id, grid, 0)
 		create_line("Name:", format.Data.Description, grid, 1)
 		create_line("Compressed:", compressed, grid, 2)
-		create_line("Emulated:", emulated, grid, 3)
+		//create_line("Emulated:", emulated, grid, 3)
 
 		create_resolution_list(&format, grid)
 

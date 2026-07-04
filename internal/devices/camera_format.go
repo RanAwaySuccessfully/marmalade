@@ -1,6 +1,29 @@
 package devices
 
-import "github.com/vladimirvivien/go4vl/v4l2"
+import (
+	"bytes"
+	"encoding/binary"
+
+	"github.com/vladimirvivien/go4vl/v4l2"
+)
+
+func PixFmtToString(pixfmt v4l2.FourCCType) string {
+	var result string
+	for i := range 4 {
+		result += string(byte(pixfmt >> (i * 8)))
+	}
+
+	return result
+}
+
+func StringToPixFmt(pixfmt string) (v4l2.FourCCType, error) {
+	buffer := bytes.Buffer{}
+	buffer.WriteString(pixfmt)
+
+	var fourcc v4l2.FourCCType
+	err := binary.Read(&buffer, binary.LittleEndian, &fourcc)
+	return fourcc, err
+}
 
 func get_formats(device uintptr, result *VideoCapture) error {
 	formats, err := v4l2.GetAllFormatDescriptions(device)
@@ -15,11 +38,7 @@ func get_formats(device uintptr, result *VideoCapture) error {
 		isCompressed := ((format_data.Flags & v4l2.FmtDescFlagCompressed) == v4l2.FmtDescFlagCompressed)
 		isEmulated := ((format_data.Flags & v4l2.FmtDescFlagEmulated) == v4l2.FmtDescFlagEmulated)
 
-		var pixelformat string
-		for i := range 4 {
-			pixelformat += string(byte(format_data.PixelFormat >> (i * 8)))
-		}
-
+		pixelformat := PixFmtToString(format_data.PixelFormat)
 		format := VideoFormat{
 			Id:         pixelformat,
 			Data:       format_data,
