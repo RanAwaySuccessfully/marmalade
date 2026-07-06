@@ -25,7 +25,7 @@ jobs:
     - uses: actions/checkout@v7
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v6
       with:
         go-version: '1.25'
     
@@ -36,8 +36,9 @@ jobs:
 
     - name: Build FFmpeg
       run: |
-        git submodule set-branch -b release/${{ matrix.environment }} app/ffmpeg/ffmpeg
-        cd app/ffmpeg
+        cd app/ffmpeg/ffmpeg
+        git checkout release/${{ matrix.environment }}
+        cd ../
         ./build.sh
         cd ../../
     
@@ -48,9 +49,8 @@ jobs:
         go build -tags ffmpeg_git -buildmode=plugin -v -o "ffmpeg${FFMPEG_MAJOR_VER}_plugin.so" ./app/ffmpeg
 
     - name: Export complete build
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
-        name: ffmpeg${{ env.FFMPEG_MAJOR_VER }}_plugin.so
         path: ffmpeg${{ env.FFMPEG_MAJOR_VER }}_plugin.so
         if-no-files-found: error
         retention-days: 1
@@ -79,9 +79,9 @@ jobs:
         ./build.sh
 
     - name: Export complete build
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
-        name: kalidokit-bin
+        name: kalidokit
         path: app/kalidokit/kalidokit-bin
         if-no-files-found: error
         retention-days: 1
@@ -106,7 +106,7 @@ jobs:
     - uses: actions/checkout@v7
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v6
       with:
         go-version: '1.25'
 
@@ -162,7 +162,7 @@ jobs:
         mv -t dist lib config.json fourcc.json LICENSE marmalade marmalade-gtk3 marmalade-gtk4 mediapipe
 
     - name: Export complete build
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: marmalade
         path: dist
