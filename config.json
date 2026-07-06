@@ -1,11 +1,39 @@
 {
-    "port": 21412,
     "camera": 0,
     "width": 1920,
     "height": 1080,
     "fps": 30,
     "format": "MJPG",
-    "model": "face_landmarker.task",
-    "use_gpu": true,
-    "prime_id": ""
+    "model_face": "tasks/face_landmarker.task",
+    "model_hand": "tasks/hand_landmarker.task",
+    "model_pose": "tasks/pose_landmarker.task",
+    "hw_accel": {
+        "delegate_mp": 0,
+        "decode": false,
+        "prime_id": ""
+    },
+    "vts_api": {
+        "enabled": true,
+        "port": 21412
+    },
+    "vts_plugin": {
+        "enabled": false,
+        "use_face": false,
+        "use_hand": false,
+        "port": 0,
+        "token": ""
+    },
+    "vmc_api": {
+        "enabled": false,
+        "use_face": true,
+        "use_hand": true,
+        "use_pose": true,
+        "port": 39539
+    },
+    "vrc_osc": {
+        "enabled": false,
+        "use_face": false,
+        "use_hand": false,
+        "port": 0
+    }
 }

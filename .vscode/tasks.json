@@ -8,11 +8,11 @@
             "args": [
                 "build",
                 "-v",
-                "-tags", "withgtk4",
                 "-gcflags=\"./...=-N -l\"",
                 "-gcflags=\"./std=-N -l\"",
                 "-o",
-                "marmalade-gtk4"
+                "marmalade-gtk4",
+                "./app/gtk4"
             ],
             "group": "build",
             "presentation": {
@@ -26,11 +26,11 @@
             "args": [
                 "build",
                 "-v",
-                "-tags", "withgtk3",
                 "-gcflags=\"./...=-N -l\"",
                 "-gcflags=\"./std=-N -l\"",
                 "-o",
-                "marmalade-gtk3"
+                "marmalade-gtk3",
+                "./app/gtk3"
             ],
             "group": "build",
             "presentation": {

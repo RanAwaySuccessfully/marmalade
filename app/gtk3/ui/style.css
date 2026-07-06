@@ -1,0 +1,8 @@
+.boldText {
+    font-weight: bold;
+}
+
+.columnWithBorder button {
+    border-top-width: 1px;
+    border-top-style: solid;
+}

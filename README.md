@@ -2,7 +2,7 @@
 
 [![build status](https://github.com/ranawaysuccessfully/marmalade/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/ranawaysuccessfully/marmalade/actions) [![latest release](https://img.shields.io/github/v/release/ranawaysuccessfully/marmalade)](https://github.com/RanAwaySuccessfully/marmalade/releases/latest)
 
-Allows MediaPipe to be used on Linux by mimicking VTube Studio's iPhone Raw Tracking data. You can connect it to programs such as VBridger.
+Allows VTuber applications running on Linux, such as VBridger and VSeeFace, to use MediaPipe externally.
 
 | Command-line | GTK 4 (GUI) |
 | ---- | ---- |
@@ -13,17 +13,31 @@ Also available under GTK 3 (GUI).
 ## Installing
 
 1. Download the [latest release](https://github.com/RanAwaySuccessfully/marmalade/releases/latest) of Marmalade.
-2. Download the latest [`face_landmarker.task`](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) file from Google's MediaPipe page and place it inside the `python` folder.
-3. If using any of the GUI versions, you'll also need to have the following installed, although they probably already are installed by default:
+2. Download the latest [`face_landmarker.task`](https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker) file from Google's MediaPipe page and place it anywhere in the main folder, or create a folder for it if you wish.
+3. *Optional:* If you plan on using hand and/or pose tracking, then also download [`hand_landmarker.task`](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker) and [`pose_landmarker_lite.task`](https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker) (if you wish, you may alternatively use the full or heavy versions instead).
+4. If using any of the GUI versions, you'll also need to have the following installed, although they are probably already installed by default:
     - `libgtk-3`¹ or `gtk3`¹ (>=3.24, only if using GTK 3)
     - `libgtk-4`¹ or `gtk4`¹ (>=4.8, only if using GTK 4)
     - `libv4l`¹
     - `xdg-utils`
     - `pciutils`
+5. *Optional:* Install `ffmpeg`¹ (>=4.3) or its individual components². It's likely already installed. See the section "FFmpeg requirement" for more details.
 
-<sub>¹ May be suffixed by another version number, for example: `libgtk-3-0t64`, `libgtk-4-1`, `libv4l-0`.</sub>
+<sub>¹ May be suffixed by another version number depending on your Linux distribution, for example: `libgtk-3-0t64`, `libgtk-4-1`, `libv4l-0`.</sub>
+
+<sub>² Technically speaking you only need `libavcodec`, `libavutil` and `libswscale`, but installing all of FFmpeg might be easier.</sub>
 
 And you're done. You can just run the program at any time, and it should take care of the rest for you.
+
+### FFmpeg requirement
+
+FFmpeg is only required if the video format your webcam uses cannot be converted using `v4lconvert` (`H264` is a good example). If this is the case for you, then you should download the plugin that corresponds to the FFmpeg verison that's installed on your system (other versions of the plugin will not be used). You can check the version of FFmpeg that's installed as follows:
+
+```sh
+ffmpeg -version | grep ffmpeg
+```
+
+The plugins are available on the releases page alongside each Marmalade release. For a list of formats that need this plugin, check the [fourcc.json](/fourcc.json) file.
 
 ### First-time setup
 
@@ -31,41 +45,49 @@ And you're done. You can just run the program at any time, and it should take ca
 
 ## Connecting
 
+Unless you have a very specific use case, **do not change the default port numbers** on either Marmalade or the apps you want to connect to it. The defaults *should* work just fine.
+
 If you're running Marmalade on the same PC as the program you want to connect to, then you can use the IP address `127.0.0.1`, which is the loopback IP (always points to your own PC).
 
 If you're running it on another machine over LAN, you'll need to figure out its IP address and to make sure it is reachable via UDP port that Marmalade is configured to use (see "Config file" section below).
 
-### VBridger
+If you need more specific instructions, see [this document](/docs/connecting.md).
 
-Do not select the "MediaPipe" option, instead, select "VTube Studio" and type in the relevant IP address. Even though it says "Connect to iPhone", clicking on that button will connect to Marmalade instead.
+### Supported connections
 
-### VNyan¹
+You can choose to connect apps to Marmalade in a few different ways, as long as the app supports the same protocols as Marmalade.
 
-During the first time setup, select Skip when it asks you which options will be used for tracking.
+**VBridger**, **VNyan** and **VSeeFace** all support both **VTS 3rd Party API** and **VMC Protocol**.
 
-Go to "Settings", then on the "Tracking" tab, select "Phone / ARKit". Choose "VTube Studio" and type in the relevant IP address.
+**Warudo** only supports **VMC Protocol**.
 
-### VSeeFace¹
+<!-- **VRChat** only supports **VRChat OSC**. -->
 
-Select any option during the first time setup (this will be overriden later).
+<!-- Connecting directly to **VTube Studio** without using any of the apps above requires using the **VTS Plugin** option. -->
 
-Go to "General Settings" then scroll down to "iFacialMocap/FaceMocap3D/VTube Studio" and set the tracking app to "VTube Studio", then type in the relevant IP address.
+The **VTS 3rd Party API** protocol only supports face tracking.
 
-### Warudo
+## Resource usage
 
-Marmalade does not support VMC (Virtual Motion Capture Protocol). You may try to connect Warudo to another program such as VSeeFace, and have said program connect to Marmalade.
+The numbers below were taken with all tracking types enabled (face, hands and pose). Enabling only face tracking lowers CPU/GPU usage by around 60% and lowers RAM/VRAM usage by around 25%.
 
-### VTube Studio
+Here's an example of it running on a laptop at 1280x720@30FPS using MJPG.
 
-I couldn't find a way to connect Marmalade to VTube Studio directly. You may need an intermediary program such as VBridger.
+| Component | Usage (CPU mode) | Usage (GPU mode) | Model |
+| ---- | ---- | ---- | -------- |
+| CPU | 25% | 7% | Intel Core i3-7020U @ 2.30GHz |
+| GPU | 0% | 20% | Kaby Lake-U GT2 (HD Graphics 620) |
+| RAM | 515MB | 565MB | - |
+| VRAM | 30MB | 140MB | - |
 
-You might also want to consider OpenSeeFace instead, for this scenario. Check out [VTS's Linux Guide](https://github.com/DenchiSoft/VTubeStudio/wiki/Running-VTS-on-Linux) or use [Facetracker](https://codeberg.org/ZRayEntertainment/Facetracker). Note that even if using Facetracker, you need to check the linked guide in order to setup the `ip.txt` file.
+And here's an example of it running on a PC at 1920x1080@30FPS, also using MJPG. Higher resolutions (or frame rates) use more resources.
 
-### Notes
-
-I haven't tested with other programs yet, but in case it doesn't work or works weirdly, feel free to open an issue and/or feature request.
-
-¹ During testing, these programs worked best when running using Proton 10. You should also install the font arial.ttf by copying it from a Windows installation to the folder `[wine prefix]/drive_c/windows/Fonts/`. Your wine prefix folder will vary (the default one is at `~/.wine`).
+| Component | Usage (CPU mode) | Usage (GPU mode) | Model |
+| ---- | ---- | ---- | -------- |
+| CPU | 6% | 4% | AMD Ryzen 5700X3D |
+| GPU | 0% | 23% | AMD Radeon RX 6600 |
+| RAM | 745MB | 844MB | - |
+| VRAM | 50MB | 130MB | - |
 
 ## Config file
 
@@ -73,64 +95,72 @@ I haven't tested with other programs yet, but in case it doesn't work or works w
 
 Here's what each field in this file is responsible for:
 
-* port: The UDP port that Marmalade will be listening to. If you don't know what to do with this, keep the default value of `21412`.
-* camera: Camera ID (index). Starts at `0` and goes up from there.
-* width: Camera horizontal resolution (number of pixels).
-* height: Camera vertical resolution (number of pixels).
-* fps: Camera frames per second.
-* format: Camera format. Examples: `"YUYV"`, `"MJPG"`, etc...
-* model: Filename of the model file that MediaPipe will use for face tracking.
-* use_gpu: Set to `true` to attempt to use the GPU for processing MediaPipe, and leave it at `false` otherwise.
-* prime_id: PCIe bus (slot/address) of the GPU that should be used by MediaPipe.* An empty string is valid, in which case, the default GPU will be used. Has no effect if `use_gpu` is `false`.
+```jsonc
+{
+    "camera": 0, // camera ID (index). starts at 0 and goes up from there
+    "width": 1920, // camera horizontal resolution (number of pixels)
+    "height": 1080, // camera vertical resolution (number of pixels)
+    "fps": 30, // camera frames per second (frame rate)
+    "format": "MJPG", // camera format used to capture video. these IDs are defined by the Video4Linux2 API (V4L2)
+    "model_face": "tasks/face_landmarker.task", // filepath of the face tracking model
+    "model_hand": "tasks/hand_landmarker.task", // filepath of the hand tracking model
+    "model_pose": "tasks/pose_landmarker.task", // filepath of the pose tracking model
+    "hw_accel": {
+        "delegate_mp": 0, // which device should be used by MediaPipe. 0 = CPU, 1 = GPU, 2 = Google's NPUs
+        "decode": false, // use GPU video decoding
+        "prime_id": "" // PCIe bus (slot/address) of the GPU that should be used by MediaPipe.³ can be empty, in which case the default one will be used
+    },
+    "vts_api": {
+        "enabled": true, // enable or disable the VTS 3rd-party API
+        "port": 21412 // the UDP port that Marmalade will be listening to. if set to 0, the default one will be used.
+    },
+    "vts_plugin": {
+        "enabled": false, // VTS Plugin - EXPERIMENTAL
+        "use_face": false,
+        "use_hand": false,
+        "use_pose": false,
+        "port": 0,
+        "token": ""
+    },
+    "vmc_api": {
+        "enabled": false, // enable or disable the VMC Protocol
+        "use_face": true, // use face-tracking for this protocol
+        "use_hand": true, // use hand-tracking for this protocol
+        "use_pose": true, // use pose-tracking for this protocol
+        "port": 39539 // the UDP port that Marmalade will be sending data to. if set to 0, the default one will be used.
+    },
+    "vrc_osc": {
+        "enabled": false, // VRChat OSC - EXPERIMENTAL
+        "use_face": false,
+        "use_hand": false,
+        "use_pose": false,
+        "port": 0
+    }
+}
+```
 
-The fields `model` and `prime_id` are string values, and as such they're surrounded by `"` (double quotes) unlike other fields.
-
-<sub>* This is the same as the `DRI_PRIME` environment variable, and any valid value for it is also valid for this field, although the GUI versions only expects PCIe bus IDs and may glitch otherwise.</sub>
+<sub>³ This is similar to the `DRI_PRIME` environment variable, and any valid value for it should also work for this field, with the main caveat that Prime usually uses underscores `_` for separators but this variable is saved using colons `:` and dots `.`, for example `pci-0000_0c_00_0` vs. `pci-0000:0c:00.0`. Also, the Marmalade GUIs only expects PCIe bus IDs and may glitch if you use other values.</sub>
 
 ## Building, Testing, Debugging
 
-**You do not need to do any of this to install Marmalade. See the "Installing" section above instead.**
-
-If you want to develop or tinker with this program, you'll need to install the [Go programming language](https://go.dev/). You'll also need to setup the Python dependencies (see section below).
-
-For building, run: `go build -v`
-
-For running it without building it, run: `go run -v ./`
-
-For building or running the GTK 4 version, just add `-tags withgtk4` to the commands above. Do note that in this case, you'll also need to install the `libgtk-4-dev` and `libv4l-dev` packages. For GTK 3 it's `-tags withgtk3` and you'll need `libgtk-3-dev` instead. You *may* also need `gobject-introspection`.
-
-If you want to debug it, it comes with some Visual Studio Code configuration depending on what you want to debug:
-
-- If you want to debug the Go code, specifically the command-line version, run `Go: Launch Package`.
-- If you want to debug the Python code, run `Python Debugger: Current File` while having the `main.py` file open and selected. Once it's running, type in `+127.0.0.1:21499` for example, to start sending data to a specific IP address and port.
-- If you want to debug the GTK 4 version, run `Go: Debug GTK 4 Build`. Note that this one will pre-build a `marmalade-gtk4` executable to make it start faster. The same applies for the GTK 3 version.
-
-### Python dependencies
-
-Since v0.4, Marmalade comes bundled with Python 3.12, OpenCV and MediaPipe. PEX is used to make a portable and compressed executable.
-
-In order to test Marmalade locally, you'll need to set up a virtual environment (`.venv`) folder that contains MediaPipe, which will use around 850MB of disk space. You can run `scripts/mediapipe-install.sh` while making sure your working directory (current folder) is `scripts`. This will require you to install `python3`, `python3-venv` and `python3-pip`.
-
-If you want to install run PEX manually, you'll also need to make sure you have PEX installed (such as by running `pip3 install pex`). Change your current directory to be the `python` folder, and run the following command:
-
-```sh
-pex -v -r requirements.txt --scie eager -o dist/mediapipe
-```
-
-MediaPipe will not install if your version of Python is 3.13.
-
-### Build times
-
-The GUI version of this project takes about 10 minutes to compile when building via GitHub Actions (probably faster on your PC), most of this time is taken up by building GTK and its dependencies. This will happen when building the program for the first time, but if you're using VSCode with the Go extension, it will also happen the first time you open a .go file in this project as `.vscode/settings.json` is, by default, configured to the GTK4 version, and so it will get busy generating all the IntelliSense data it needs.
-
-Go has a caching mechanism that makes it so you don't have to go through this every time, but the cache does not last forever, so don't be surprised if you see it recompiling the GTK dependencies again. If you compile the GTK4 version, the GTK3 version will take slightly less time and vice-versa.
+If you want to compile, change or debug Marmalade, see [this document](/docs/build.md).
 
 ## License and Credits
 
-Licensed under the [MIT License](LICENSE). The code under the `python` folder is edited based on code written by lilacGalaxy on this [GitHub Repo](https://github.com/lilac-galaxy/lilacs-mediapipe-forward-vts-plugin), and as such it uses the same license, but has separate copyright, check [its license file](python/LICENSE) for more info.
+Licensed under the [MIT License](LICENSE).
 
-This project uses [gotk4](https://github.com/diamondburned/gotk4), which are [GTK4](https://docs.gtk.org/gtk4/) language bindings for Go. This project does **not** use libadwaita, although I'm wondering if I should add [libadapta](https://github.com/xapp-project/libadapta) support.
+This project uses [ffmpeg](https://www.ffmpeg.org/), [OpenCV](https://github.com/opencv/opencv) and [MediaPipe](https://github.com/google-ai-edge/mediapipe).
+
+This project uses [gotk4](https://github.com/diamondburned/gotk4), which provides [GTK4](https://docs.gtk.org/gtk4/) and [GTK3](https://docs.gtk.org/gtk3/) language bindings for Go. This project does **not** use libadwaita as it's meant to integrate well with many common desktop environments.
+
+We use the following Go libraries: [go4vl](https://github.com/vladimirvivien/go4vl), [go3d](https://github.com/ungerik/go3d), [go-osc](https://github.com/hypebeast/go-osc) and [websocket](https://github.com/coder/websocket).
+
+This project used to have Python code that was modified from [lilacGalaxy's VTS Plugin](https://github.com/lilac-galaxy/lilacs-mediapipe-forward-vts-plugin).
 
 Somewhat inspired by [Facetracker](https://codeberg.org/ZRayEntertainment/Facetracker) which uses OpenSeeFace instead.
 
 Many thanks to Kylo-Neko's [Linux Guide to Vtubing](https://codeberg.org/KyloNeko/Linux-Guide-to-Vtubing) which is what kickstarted my adventuring into seeing if/how I can make this work.
+
+### MediaPipe Tasks APIs Telemetry
+
+Since v0.10.35, the MediaPipe Tasks APIs "send metrics about the performance and utilization of the APIs in your app to Google", however, Marmalade as of v0.5.0 specifically uses a compiled shared-library version of the C API which (we believe) does not contain this telemetry. In either case, they mention that "processing of the input data (e.g. images, video, text) takes place on device, and MediaPipe does not send that input data to Google servers".

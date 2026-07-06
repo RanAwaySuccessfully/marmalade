@@ -1,0 +1,7 @@
+[submodule "app/mediapipe/cc/mediapipe"]
+	path = app/mediapipe/cc/mediapipe
+	url = https://github.com/RanAwaySuccessfully/mediapipe.git
+	branch = dev
+[submodule "app/ffmpeg/ffmpeg"]
+	path = app/ffmpeg/ffmpeg
+	url = https://github.com/FFmpeg/FFmpeg

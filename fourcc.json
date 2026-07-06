@@ -1,0 +1,56 @@
+[
+  {
+    "Format": "HEVC",
+    "FourCC": 1129727304,
+    "CodecID": 173,
+    "PixFmt": -1
+  },
+  {
+    "Format": "H264",
+    "FourCC": 875967048,
+    "CodecID": 27,
+    "PixFmt": -1
+  },
+  {
+    "Format": "H263",
+    "FourCC": 859189832,
+    "CodecID": 4,
+    "PixFmt": -1
+  },
+  {
+    "Format": "VP90",
+    "FourCC": 809062486,
+    "CodecID": 167,
+    "PixFmt": -1
+  },
+  {
+    "Format": "VP80",
+    "FourCC": 808996950,
+    "CodecID": 139,
+    "PixFmt": -1
+  },
+  {
+    "Format": "MPG4",
+    "FourCC": 877088845,
+    "CodecID": 12,
+    "PixFmt": -1
+  },
+  {
+    "Format": "MPG2",
+    "FourCC": 843534413,
+    "CodecID": 2,
+    "PixFmt": -1
+  },
+  {
+    "Format": "MPG1",
+    "FourCC": 826757197,
+    "CodecID": 1,
+    "PixFmt": -1
+  },
+  {
+    "Format": "NV12",
+    "FourCC": 842094158,
+    "CodecID": 13,
+    "PixFmt": 23
+  }
+]
