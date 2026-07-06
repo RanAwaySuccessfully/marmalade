@@ -4,6 +4,80 @@ on:
   workflow_dispatch:
 
 jobs:
+  ffmpeg:
+    name: Build FFmpeg
+    runs-on: ubuntu-latest
+    container: debian:bookworm
+    defaults:
+      run:
+        shell: bash
+    strategy: 
+      fail-fast: false
+      matrix:
+        environment: [4.4, 5.1, 6.1, 7.1, 8.1]
+    steps:
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git
+
+    - uses: actions/checkout@v4
+      with:
+        submodules: app/ffmpeg/ffmpeg
+    
+    - name: Build FFmpeg
+      run: |
+        git submodule set-branch -b release/${{ matrix.environment }} app/ffmpeg/ffmpeg
+        ./app/ffmpeg/build.sh
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.25'
+    
+    - name: Build FFmpeg Plugin
+      run: go build -buildmode=plugin -v -o ffmpeg${{ int(matrix.environment) }}_plugin.so ./app/ffmpeg
+
+    - name: Export complete build
+      uses: actions/upload-artifact@v4
+      with:
+        name: ffmpeg${{ int(matrix.environment) }}_plugin
+        path: ffmpeg${{ int(matrix.environment) }}_plugin.so
+        if-no-files-found: error
+        retention-days: 1
+        compression-level: 1
+        overwrite: true
+
+  kalidokit:
+    name: Build Kalidokit
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y curl
+    
+    - name: Install Bun
+      run: curl -fsSL https://bun.com/install | bash
+
+    - name: Build KalidoKit
+      run: |
+        cd app/kalidokit
+        ./build.sh
+
+    - name: Export complete build
+      uses: actions/upload-artifact@v4
+      with:
+        name: kalidokit-bin
+        path: app/kalidokit/kalidokit-bin
+        if-no-files-found: error
+        retention-days: 1
+        compression-level: 1
+        overwrite: true
 
   marmalade:
     name: Build Marmalade
@@ -13,13 +87,13 @@ jobs:
       run:
         shell: bash
     steps:
-    
+
     - uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y libv4l-dev libgtk-3-dev libgtk-4-dev libgirepository1.0-dev
+        apt-get install -y libv4l-dev libgtk-3-dev libgtk-4-dev libgirepository1.0-dev unzip
 
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -37,9 +111,11 @@ jobs:
         mv gotk4 ../
         go work init
         printf "\nreplace github.com/diamondburned/gotk4/pkg => ../gotk4/pkg\n\nuse ." >> go.work
-    
-    - name: Download libmediapipe.so
-      run: wget
+
+    - name: Download libmediapipe.so + libopencv_*.so.414
+      run: |
+        wget https://github.com/RanAwaySuccessfully/mediapipe/releases/download/v0.10.35/mediapipe.zip
+        unzip mediapipe.zip -d lib/
 
     - name: Build libtoast.a
       run: |
@@ -52,7 +128,7 @@ jobs:
 
     - name: Build CMD version
       run: env CGO_ENABLED=0 go build -v -o marmalade ./app/cmd
-    
+
     - name: Build GTK 4 version
       run: go build -v -o marmalade-gtk4 ./app/gtk4
 
@@ -62,7 +138,7 @@ jobs:
     - name: Create distributable folder
       run: |
         mkdir dist
-        mv -t dist config.json LICENSE marmalade marmalade-gtk3 marmalade-gtk4 mediapipe
+        mv -t dist lib config.json fourcc.json LICENSE marmalade marmalade-gtk3 marmalade-gtk4 mediapipe
 
     - name: Export complete build
       uses: actions/upload-artifact@v4

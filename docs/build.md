@@ -40,7 +40,7 @@ Before building the mediapipe sub-process, you'll need to a copy of the followin
 - `libopencv_features2d.so.414`²
 - `libopencv_imgproc.so.414`²
 
-<sub>¹ can be circumvented by using your system's OpenCV during the build</sub>
+<sub>² can be circumvented by using your system's OpenCV during the build</sub>
 
 Downloading them from an appropriate release of Marmalade and adding them to Marmalade's `lib` folder is highly recommended, but you can built them yourself if you so wish (check the "Building libmediapipe.so" section for more details).
 
@@ -52,7 +52,7 @@ You can compile **libtoast** by running the command `make` while your working di
 
 A slightly customized version of MediaPipe, adapted to work better with Marmalade, is available at `app/mediapipe/cc/mediapipe` as a Git submodule. If it's not already downloaded, you can download it by running `git submodule update --init --recursive app/mediapipe/cc/mediapipe`. This will also download the OpenCV repository. If you don't want that and would rather use your system's OpenCV, then run that command without the `--recursive` option and then edit the `WORKSPACE` and `third_party/opencv_linux.BUILD` to match the ones in [this commit](https://github.com/google-ai-edge/mediapipe/tree/f8ef212d5c962c0e853db7e59d217056b187084b) (and then appropriatelly change `opencv_linux.BUILD` again to match what your system provides).
 
-If you proceed with using the bundled OpenCV, then you'll need to built it first. A [build-opencv.sh](/app/mediapipe/cc/build-opencv.sh) script is available for convenience. This will generate dynamic library files at `opencv_local/build/install/lib/`. You must copy `libopencv_core.so.4.14.0`, `libopencv_features2d.so.4.14.0` and `libopencv_imgproc.so.4.14.0` into Marmalade's `lib` folder, and then afterwards, edit them so the `so.4.14.0` at the end is changed into `so.414`. You might also need to run the following command on the `lib` folder, as the OpenCV libraries depend on each other and might have some trouble finding each other during runtime:
+If you proceed with using the bundled OpenCV, then you'll need to built it first. A `build-opencv.sh` script on the `bz-local` folder is available for convenience. This will generate dynamic library files at `opencv_local/build/install/lib/`. You must copy `libopencv_core.so.4.14.0`, `libopencv_features2d.so.4.14.0` and `libopencv_imgproc.so.4.14.0` into Marmalade's `lib` folder, and then afterwards, edit them so the `so.4.14.0` at the end is changed into `so.414`. You might also need to run the following command on the `lib` folder, as the OpenCV libraries depend on each other and might have some trouble finding each other during runtime:
 
 ```sh
 patchelf --set-rpath ./lib libopencv*
@@ -60,7 +60,7 @@ patchelf --set-rpath ./lib libopencv*
 
 Once you have done so, you may proceed with building **libmediapipe**. Please take a look at the [MediaPipe docs](https://ai.google.dev/edge/mediapipe/framework/getting_started/install) as well as the [Bazel command-line arguments](https://bazel.build/reference/command-line-reference) for more information on how to build MediaPipe. The only target you need to build is `//mediapipe/tasks/c:libmediapipe.so`.
 
-I have provided [build-mediapipe.sh](/app/mediapipe/cc/build-mediapipe.sh) as an example but I provide no guarantees that it will work for you. Once you have compiled MediaPipe, the file `libmediapipe.so` will have been created in the folder `bazel-bin/mediapipe/tasks/c/`. Copy that file to Marmalade's `lib` folder.
+I have provided `build-mediapipe.sh` on the `bz-local` folder as an example but I provide no guarantees that it will work for you. Once you have compiled MediaPipe, the file `libmediapipe.so` will have been created in the folder `bazel-bin/mediapipe/tasks/c/`. Copy that file to Marmalade's `lib` folder.
 
 ### KalidoKit
 

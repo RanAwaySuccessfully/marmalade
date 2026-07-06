@@ -25,7 +25,7 @@ Also available under GTK 3 (GUI).
 
 <sub>¹ May be suffixed by another version number depending on your Linux distribution, for example: `libgtk-3-0t64`, `libgtk-4-1`, `libv4l-0`.</sub>
 
-<sub>² Technically speaking you only need `libavcodec`, `libavutil` and `libswscale`.</sub>
+<sub>² Technically speaking you only need `libavcodec`, `libavutil` and `libswscale`, but installing all of FFmpeg might be easier.</sub>
 
 And you're done. You can just run the program at any time, and it should take care of the rest for you.
 
@@ -95,23 +95,55 @@ And here's an example of it running on a PC at 1920x1080@30FPS, also using MJPG.
 
 Here's what each field in this file is responsible for:
 
-* port: The UDP port that Marmalade will be listening to. If you don't know what to do with this, keep the default value of `21412`.
-* camera: Camera ID (index). Starts at `0` and goes up from there.
-* width: Camera horizontal resolution (number of pixels).
-* height: Camera vertical resolution (number of pixels).
-* fps: Camera frames per second.
-* format: Camera format. Examples: `"YUYV"`, `"MJPG"`, etc...
-* model: Filename of the model file that MediaPipe will use for face tracking.
-* use_gpu: Set to `true` to attempt to use the GPU for processing MediaPipe, and leave it at `false` otherwise.
-* prime_id: PCIe bus (slot/address) of the GPU that should be used by MediaPipe.* An empty string is valid, in which case, the default GPU will be used. Has no effect if `use_gpu` is `false`.
+```jsonc
+{
+    "camera": 0, // camera ID (index). starts at 0 and goes up from there
+    "width": 1920, // camera horizontal resolution (number of pixels)
+    "height": 1080, // camera vertical resolution (number of pixels)
+    "fps": 30, // camera frames per second (frame rate)
+    "format": "MJPG", // camera format used to capture video. these IDs are defined by the Video4Linux2 API (V4L2)
+    "model_face": "tasks/face_landmarker.task", // filepath of the face tracking model
+    "model_hand": "tasks/hand_landmarker.task", // filepath of the hand tracking model
+    "model_pose": "tasks/pose_landmarker.task", // filepath of the pose tracking model
+    "hw_accel": {
+        "delegate_mp": 0, // which device should be used by MediaPipe. 0 = CPU, 1 = GPU, 2 = Google's NPUs
+        "decode": false, // use GPU video decoding
+        "prime_id": "" // PCIe bus (slot/address) of the GPU that should be used by MediaPipe.³ can be empty, in which case the default one will be used
+    },
+    "vts_api": {
+        "enabled": true, // enable or disable the VTS 3rd-party API
+        "port": 21412 // the UDP port that Marmalade will be listening to. if set to 0, the default one will be used.
+    },
+    "vts_plugin": {
+        "enabled": false, // VTS Plugin - EXPERIMENTAL
+        "use_face": false,
+        "use_hand": false,
+        "use_pose": false,
+        "port": 0,
+        "token": ""
+    },
+    "vmc_api": {
+        "enabled": false, // enable or disable the VMC Protocol
+        "use_face": true, // use face-tracking for this protocol
+        "use_hand": true, // use hand-tracking for this protocol
+        "use_pose": true, // use pose-tracking for this protocol
+        "port": 39539 // the UDP port that Marmalade will be sending data to. if set to 0, the default one will be used.
+    },
+    "vrc_osc": {
+        "enabled": false, // VRChat OSC - EXPERIMENTAL
+        "use_face": false,
+        "use_hand": false,
+        "use_pose": false,
+        "port": 0
+    }
+}
+```
 
-The fields `model` and `prime_id` are string values, and as such they're surrounded by `"` (double quotes) unlike other fields.
-
-<sub>* This is the same as the `DRI_PRIME` environment variable, and any valid value for it is also valid for this field, although the GUI versions only expects PCIe bus IDs and may glitch otherwise.</sub>
+<sub>³ This is similar to the `DRI_PRIME` environment variable, and any valid value for it should also work for this field, with the main caveat that Prime usually uses underscores `_` for separators but this variable is saved using colons `:` and dots `.`, for example `pci-0000_0c_00_0` vs. `pci-0000:0c:00.0`. Also, the Marmalade GUIs only expects PCIe bus IDs and may glitch if you use other values.</sub>
 
 ## Building, Testing, Debugging
 
-If you want to compile, change or debug Marmalade, see [this document](/docs/connecting.md).
+If you want to compile, change or debug Marmalade, see [this document](/docs/build.md).
 
 ## License and Credits
 
