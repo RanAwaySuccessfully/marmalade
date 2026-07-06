@@ -1,19 +1,14 @@
 package main
 
-/*
-const int libavcodec_check_version() {
-    #include <libavcodec/version.h>
-    return LIBAVCODEC_VERSION_MAJOR;
-}
-*/
-import "C"
 import (
 	"errors"
-	"fmt"
 	"io"
 	"marmalade/internal/errs"
 	"marmalade/internal/server"
+	"os/exec"
 	"plugin"
+	"regexp"
+	"strings"
 )
 
 const AvHwDeviceTypeVAAPI uint32 = 3
@@ -94,24 +89,20 @@ func NewFFMPEG(format *Mapping) (FFMPEG_Plugin, error) {
 }
 
 func find_ffmpeg_plugin() (FFMPEG_Plugin, error) {
-	ver := C.libavcodec_check_version()
-	plugin_filepath := ""
+	cmd := exec.Command("ffmpeg", "-version")
 
-	switch ver {
-	case 62:
-		plugin_filepath = "lib/ffmpeg8_plugin.so"
-	case 61:
-		plugin_filepath = "lib/ffmpeg7_plugin.so"
-	case 60:
-		plugin_filepath = "lib/ffmpeg6_plugin.so"
-	case 59:
-		plugin_filepath = "lib/ffmpeg5_plugin.so"
-	case 58:
-		plugin_filepath = "lib/ffmpeg4_plugin.so"
-	default:
-		return nil, fmt.Errorf("No plugin available for libavcodec version: %d", ver)
+	var out strings.Builder
+	cmd.Stdout = &out
+
+	err := cmd.Run()
+	if err != nil {
+		return nil, err
 	}
 
+	result := out.String()
+	re := regexp.MustCompile(`\d`)
+
+	plugin_filepath := "ffmpeg" + re.FindString(result) + "_plugin.so"
 	plugin_file, err := plugin.Open(plugin_filepath)
 	if err != nil {
 		return nil, err
