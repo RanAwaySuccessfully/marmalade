@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
+	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
@@ -115,8 +116,10 @@ func main_button_clicked() {
 		listclients_button.SetVisible(false)
 	} else {
 		go srv.Start(UI.errChannel, func() {
-			button.SetLabel("Stop MediaPipe")
-			button.SetSensitive(true)
+			glib.IdleAdd(func() {
+				button.SetLabel("Stop MediaPipe")
+				button.SetSensitive(true)
+			})
 		})
 
 		button.SetLabel("Starting MediaPipe...")

@@ -2,8 +2,6 @@ package server
 
 import (
 	"fmt"
-
-	"github.com/diamondburned/gotk4/pkg/core/glib"
 )
 
 type ServerInstance struct {
@@ -98,7 +96,7 @@ func (server *ServerInstance) Start(err_ch chan error, callback func()) {
 	for mp_data := range result {
 		if !server.started {
 			server.started = true
-			glib.IdleAdd(callback)
+			callback()
 		}
 
 		server.sendToClients(mp_data, ka_ch, err_ch)
