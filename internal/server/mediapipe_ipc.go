@@ -103,12 +103,12 @@ func (mp *MediaPipeProcess) create() error {
 
 		build_cmd := exec.Command("go", "build", "-o", "mediapipe_temp", "./app/mediapipe")
 
-		stdout, err := mp.cmd.StdoutPipe()
+		stdout, err := build_cmd.StdoutPipe()
 		if err != nil {
 			return err
 		}
 
-		stderr, err := mp.cmd.StderrPipe()
+		stderr, err := build_cmd.StderrPipe()
 		if err != nil {
 			return err
 		}
