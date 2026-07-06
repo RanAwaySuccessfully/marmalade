@@ -5,7 +5,7 @@ on:
 
 jobs:
   ffmpeg:
-    name: Build FFmpeg
+    name: Build FFmpeg Plugin
     runs-on: ubuntu-latest
     container: debian:bookworm
     defaults:
@@ -19,42 +19,50 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y git
+        apt-get update
+        apt-get install -y git make gcc nasm yasm pkg-config
 
-    - uses: actions/checkout@v4
-      with:
-        submodules: app/ffmpeg/ffmpeg
-    
-    - name: Build FFmpeg
-      run: |
-        git submodule set-branch -b release/${{ matrix.environment }} app/ffmpeg/ffmpeg
-        ./app/ffmpeg/build.sh
+    - uses: actions/checkout@v7
 
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
         go-version: '1.25'
     
+    - name: Checkout FFmpeg submodule
+      run: |
+        git config --global --add safe.directory "*"
+        git submodule update --init app/ffmpeg/ffmpeg
+
+    - name: Build FFmpeg
+      run: |
+        git submodule set-branch -b release/${{ matrix.environment }} app/ffmpeg/ffmpeg
+        cd app/ffmpeg
+        ./build.sh
+        cd ../../
+    
     - name: Build FFmpeg Plugin
-      run: go build -buildmode=plugin -v -o ffmpeg${{ int(matrix.environment) }}_plugin.so ./app/ffmpeg
+      run: |
+        FFMPEG_MAJOR_VER=$(echo '${{ matrix.environment }}' | sed -E 's/\.[0-9]+//g')
+        echo "FFMPEG_MAJOR_VER=$FFMPEG_MAJOR_VER" >> $GITHUB_ENV
+        go build -tags ffmpeg_git -buildmode=plugin -v -o "ffmpeg${FFMPEG_MAJOR_VER}_plugin.so" ./app/ffmpeg
 
     - name: Export complete build
       uses: actions/upload-artifact@v4
       with:
-        name: ffmpeg${{ int(matrix.environment) }}_plugin
-        path: ffmpeg${{ int(matrix.environment) }}_plugin.so
+        name: ffmpeg${{ env.FFMPEG_MAJOR_VER }}_plugin.so
+        path: ffmpeg${{ env.FFMPEG_MAJOR_VER }}_plugin.so
         if-no-files-found: error
         retention-days: 1
-        compression-level: 1
+        archive: false
         overwrite: true
 
   kalidokit:
-    name: Build Kalidokit
+    name: Build KalidoKit
     runs-on: ubuntu-latest
     steps:
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Install dependencies
       run: |
@@ -66,6 +74,7 @@ jobs:
 
     - name: Build KalidoKit
       run: |
+        source /home/runner/.bash_profile
         cd app/kalidokit
         ./build.sh
 
@@ -88,19 +97,20 @@ jobs:
         shell: bash
     steps:
 
-    - uses: actions/checkout@v4
-
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y libv4l-dev libgtk-3-dev libgtk-4-dev libgirepository1.0-dev unzip
+        apt-get install -y libv4l-dev libgtk-3-dev libgtk-4-dev libgirepository1.0-dev
+        apt-get install -y wget unzip git libavcodec-dev
+
+    - uses: actions/checkout@v7
 
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
         go-version: '1.25'
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         repository: 'RanAwaySuccessfully/gotk4'
         ref: '4.8'
@@ -114,14 +124,25 @@ jobs:
 
     - name: Download libmediapipe.so + libopencv_*.so.414
       run: |
-        wget https://github.com/RanAwaySuccessfully/mediapipe/releases/download/v0.10.35/mediapipe.zip
+        wget https://github.com/RanAwaySuccessfully/mediapipe/releases/download/v0.10.35-lib/mediapipe.zip
         unzip mediapipe.zip -d lib/
+
+    - name: Checkout MediaPipe submodule
+      run: |
+        git config --global --add safe.directory "*"
+        git submodule update --init app/mediapipe/cc/mediapipe
 
     - name: Build libtoast.a
       run: |
         cd ./app/mediapipe/cc/
         make
         cd ../../../
+
+    - name: Add new V4L2 headers
+      run: |
+        echo "deb http://deb.debian.org/debian bookworm-backports main" >> /etc/apt/sources.list
+        apt update
+        apt install -t bookworm-backports linux-libc-dev
 
     - name: Build MediaPipe sub-process
       run: go build -v -o mediapipe ./app/mediapipe
