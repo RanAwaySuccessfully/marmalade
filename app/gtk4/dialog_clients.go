@@ -108,11 +108,19 @@ func listclients_create_factories() {
 	ok_column.SetFactory(&ok_factory.ListItemFactory)
 }
 
+func get_listitem_from_obj(object *glib.Object) *gtk.ListItem {
+
+	return object.WalkCast(func(inner_object glib.Objector) bool {
+		_, ok := inner_object.(*gtk.ListItem)
+		return ok
+	}).(*gtk.ListItem)
+}
+
 func columnview_factory_create(fieldName string) *gtk.SignalListItemFactory {
 	factory := gtk.NewSignalListItemFactory()
 
 	factory.ConnectSetup(func(object *glib.Object) {
-		listItem := object.Cast().(*gtk.ColumnViewCell)
+		listItem := get_listitem_from_obj(object)
 
 		label := gtk.NewLabel("")
 		label.SetEllipsize(pango.EllipsizeEnd)
@@ -123,7 +131,7 @@ func columnview_factory_create(fieldName string) *gtk.SignalListItemFactory {
 	})
 
 	factory.ConnectBind(func(object *glib.Object) {
-		listItem := object.Cast().(*gtk.ColumnViewCell)
+		listItem := get_listitem_from_obj(object)
 
 		clientObj := clientUtil.ObjectValue(listItem.Item())
 		field := get_field_of_obj(clientObj, fieldName)
@@ -134,7 +142,7 @@ func columnview_factory_create(fieldName string) *gtk.SignalListItemFactory {
 	})
 
 	factory.ConnectTeardown(func(object *glib.Object) {
-		listItem := object.Cast().(*gtk.ColumnViewCell)
+		listItem := get_listitem_from_obj(object)
 
 		listItem.SetChild(nil)
 	})
@@ -146,7 +154,7 @@ func columnview_factory_create_icon() *gtk.SignalListItemFactory {
 	factory := gtk.NewSignalListItemFactory()
 
 	factory.ConnectSetup(func(object *glib.Object) {
-		listItem := object.Cast().(*gtk.ColumnViewCell)
+		listItem := get_listitem_from_obj(object)
 
 		image := gtk.NewImage()
 
@@ -154,7 +162,7 @@ func columnview_factory_create_icon() *gtk.SignalListItemFactory {
 	})
 
 	factory.ConnectBind(func(object *glib.Object) {
-		listItem := object.Cast().(*gtk.ColumnViewCell)
+		listItem := get_listitem_from_obj(object)
 
 		clientObj := clientUtil.ObjectValue(listItem.Item())
 
@@ -186,7 +194,7 @@ func columnview_factory_create_icon() *gtk.SignalListItemFactory {
 	})
 
 	factory.ConnectTeardown(func(object *glib.Object) {
-		listItem := object.Cast().(*gtk.ColumnViewCell)
+		listItem := get_listitem_from_obj(object)
 
 		image := listItem.Child().(*gtk.Image)
 		//image.SetTooltipText("")
