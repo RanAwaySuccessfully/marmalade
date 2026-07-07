@@ -29,6 +29,13 @@ func create_dialog_vmcapi() {
 	create_dialog_port(title, label, "39540", &server.Config.VMCApi.Port, &server.Config.VMCApi.UseFace, &server.Config.VMCApi.UseHand, &server.Config.VMCApi.UsePose)
 }
 
+//export create_dialog_vrcosc
+func create_dialog_vrcosc() {
+	title := "Marmalade - VRChat OSC"
+	label := "Marmalade supports the Open Sound Control (OSC) protocol used by VRChat for custom tracking. Do note that despite the name, Marmalade does not use this for sending or receiving audio data."
+	create_dialog_port(title, label, "9000", &server.Config.VRChatOSC.Port, &server.Config.VRChatOSC.UseFace, &server.Config.VRChatOSC.UseHand, &server.Config.VRChatOSC.UsePose)
+}
+
 func create_dialog_port(title string, label string, placeholder string, port *int, facem *bool, handm *bool, posem *bool) {
 	builder := NewBuilder(ui.DialogPorts)
 

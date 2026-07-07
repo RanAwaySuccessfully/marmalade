@@ -107,7 +107,7 @@ jobs:
         overwrite: true
 
   kalidokit:
-    name: Build KalidoKit
+    name: Build Kalidokit
     runs-on: ubuntu-latest
     steps:
 
@@ -121,7 +121,7 @@ jobs:
     - name: Install Bun
       run: curl -fsSL https://bun.com/install | bash
 
-    - name: Build KalidoKit
+    - name: Build Kalidokit
       run: |
         source /home/runner/.bash_profile
         cd app/kalidokit

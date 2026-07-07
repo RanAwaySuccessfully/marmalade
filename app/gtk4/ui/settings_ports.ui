@@ -270,6 +270,10 @@
         <attribute name="action">app.ports_vrcosc_handm</attribute>
       </item>
       <item>
+        <attribute name="label" translatable="yes">Pose tracking</attribute>
+        <attribute name="action">app.ports_vrcosc_posem</attribute>
+      </item>
+      <item>
         <attribute name="label" translatable="yes">About</attribute>
         <attribute name="action">app.ports_vrcosc_about</attribute>
       </item>

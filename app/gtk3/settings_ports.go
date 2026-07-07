@@ -20,6 +20,8 @@ func ports_notify_expanded() {
 	plugin_box := UI.GetObject("plugin_box").(*gtk.Box)
 	vmcap_label := UI.GetObject("vmcap_label").(*gtk.Label)
 	vmcap_box := UI.GetObject("vmcap_box").(*gtk.Box)
+	vrcosc_label := UI.GetObject("vrcosc_label").(*gtk.Label)
+	vrcosc_box := UI.GetObject("vrcosc_box").(*gtk.Box)
 
 	if expanded {
 		mimic_label.SetVisible(true)
@@ -28,6 +30,8 @@ func ports_notify_expanded() {
 		plugin_box.SetVisible(true)
 		vmcap_label.SetVisible(true)
 		vmcap_box.SetVisible(true)
+		vrcosc_label.SetVisible(true)
+		vrcosc_box.SetVisible(true)
 	} else {
 		mimic_label.SetVisible(false)
 		mimic_box.SetVisible(false)
@@ -35,6 +39,8 @@ func ports_notify_expanded() {
 		plugin_box.SetVisible(false)
 		vmcap_label.SetVisible(false)
 		vmcap_box.SetVisible(false)
+		vrcosc_label.SetVisible(false)
+		vrcosc_box.SetVisible(false)
 	}
 
 	set_window_size()
@@ -58,13 +64,23 @@ func ports_vmcap_popover_closed() {
 	//vmcap_settings.Popdown()
 }
 
+//export ports_vrcosc_popover_closed
+func ports_vrcosc_popover_closed() {
+	vrcosc_settings := UI.GetObject("vrcosc_settings").(*gtk.MenuButton)
+	menu_model := UI.GetObject("vrcosc_menu").(*gio.Menu)
+
+	vrcosc_settings.SetMenuModel(menu_model)
+	//vrcosc_settings.Popdown()
+}
+
 func init_ports_settings() {
 	UI.gtkBuilder.AddFromString(ui.SettingsPorts)
 
 	grid := UI.GetObject("main_grid").(*gtk.Grid)
 	init_ports_settings_vtsapi(grid)
-	//init_ports_settings_vtsplugin(grid)
+	init_ports_settings_vtsplugin(grid)
 	init_ports_settings_vmcap(grid)
+	init_ports_settings_vrcosc(grid)
 }
 
 func init_ports_settings_vtsapi(grid *gtk.Grid) {
@@ -110,4 +126,19 @@ func init_ports_settings_vmcap(grid *gtk.Grid) {
 	vmcap_box := UI.GetObject("vmcap_box").(*gtk.Box)
 	grid.Attach(vmcap_label, 0, 33, 1, 1)
 	grid.Attach(vmcap_box, 1, 33, 1, 1)
+}
+
+func init_ports_settings_vrcosc(grid *gtk.Grid) {
+	vrcosc_switch := UI.GetObject("vrcosc_enable").(*gtk.Switch)
+	vrcosc_switch.SetActive(server.Config.VRChatOSC.Enabled)
+	vrcosc_switch.ConnectStateSet(func(state bool) bool {
+		server.Config.VRChatOSC.Enabled = state
+		update_unsaved_config(true)
+		return false
+	})
+
+	vrcosc_label := UI.GetObject("vrcosc_label").(*gtk.Label)
+	vrcosc_box := UI.GetObject("vrcosc_box").(*gtk.Box)
+	grid.Attach(vrcosc_label, 0, 34, 1, 1)
+	grid.Attach(vrcosc_box, 1, 34, 1, 1)
 }
