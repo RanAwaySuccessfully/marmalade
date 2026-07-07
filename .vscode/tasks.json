@@ -4,16 +4,13 @@
         {
             "label": "valaWithGtk3",
             "type": "shell",
-            "command": "valac",
+            "command": "make",
+            "options": {
+                "cwd": "${workspaceFolder}/app/gtk3-vala"
+            },
             "args": [
-                "-g",
-                "--save-temps",
-                "--cc=clang",
-                "--pkg",
-                "gtk+-3.0",
-                "app/gtk3-vala/app.vala",
-                "-o",
-                "marmalade-gtk3-vala"
+                "fresh",
+                "PARAMS=\"-g --save-temps --cc=clang\""
             ],
             "group": "build",
             "presentation": {

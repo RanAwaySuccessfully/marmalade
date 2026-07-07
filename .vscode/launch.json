@@ -8,9 +8,9 @@
             "name": "Vala: Debug GTK3",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/marmalade-gtk3-vala",
+            "program": "${workspaceFolder}/app/gtk3-vala/marmalade-gtk3-vala",
             "args": [],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/app/gtk3-vala/",
             "preLaunchTask": "valaWithGtk3"
         },
         {

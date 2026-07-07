@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/xyz/randev/marmalade">
+    <file preprocess="xml-stripblanks" alias="app.ui">ui/app.ui</file>
+    <file preprocess="xml-stripblanks" alias="dialog_about.ui">ui/dialog_about.ui</file>
+  </gresource>
+</gresources>

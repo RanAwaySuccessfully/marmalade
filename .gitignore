@@ -14,7 +14,7 @@ __debug*
 kalidokit-bin
 /marmalade
 /marmalade-gtk3
-/marmalade-gtk3-vala
+/app/gtk3-vala/marmalade-gtk3-vala
 /marmalade-gtk4
 /mediapipe
 /mediapipe_temp
