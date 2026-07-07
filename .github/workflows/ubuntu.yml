@@ -4,10 +4,59 @@ on:
   workflow_dispatch:
 
 jobs:
+  mediapipe:
+    name: Build MediaPipe sub-module
+    runs-on: ubuntu-latest
+    container: debian:bullseye
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y wget unzip git make gcc g++
+        apt-get install -y libv4l-dev libegl-dev libgles-dev
+
+    - uses: actions/checkout@v7
+
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+        go-version: '1.25'
+
+    - name: Download libmediapipe.so + libopencv_*.so.414
+      run: |
+        wget https://github.com/RanAwaySuccessfully/mediapipe/releases/download/v0.10.35-lib/mediapipe.zip
+        unzip mediapipe.zip -d lib/
+
+    - name: Checkout MediaPipe submodule
+      run: |
+        git config --global --add safe.directory "*"
+        git submodule update --init app/mediapipe/cc/mediapipe
+
+    - name: Build libtoast.a
+      run: |
+        cd ./app/mediapipe/cc/
+        make
+        cd ../../../
+
+    - name: Build MediaPipe sub-process
+      run: go build -v -o mediapipe ./app/mediapipe
+
+    - name: Export build
+      uses: actions/upload-artifact@v7
+      with:
+        path: mediapipe
+        if-no-files-found: error
+        retention-days: 1
+        archive: false
+        overwrite: true
+
   ffmpeg:
     name: Build FFmpeg Plugin
     runs-on: ubuntu-latest
-    container: debian:bookworm
+    container: debian:bullseye
     defaults:
       run:
         shell: bash
@@ -48,7 +97,7 @@ jobs:
         echo "FFMPEG_MAJOR_VER=$FFMPEG_MAJOR_VER" >> $GITHUB_ENV
         go build -tags ffmpeg_git -buildmode=plugin -v -o "ffmpeg${FFMPEG_MAJOR_VER}_plugin.so" ./app/ffmpeg
 
-    - name: Export complete build
+    - name: Export build
       uses: actions/upload-artifact@v7
       with:
         path: ffmpeg${{ env.FFMPEG_MAJOR_VER }}_plugin.so
@@ -78,7 +127,7 @@ jobs:
         cd app/kalidokit
         ./build.sh
 
-    - name: Export complete build
+    - name: Export build
       uses: actions/upload-artifact@v7
       with:
         name: kalidokit
@@ -92,6 +141,7 @@ jobs:
     name: Build Marmalade
     runs-on: ubuntu-latest
     container: debian:bookworm
+    needs: mediapipe
     defaults:
       run:
         shell: bash
@@ -101,7 +151,7 @@ jobs:
       run: |
         apt-get update
         apt-get install -y libv4l-dev libgtk-3-dev libgtk-4-dev libgirepository1.0-dev
-        apt-get install -y wget unzip git libavcodec-dev
+        apt-get install -y git libavcodec-dev
 
     - uses: actions/checkout@v7
 
@@ -122,39 +172,25 @@ jobs:
         go work init
         printf "\nreplace github.com/diamondburned/gotk4/pkg => ../gotk4/pkg\n\nuse ." >> go.work
 
-    - name: Download libmediapipe.so + libopencv_*.so.414
-      run: |
-        wget https://github.com/RanAwaySuccessfully/mediapipe/releases/download/v0.10.35-lib/mediapipe.zip
-        unzip mediapipe.zip -d lib/
-
-    - name: Checkout MediaPipe submodule
-      run: |
-        git config --global --add safe.directory "*"
-        git submodule update --init app/mediapipe/cc/mediapipe
-
-    - name: Build libtoast.a
-      run: |
-        cd ./app/mediapipe/cc/
-        make
-        cd ../../../
-
-    - name: Add new V4L2 headers
-      run: |
-        echo "deb http://deb.debian.org/debian bookworm-backports main" >> /etc/apt/sources.list
-        apt update
-        apt install -t bookworm-backports linux-libc-dev
-
-    - name: Build MediaPipe sub-process
-      run: go build -v -o mediapipe ./app/mediapipe
+    - uses: actions/download-artifact@v8
+      with:
+        name: mediapipe
 
     - name: Build CMD version
-      run: env CGO_ENABLED=0 go build -v -o marmalade ./app/cmd
+      run: |
+        git config --global --add safe.directory "*"
+        env CGO_ENABLED=0 go build -v -o marmalade ./app/cmd
 
     - name: Build GTK 4 version
       run: go build -v -o marmalade-gtk4 ./app/gtk4
 
     - name: Build GTK 3 version
       run: go build -v -o marmalade-gtk3 ./app/gtk3
+
+    - name: Download libmediapipe.so + libopencv_*.so.414
+      run: |
+        wget https://github.com/RanAwaySuccessfully/mediapipe/releases/download/v0.10.35-lib/mediapipe.zip
+        unzip mediapipe.zip -d lib/
 
     - name: Create distributable folder
       run: |
