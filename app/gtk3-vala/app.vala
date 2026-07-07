@@ -1,12 +1,12 @@
-#!/usr/bin/env -S vala --vapidir . --pkg libshared --pkg gtk+-3.0
+#!/usr/bin/env -S vala --vapidir . --pkg gtk+-3.0
 
-using Gtk;
+using Gtk; // TODO: use the command-line version of Marmalade under the hood, do NOT try to interface with Go code
 
 public class MarmaladeApp : Gtk.Application {
     public static Gtk.Builder builder;
 
     public MarmaladeApp() {
-        Object(application_id: "xyz.randev.marmalade.gtk3");
+        Object(application_id: "xyz.randev.marmalade.gtk3v");
     }
 
     public static int main(string[] args) {
@@ -20,8 +20,7 @@ public class MarmaladeApp : Gtk.Application {
         builder = new Gtk.Builder();
 
         try {
-            string ui_string = (string)LibShared.ui_getembed();
-            builder.add_from_file(ui_string);
+            builder.add_from_file("app/gtk3-vala/ui/app.ui");
         } catch (Error e) {
             stderr.printf("Could not load UI: %s\n", e.message);
         }

@@ -6,6 +6,9 @@
             "type": "shell",
             "command": "valac",
             "args": [
+                "-g",
+                "--save-temps",
+                "--cc=clang",
                 "--pkg",
                 "gtk+-3.0",
                 "app/gtk3-vala/app.vala",

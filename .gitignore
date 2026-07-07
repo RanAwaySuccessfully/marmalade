@@ -7,12 +7,14 @@ tasks
 *.sock
 /lib
 *.a
+app/gtk3-vala/*.c
 
 # Executables
 __debug*
 kalidokit-bin
 /marmalade
 /marmalade-gtk3
+/marmalade-gtk3-vala
 /marmalade-gtk4
 /mediapipe
 /mediapipe_temp
