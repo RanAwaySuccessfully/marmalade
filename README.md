@@ -21,11 +21,9 @@ Also available under GTK 3 (GUI).
     - `libv4l`¹
     - `xdg-utils`
     - `pciutils`
-5. *Optional:* Install `ffmpeg`¹ (>=4.3) or its individual components². It's likely already installed. See the section "FFmpeg requirement" for more details.
+5. *Optional:* Install `ffmpeg`¹ (>=4.3). It's likely already installed. See the section "FFmpeg requirement" for more details.
 
 <sub>¹ May be suffixed by another version number depending on your Linux distribution, for example: `libgtk-3-0t64`, `libgtk-4-1`, `libv4l-0`.</sub>
-
-<sub>² Technically speaking you only need `libavcodec`, `libavutil` and `libswscale`, but installing all of FFmpeg might be easier.</sub>
 
 And you're done. You can just run the program at any time, and it should take care of the rest for you.
 
