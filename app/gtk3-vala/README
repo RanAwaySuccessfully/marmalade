@@ -1,0 +1,4 @@
+Run: ./app.vala
+Build: valac --pkg gtk+-3.0 ./app.vala
+
+Build libshared: go build -buildmode=c-shared -o libshared.so

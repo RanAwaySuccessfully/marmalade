@@ -2,6 +2,22 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "valaWithGtk3",
+            "type": "shell",
+            "command": "valac",
+            "args": [
+                "--pkg",
+                "gtk+-3.0",
+                "app/gtk3-vala/app.vala",
+                "-o",
+                "marmalade-gtk3-vala"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            }
+        },
+        {
             "label": "goWithGtk4",
             "type": "shell",
             "command": "go",
