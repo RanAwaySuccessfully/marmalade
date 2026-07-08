@@ -85,6 +85,10 @@ func (api *VRChatOSC) Close() {
 func (api *VRChatOSC) sendPosition(msg_type string, px float32, py float32, pz float32) {
 	scale := api.height / api.avatarHeight
 
+	if Config.VRChatOSC.Scale != 0 {
+		scale = Config.VRChatOSC.Scale
+	}
+
 	msg := osc.NewMessage(msg_type)
 	msg.Append(-px * scale)
 	msg.Append(py * scale)

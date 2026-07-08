@@ -132,6 +132,7 @@ Here's what each field in this file is responsible for:
         "use_face": false,
         "use_hand": false,
         "use_pose": false,
+        "scale": 0, // change if necessary. if unset, scale = 1.7m (height) / 1.87m (avatar height) = 0.9
         "port": 0
     }
 }
