@@ -59,9 +59,9 @@ You can choose to connect apps to Marmalade in a few different ways, as long as 
 
 **Warudo** only supports **VMC Protocol**.
 
-<!-- **VRChat** only supports **VRChat OSC**. -->
+**VRChat** only supports **VRChat OSC**.
 
-<!-- Connecting directly to **VTube Studio** without using any of the apps above requires using the **VTS Plugin** option. -->
+Connecting directly to **VTube Studio** without using any of the apps above requires using the **VTS Plugin** option.
 
 The **VTS 3rd Party API** protocol only supports face tracking.
 

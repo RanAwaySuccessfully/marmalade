@@ -1,4 +1,4 @@
-package main
+package webcam
 
 import (
 	"errors"
@@ -15,7 +15,7 @@ const AvHwDeviceTypeVAAPI uint32 = 3
 const AvHwDeviceTypeQSV uint32 = 5
 
 type FFMPEG_Plugin interface {
-	Init(codec_id uint32, pix_fmt int32)
+	Init(fourcc uint32)
 	FindHwAccel() []uint32
 	UseHwAccel(device string) error
 	Ready() error
@@ -23,21 +23,13 @@ type FFMPEG_Plugin interface {
 	End()
 }
 
-func NewFFMPEG(format *Mapping) (FFMPEG_Plugin, error) {
-	codec_id := format.CodecID
-	pix_fmt := format.PixFmt
-
-	if codec_id == 0 {
-		err := errors.New("format " + format.Format + " is not mapped on file fourcc.json. You may manually add the mapping, or ask the developer to do so.")
-		return nil, errs.CreateError("finding codec for FFmpeg", err)
-	}
-
+func NewFFMPEG(fourcc uint32) (FFMPEG_Plugin, error) {
 	ffmpeg, err := find_ffmpeg_plugin()
 	if err != nil {
 		return nil, errs.CreateError("initializing FFmpeg plugin", err)
 	}
 
-	ffmpeg.Init(codec_id, pix_fmt)
+	ffmpeg.Init(fourcc)
 	hw := ffmpeg.FindHwAccel()
 
 	can_vaapi := false
@@ -102,7 +94,7 @@ func find_ffmpeg_plugin() (FFMPEG_Plugin, error) {
 	result := out.String()
 	re := regexp.MustCompile(`\d`)
 
-	plugin_filepath := "ffmpeg" + re.FindString(result) + "_plugin.so"
+	plugin_filepath := "lib/ffmpeg" + re.FindString(result) + "_plugin.so"
 	plugin_file, err := plugin.Open(plugin_filepath)
 	if err != nil {
 		return nil, err

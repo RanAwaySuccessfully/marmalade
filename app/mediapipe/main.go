@@ -27,6 +27,10 @@ func main() {
 
 	useGob := (len(os.Args) > 1) && (os.Args[1] == "--ipc")
 
+	// --pw=(int)
+	// enter into pipewire mode, use pw_context_connect_fd() instead of go4vl
+	// requires using c_ffmpeg.go for everything, c_v4lconvert.go is unusable
+
 	var err error
 	if useGob {
 		ipc.socket, err = net.Dial("unix", "marmalade.sock")
@@ -54,7 +58,7 @@ func main() {
 	}
 
 	err_channel := make(chan error, 1)
-	go mp.detect(err_channel)
+	go mp.run(err_channel)
 
 	sig_channel := make(chan os.Signal, 1)
 	signal.Notify(sig_channel, os.Interrupt, syscall.SIGTERM)

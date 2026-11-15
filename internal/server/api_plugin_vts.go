@@ -13,6 +13,19 @@ import (
 	"github.com/ungerik/go3d/vec3"
 )
 
+/*
+BrowInnerUp
+MouthShrug
+MouthPressLipOpen
+JawOpen
+MouthFunnel
+MouthPucker
+EyeSquintR
+EyeSquintL
+
+if doesn't exist...create them!
+*/
+
 type VTSPlugin struct {
 	mutex         sync.Mutex
 	conn          *websocket.Conn

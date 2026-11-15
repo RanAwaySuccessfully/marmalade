@@ -24,12 +24,16 @@
             "args": [
                 "build",
                 "-v",
-                "-gcflags=\"./...=-N -l\"",
-                "-gcflags=\"./std=-N -l\"",
+                "-gcflags=\"all=-N -l\"",
                 "-o",
                 "marmalade-gtk4",
                 "./app/gtk4"
             ],
+            "options": {
+                "env": {
+                    "CC": "clang"
+                }
+            },
             "group": "build",
             "presentation": {
                 "reveal": "silent"

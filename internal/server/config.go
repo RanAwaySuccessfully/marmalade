@@ -50,12 +50,13 @@ type ConfigSchema struct {
 		Port    int  `json:"port"`
 	} `json:"vmc_api"` // vmcap
 	VRChatOSC struct {
-		Enabled bool    `json:"enabled"`
-		UseFace bool    `json:"use_face"`
-		UseHand bool    `json:"use_hand"`
-		UsePose bool    `json:"use_pose"`
-		Scale   float32 `json:"scale"`
-		Port    int     `json:"port"`
+		Enabled    bool    `json:"enabled"`
+		UseFace    bool    `json:"use_face"`
+		UseHand    bool    `json:"use_hand"`
+		UsePose    bool    `json:"use_pose"`
+		PrefixFace string  `json:"prefix_face"`
+		Scale      float32 `json:"scale"`
+		Port       int     `json:"port"`
 	} `json:"vrc_osc"` // vrcosc
 }
 

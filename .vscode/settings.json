@@ -1,4 +1,10 @@
 {
+    "gopls": {
+        "env": {
+            "CC": "clang",
+            "CXX": "clang++"
+        }
+    },
     "files.associations": {
         "chrono": "c",
         "ranges": "c",

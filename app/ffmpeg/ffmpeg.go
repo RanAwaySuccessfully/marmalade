@@ -27,7 +27,10 @@ type FFMPEG_Plugin struct {
 	outputFrame *C.struct_AVFrame
 }
 
-func (ff *FFMPEG_Plugin) Init(codec_id uint32, pix_fmt int32) {
+func (ff *FFMPEG_Plugin) Init(fourcc uint32) {
+	codec_id := C.ff_fmt_v4l2codec(C.uint32_t(fourcc))
+	pix_fmt := C.ff_fmt_v4l2ff(C.uint32_t(fourcc), codec_id)
+
 	ff.inputCodec = C.avcodec_find_decoder(codec_id)
 	ff.inputCtx = C.avcodec_alloc_context3(ff.inputCodec)
 

@@ -26,6 +26,8 @@ func (api *VRChatOSC) Listen(err_ch chan error) {
 }
 
 func (api *VRChatOSC) Send(mp_data *TrackingData, err_ch chan error) {
+	// https://docs.vrcft.io/docs/tutorial-avatars/tutorial-avatars-extras/parameters
+
 	if len(mp_data.FaceData.Matrixes) > 0 {
 		matrix := mp_data.FaceData.Matrixes[0].Data
 		y, x, z := format_rotation_angles(matrix)

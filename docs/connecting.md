@@ -18,7 +18,7 @@ Go to "General Settings" then scroll down to "iFacialMocap/FaceMocap3D/VTube Stu
 
 ### VTube Studio
 
-Marmalade currently cannot directly connect to VTube Studio without an intermediary application such as VBridger.
+Marmalade cannot directly connect to VTube Studio using this type of connection without an intermediary application such as VBridger.
 
 You might also want to consider OpenSeeFace instead, for this scenario. Check out [VTS's Linux Guide](https://github.com/DenchiSoft/VTubeStudio/wiki/Running-VTS-on-Linux) or use [Facetracker](https://codeberg.org/ZRayEntertainment/Facetracker). Note that even if using Facetracker, you need to check the linked guide in order to setup the `ip.txt` file.
 
@@ -28,11 +28,21 @@ I haven't tested with other programs yet, but in case it doesn't work or works w
 
 ¹ During testing, these programs worked best when running using Proton 10. You should also install the font arial.ttf by copying it from a Windows installation to the folder `[wine prefix]/drive_c/windows/Fonts/`. Your wine prefix folder will vary (the default one is at `~/.wine`).
 
-<!-- ## VTS Plugin
+## VTS Plugin
+
+**EXPERIMENTAL / WIP**
 
 Connecting directly to VTube Studio is possible, but Marmalade will (mostly) export the MediaPipe data as-is, with minimal mapping to the Live2D parameters that VTube Studio expects. It's likely you'll need to remap some parameters **and** their sensitivity.
 
-As long as you have this setting enabled, Marmalade will try to connect to VTube Studio (asking for permission if it's the first time). You can manually select if you want to send face tracking and/or hand tracking data.-->
+As long as you have this setting enabled, Marmalade will try to connect to VTube Studio (asking for permission if it's the first time). You can manually select if you want to send face tracking and/or hand tracking data.
+
+## VRChat OSC
+
+**EXPERIMENTAL / WIP**
+
+While Marmalade can send OSC data to VRChat, which can include face, hand and/or pose tracking, many of these won't have an effect unless you're in VR mode, which somewhat defeats the purpose of sending these parameters in the first place.
+
+If you are in VR mode and OSC is still not working, check to make sure your avatar is at least SDK v3 and supports facial blendshapes.
 
 ## VMC Protocol
 

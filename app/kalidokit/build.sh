@@ -1,1 +1,1 @@
-bun build main.js --compile --outfile kalidokit-bin
+deno compile --allow-read=. --allow-write=. --output kalidokit-bin main.js

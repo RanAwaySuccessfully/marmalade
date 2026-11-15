@@ -1,4 +1,4 @@
-package main
+package webcam
 
 /*
 #cgo LDFLAGS: -lv4lconvert

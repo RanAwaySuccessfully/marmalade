@@ -64,15 +64,9 @@ I have provided `build-mediapipe.sh` on the `bz-local` folder as an example but 
 
 ### KalidoKit
 
-KalidoKit is necessary for proper hand and pose tracking, on top of MediaPipe. It's a library written in JavaScript, so to build it, you'll need [Bun](https://bun.com/) installed in your system.
+KalidoKit is necessary for proper hand and pose tracking, on top of MediaPipe. It's a library written in JavaScript, so to build it, you'll need [Deno](https://deno.com/) installed in your system.
 
-Run the `build.sh` script that's located on `app/kalidokit`. Once done, the file `kalidokit-bin` will be created, which is the executable containing all of the code and a copy of the Bun runtime. Copy this file (or create a link to it) on Marmalade's main folder (the one where the `LICENSE` file exists).
-
-### FourCC
-
-The file `fourcc.json` contains a mapping file in order to bridge V4L2's encoding types with FFmpeg's. You can generate this file by running `go run -v ./app/fourcc`. You can alternatively run `go run -v ./app/fourcc -a` in order to add a few additional types that are normally passed along to v4lconvert instead, but can be used with FFmpeg.
-
-Having this as a JSON file instead of being hardcoded makes it easy for anyone to edit it. As long as you know that both V4L2 and FFmpeg support a format, and you know the relevant IDs, you can manually add it to the file and even re-distribute it.
+Run the `build.sh` script that's located on `app/kalidokit`. Once done, the file `kalidokit-bin` will be created, which is the executable containing all of the code and a copy of the Deno runtime. Copy this file (or create a link to it) on Marmalade's main folder (the one where the `LICENSE` file exists).
 
 ### FFmpeg Plugin
 
