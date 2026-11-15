@@ -1,4 +1,4 @@
-//go:build !gstreamer
+//go:build gstreamer
 
 #include <glib.h>
 #include <gst/app/gstappsink.h>

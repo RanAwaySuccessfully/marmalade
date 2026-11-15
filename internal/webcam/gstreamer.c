@@ -1,4 +1,4 @@
-//go:build !gstreamer
+//go:build gstreamer
 
 #include "gstreamer.h"
 #include "glib-object.h"
