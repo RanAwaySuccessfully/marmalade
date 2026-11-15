@@ -25,11 +25,11 @@ void mediapipe_free_img(void* mpimg_ptr) {
   MpImageFree((MpImagePtr)mpimg_ptr);
 }
 
-void set_base_options(struct BaseOptions* base_options) {
+void set_base_options(struct MpBaseOptions* base_options) {
   base_options->model_asset_buffer = NULL;
   base_options->model_asset_buffer_count = 0;
-  base_options->host_environment = HOST_ENVIRONMENT_UNKNOWN;
-  base_options->host_system = HOST_SYSTEM_LINUX;
+  base_options->host_environment = MP_HOST_ENVIRONMENT_UNKNOWN;
+  base_options->host_system = MP_HOST_SYSTEM_LINUX;
   base_options->host_version = NULL;
   base_options->ca_bundle_path = NULL;
 }

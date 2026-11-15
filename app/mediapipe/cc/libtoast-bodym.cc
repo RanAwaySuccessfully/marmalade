@@ -9,23 +9,23 @@
 
 // MAIN FUNCTIONS
 
-void mediapipe_lm_body_callback(MpStatus status, const struct HolisticLandmarkerResult* result, MpImagePtr image, int64_t timestamp_ms) {
+void mediapipe_lm_body_callback(MpStatus status, const struct MpHolisticLandmarkerResult* result, MpImagePtr image, int64_t timestamp_ms) {
   //body_landmarker_callback_external((struct HolisticLandmarkerResult*)result, (int)status, timestamp_ms);
-  MpHolisticLandmarkerCloseResult((struct HolisticLandmarkerResult*)result);
+  MpHolisticLandmarkerCloseResult((struct MpHolisticLandmarkerResult*)result);
 }
 
 void* mediapipe_lm_body_start(char* body_model_path, int delegate_opt, float confidence[7]) {
-	struct HolisticLandmarkerOptions body_landmarker_options;
+	struct MpHolisticLandmarkerOptions body_landmarker_options;
   body_landmarker_options.base_options.model_asset_path = body_model_path;
   set_base_options(&body_landmarker_options.base_options);
 
   if (delegate_opt) {
-    body_landmarker_options.base_options.delegate = (Delegate)delegate_opt;
+    body_landmarker_options.base_options.delegate = (MpDelegate)delegate_opt;
   } else {
-    body_landmarker_options.base_options.delegate = (Delegate)CPU;
+    body_landmarker_options.base_options.delegate = (MpDelegate)MP_DELEGATE_CPU;
   }
 
-  body_landmarker_options.running_mode = LIVE_STREAM;
+  body_landmarker_options.running_mode = MP_RUNNING_MODE_LIVE_STREAM;
   body_landmarker_options.output_face_blendshapes = true;
   //body_landmarker_options.output_pose_segmentation_masks = true;
   body_landmarker_options.result_callback = mediapipe_lm_body_callback;
@@ -55,7 +55,7 @@ void* mediapipe_lm_body_start(char* body_model_path, int delegate_opt, float con
 }
 
 int mediapipe_lm_body_detect(void* body_landmarker, void* mp_image, int64_t timestamp) {
-  struct ImageProcessingOptions options;
+  struct MpImageProcessingOptions options;
   options.has_region_of_interest = false;
   options.rotation_degrees = 0;
 

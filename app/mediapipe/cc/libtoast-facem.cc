@@ -9,41 +9,41 @@
 
 // ARRAY HELPERS
 
-struct Category* face_landmarker_blendshape(struct FaceLandmarkerResult* result, uint32_t index) {
+struct MpCategory* face_landmarker_blendshape(struct MpFaceLandmarkerResult* result, uint32_t index) {
   return &result->face_blendshapes[0].categories[index];
 }
 
-struct NormalizedLandmark* face_landmarker_landmark(struct FaceLandmarkerResult* result, uint32_t index) {
+struct MpNormalizedLandmark* face_landmarker_landmark(struct MpFaceLandmarkerResult* result, uint32_t index) {
   return &result->face_landmarks[0].landmarks[index];
 }
 
-struct Matrix* face_landmarker_matrix(struct FaceLandmarkerResult* result, uint32_t index) {
+struct MpMatrix* face_landmarker_matrix(struct MpFaceLandmarkerResult* result, uint32_t index) {
   return &result->facial_transformation_matrixes[index];
 }
 
-float* face_landmarker_matrix_data(struct Matrix* matrix, uint32_t index) {
+float* face_landmarker_matrix_data(struct MpMatrix* matrix, uint32_t index) {
   return &matrix->data[index];
 }
 
 // MAIN FUNCTIONS
 
-void mediapipe_lm_face_callback(MpStatus status, const struct FaceLandmarkerResult* result, MpImagePtr image, int64_t timestamp_ms) {
-  face_landmarker_callback_external((struct FaceLandmarkerResult*)result, (int)status, timestamp_ms);
-  MpFaceLandmarkerCloseResult((struct FaceLandmarkerResult*)result);
+void mediapipe_lm_face_callback(MpStatus status, const struct MpFaceLandmarkerResult* result, MpImagePtr image, int64_t timestamp_ms) {
+  face_landmarker_callback_external((struct MpFaceLandmarkerResult*)result, (int)status, timestamp_ms);
+  MpFaceLandmarkerCloseResult((struct MpFaceLandmarkerResult*)result);
 }
 
 void* mediapipe_lm_face_start(char* face_model_path, int delegate_opt, float confidence[3]) {
-	struct FaceLandmarkerOptions face_landmarker_options;
+	struct MpFaceLandmarkerOptions face_landmarker_options;
   face_landmarker_options.base_options.model_asset_path = face_model_path;
   set_base_options(&face_landmarker_options.base_options);
 
   if (delegate_opt) {
-    face_landmarker_options.base_options.delegate = (Delegate)delegate_opt;
+    face_landmarker_options.base_options.delegate = (MpDelegate)delegate_opt;
   } else {
-    face_landmarker_options.base_options.delegate = (Delegate)CPU;
+    face_landmarker_options.base_options.delegate = (MpDelegate)MP_DELEGATE_CPU;
   }
 
-  face_landmarker_options.running_mode = LIVE_STREAM;
+  face_landmarker_options.running_mode = MP_RUNNING_MODE_LIVE_STREAM;
   face_landmarker_options.output_face_blendshapes = true;
   face_landmarker_options.output_facial_transformation_matrixes = true;
   face_landmarker_options.num_faces = 1;
@@ -74,7 +74,7 @@ void* mediapipe_lm_face_start(char* face_model_path, int delegate_opt, float con
 }
 
 int mediapipe_lm_face_detect(void* face_landmarker, void* mp_image, int64_t timestamp) {
-  struct ImageProcessingOptions options;
+  struct MpImageProcessingOptions options;
   options.has_region_of_interest = false;
   options.rotation_degrees = 0;
 

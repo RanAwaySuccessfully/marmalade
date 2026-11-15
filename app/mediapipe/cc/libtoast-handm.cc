@@ -9,49 +9,49 @@
 
 // ARRAY HELPERS
 
-uint32_t* hand_landmarker_handedness_count(struct HandLandmarkerResult* result, uint32_t hand) {
+uint32_t* hand_landmarker_handedness_count(struct MpHandLandmarkerResult* result, uint32_t hand) {
   return &result->handedness[hand].categories_count;
 }
 
-uint32_t* hand_landmarker_landmark_count(struct HandLandmarkerResult* result, uint32_t hand) {
+uint32_t* hand_landmarker_landmark_count(struct MpHandLandmarkerResult* result, uint32_t hand) {
   return &result->hand_landmarks[hand].landmarks_count;
 }
 
-uint32_t* hand_landmarker_world_landmark_count(struct HandLandmarkerResult* result, uint32_t hand) {
+uint32_t* hand_landmarker_world_landmark_count(struct MpHandLandmarkerResult* result, uint32_t hand) {
   return &result->hand_world_landmarks[hand].landmarks_count;
 }
 
-struct Category* hand_landmarker_handedness(struct HandLandmarkerResult* result, uint32_t hand, uint32_t index) {
+struct MpCategory* hand_landmarker_handedness(struct MpHandLandmarkerResult* result, uint32_t hand, uint32_t index) {
   return &result->handedness[hand].categories[index];
 }
 
-struct NormalizedLandmark* hand_landmarker_landmark(struct HandLandmarkerResult* result, uint32_t hand, uint32_t index) {
+struct MpNormalizedLandmark* hand_landmarker_landmark(struct MpHandLandmarkerResult* result, uint32_t hand, uint32_t index) {
   return &result->hand_landmarks[hand].landmarks[index];
 }
 
-struct Landmark* hand_landmarker_world_landmark(struct HandLandmarkerResult* result, uint32_t hand, uint32_t index) {
+struct MpLandmark* hand_landmarker_world_landmark(struct MpHandLandmarkerResult* result, uint32_t hand, uint32_t index) {
   return &result->hand_world_landmarks[hand].landmarks[index];
 }
 
 // MAIN FUNCTIONS
 
-void mediapipe_lm_hand_callback(MpStatus status, const struct HandLandmarkerResult* result, MpImagePtr image, int64_t timestamp_ms) {
-  hand_landmarker_callback_external((struct HandLandmarkerResult*)result, (int)status, timestamp_ms);
-  MpHandLandmarkerCloseResult((struct HandLandmarkerResult*)result);
+void mediapipe_lm_hand_callback(MpStatus status, const struct MpHandLandmarkerResult* result, MpImagePtr image, int64_t timestamp_ms) {
+  hand_landmarker_callback_external((struct MpHandLandmarkerResult*)result, (int)status, timestamp_ms);
+  MpHandLandmarkerCloseResult((struct MpHandLandmarkerResult*)result);
 }
 
 void* mediapipe_lm_hand_start(char* hand_model_path, int delegate_opt, float confidence[3]) {
-	struct HandLandmarkerOptions hand_landmarker_options;
+	struct MpHandLandmarkerOptions hand_landmarker_options;
   hand_landmarker_options.base_options.model_asset_path = hand_model_path;
   set_base_options(&hand_landmarker_options.base_options);
 
   if (delegate_opt) {
-    hand_landmarker_options.base_options.delegate = (Delegate)delegate_opt;
+    hand_landmarker_options.base_options.delegate = (MpDelegate)delegate_opt;
   } else {
-    hand_landmarker_options.base_options.delegate = (Delegate)CPU;
+    hand_landmarker_options.base_options.delegate = (MpDelegate)MP_DELEGATE_CPU;
   }
 
-  hand_landmarker_options.running_mode = LIVE_STREAM;
+  hand_landmarker_options.running_mode = MP_RUNNING_MODE_LIVE_STREAM;
   hand_landmarker_options.num_hands = 2;
   hand_landmarker_options.result_callback = mediapipe_lm_hand_callback;
 
@@ -80,7 +80,7 @@ void* mediapipe_lm_hand_start(char* hand_model_path, int delegate_opt, float con
 }
 
 int mediapipe_lm_hand_detect(void* hand_landmarker, void* mp_image, int64_t timestamp) {
-  struct ImageProcessingOptions options;
+  struct MpImageProcessingOptions options;
   options.has_region_of_interest = false;
   options.rotation_degrees = 0;
 

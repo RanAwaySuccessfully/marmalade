@@ -9,41 +9,41 @@
 
 // ARRAY HELPERS
 
-uint32_t* pose_landmarker_landmark_count(struct PoseLandmarkerResult* result) {
+uint32_t* pose_landmarker_landmark_count(struct MpPoseLandmarkerResult* result) {
   return &result->pose_landmarks[0].landmarks_count;
 }
 
-uint32_t* pose_landmarker_world_landmark_count(struct PoseLandmarkerResult* result) {
+uint32_t* pose_landmarker_world_landmark_count(struct MpPoseLandmarkerResult* result) {
   return &result->pose_landmarks[0].landmarks_count;
 }
 
-struct NormalizedLandmark* pose_landmarker_landmark(struct PoseLandmarkerResult* result, uint32_t index) {
+struct MpNormalizedLandmark* pose_landmarker_landmark(struct MpPoseLandmarkerResult* result, uint32_t index) {
   return &result->pose_landmarks[0].landmarks[index];
 }
 
-struct Landmark* pose_landmarker_world_landmark(struct PoseLandmarkerResult* result, uint32_t index) {
+struct MpLandmark* pose_landmarker_world_landmark(struct MpPoseLandmarkerResult* result, uint32_t index) {
   return &result->pose_world_landmarks[0].landmarks[index];
 }
 
 // MAIN FUNCTIONS
 
-void mediapipe_lm_pose_callback(MpStatus status, const struct PoseLandmarkerResult* result, MpImagePtr image, int64_t timestamp_ms) {
-  pose_landmarker_callback_external((struct PoseLandmarkerResult*)result, (int)status, timestamp_ms);
-  MpPoseLandmarkerCloseResult((struct PoseLandmarkerResult*)result);
+void mediapipe_lm_pose_callback(MpStatus status, const struct MpPoseLandmarkerResult* result, MpImagePtr image, int64_t timestamp_ms) {
+  pose_landmarker_callback_external((struct MpPoseLandmarkerResult*)result, (int)status, timestamp_ms);
+  MpPoseLandmarkerCloseResult((struct MpPoseLandmarkerResult*)result);
 }
 
 void* mediapipe_lm_pose_start(char* pose_model_path, int delegate_opt, float confidence[3]) {
-	struct PoseLandmarkerOptions pose_landmarker_options;
+	struct MpPoseLandmarkerOptions pose_landmarker_options;
   pose_landmarker_options.base_options.model_asset_path = pose_model_path;
   set_base_options(&pose_landmarker_options.base_options);
 
   if (delegate_opt) {
-    pose_landmarker_options.base_options.delegate = (Delegate)delegate_opt;
+    pose_landmarker_options.base_options.delegate = (MpDelegate)delegate_opt;
   } else {
-    pose_landmarker_options.base_options.delegate = (Delegate)CPU;
+    pose_landmarker_options.base_options.delegate = (MpDelegate)MP_DELEGATE_CPU;
   }
 
-  pose_landmarker_options.running_mode = LIVE_STREAM;
+  pose_landmarker_options.running_mode = MP_RUNNING_MODE_LIVE_STREAM;
   pose_landmarker_options.num_poses = 1;
   //pose_landmarker_options.output_segmentation_masks = true;
   pose_landmarker_options.result_callback = mediapipe_lm_pose_callback;
@@ -69,7 +69,7 @@ void* mediapipe_lm_pose_start(char* pose_model_path, int delegate_opt, float con
 }
 
 int mediapipe_lm_pose_detect(void* pose_landmarker, void* mp_image, int64_t timestamp) {
-  struct ImageProcessingOptions options;
+  struct MpImageProcessingOptions options;
   options.has_region_of_interest = false;
   options.rotation_degrees = 0;
 
